@@ -298,6 +298,12 @@ class ModelSelector:
         return self._fallback
 
     @property
+    def primary_route(self) -> ModelRoute | None:
+        """The generative route, or None when none is configured."""
+
+        return self._primary
+
+    @property
     def routing_mode(self) -> str:
         """`pinned` only when every routed task is fixed.
 

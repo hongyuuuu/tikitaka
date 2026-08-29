@@ -40,8 +40,6 @@ class SessionState:
     mode_confidence: float = 0.0
     intent_version: int = 1
     generality: float = 0.0
-    active_query_summary: str = ""
-
     _constraints: dict[str, list[Constraint]] = field(default_factory=dict)
     constraint_history: list[Constraint] = field(default_factory=list)
     _no_preference: set[str] = field(default_factory=set)

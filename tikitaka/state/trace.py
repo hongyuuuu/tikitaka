@@ -34,6 +34,28 @@ _SECRET_PATTERNS = (
 REDACTED = "[redacted]"
 
 
+def describe_query(state: "SessionState") -> str:
+    """Render the active constraint set as a stable one-line summary.
+
+    Derived rather than stored. `SessionState.active_query_summary` existed as a
+    field that nothing ever wrote, so every trace carried an empty string where
+    the query should have been; computing it here keeps the trace self-sufficient
+    and leaves the read-only state genuinely read-only.
+    """
+
+    parts = []
+    for constraint in state.active_constraints:
+        polarity = "" if str(constraint.polarity) == "include" else "-"
+        marker = "!" if str(constraint.strength) == "hard" else ""
+        parts.append(
+            f"{polarity}{str(constraint.attribute)}{marker}="
+            f"{str(constraint.normalized_value)}"
+        )
+    for attribute in sorted(str(item) for item in state.no_preference):
+        parts.append(f"~{attribute}")
+    return " ".join(parts)
+
+
 def redact(text: str) -> str:
     """Strip anything shaped like a credential from free text."""
 
@@ -57,6 +79,8 @@ class TurnTrace:
     exhausted_attributes: tuple[str, ...] = ()
     query_summary: str = ""
     route_id: str = ""
+    route_reason: str = ""
+    routing_mode: str = ""
     used_fallback: bool = False
     failure: str = ""
     prompt_tokens: int = 0
@@ -78,6 +102,8 @@ def capture(
     *,
     usage: Usage | None = None,
     route_id: str = "",
+    route_reason: str = "",
+    routing_mode: str = "",
     used_fallback: bool = False,
     failure: str = "",
 ) -> TurnTrace:
@@ -109,8 +135,10 @@ def capture(
         exhausted_attributes=tuple(
             sorted(str(item) for item in state.exhausted_attributes)
         ),
-        query_summary=state.active_query_summary,
+        query_summary=describe_query(state),
         route_id=route_id,
+        route_reason=route_reason,
+        routing_mode=routing_mode,
         used_fallback=used_fallback,
         failure=redact(failure)[:200],
         prompt_tokens=usage.prompt_tokens,
@@ -137,8 +165,16 @@ def write_jsonl(path: str | Path, traces: Iterable[TurnTrace]) -> Path:
 def summarize(traces: Sequence[TurnTrace]) -> dict:
     """Aggregate one session's cost and route behaviour for the report."""
 
+    reasons: dict[str, int] = {}
+    for item in traces:
+        if item.route_reason:
+            reasons[item.route_reason] = reasons.get(item.route_reason, 0) + 1
     return {
         "turns": len(traces),
+        "route_reasons": dict(sorted(reasons.items())),
+        "routing_mode": next(
+            (item.routing_mode for item in traces if item.routing_mode), ""
+        ),
         "final_intent_version": traces[-1].intent_version if traces else 1,
         "prompt_tokens": sum(item.prompt_tokens for item in traces),
         "completion_tokens": sum(item.completion_tokens for item in traces),
@@ -155,6 +191,7 @@ __all__ = [
     "REDACTED",
     "TurnTrace",
     "capture",
+    "describe_query",
     "redact",
     "summarize",
     "write_jsonl",
