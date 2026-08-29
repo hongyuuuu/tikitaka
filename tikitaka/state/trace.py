@@ -9,6 +9,7 @@ to paste into a report or a submission appendix.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Iterable, Sequence
@@ -21,6 +22,24 @@ FORBIDDEN_KEYS = frozenset(
     {"ground_truth", "scenario_type", "intent_card", "behavior",
      "category_bucket", "difficulty_bucket"}
 )
+
+# Defence in depth. Our own transport never echoes a credential, but a future
+# provider error, a proxy, or a dependency's exception text might, and a trace
+# is written to disk and pasted into reports.
+_SECRET_PATTERNS = (
+    re.compile(r"\b(?:sk|rk|pk)-[A-Za-z0-9_-]{8,}"),
+    re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/-]{8,}=*"),
+    re.compile(r"(?i)\b(?:api[_-]?key|authorization|token)\b\s*[:=]\s*\S+"),
+)
+REDACTED = "[redacted]"
+
+
+def redact(text: str) -> str:
+    """Strip anything shaped like a credential from free text."""
+
+    for pattern in _SECRET_PATTERNS:
+        text = pattern.sub(REDACTED, text)
+    return text
 
 
 @dataclass(frozen=True)
@@ -93,7 +112,7 @@ def capture(
         query_summary=state.active_query_summary,
         route_id=route_id,
         used_fallback=used_fallback,
-        failure=failure[:200],
+        failure=redact(failure)[:200],
         prompt_tokens=usage.prompt_tokens,
         completion_tokens=usage.completion_tokens,
         reasoning_tokens=usage.reasoning_tokens,
@@ -131,4 +150,12 @@ def summarize(traces: Sequence[TurnTrace]) -> dict:
     }
 
 
-__all__ = ["FORBIDDEN_KEYS", "TurnTrace", "capture", "summarize", "write_jsonl"]
+__all__ = [
+    "FORBIDDEN_KEYS",
+    "REDACTED",
+    "TurnTrace",
+    "capture",
+    "redact",
+    "summarize",
+    "write_jsonl",
+]
