@@ -19,6 +19,12 @@ from .phrasing import (
     recommendation_message,
 )
 from .response_policy import DecisionRecord, ResponsePolicy, ResponsePolicyConfig
+from .tuning import (
+    PHASE4_ARM_VERSION,
+    Phase4ExperimentArm,
+    phase4_arm,
+    phase4_experiment_arms,
+)
 
 __all__ = [
     "AttributeQuestionValue",
@@ -33,6 +39,8 @@ __all__ = [
     "LLMClarifierConfig",
     "TextModelClarificationModel",
     "ModePolicyConfig",
+    "PHASE4_ARM_VERSION",
+    "Phase4ExperimentArm",
     "QuestionValueConfig",
     "QuestionValueEstimator",
     "QuestionValueResult",
@@ -42,5 +50,7 @@ __all__ = [
     "clarification_message",
     "build_clarification_prompt",
     "diagnose_pool",
+    "phase4_arm",
+    "phase4_experiment_arms",
     "recommendation_message",
 ]
