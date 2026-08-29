@@ -12,9 +12,9 @@ does not transfer file ownership.
 | Owner | Scope | Status | Reviewing commit | Notes |
 |---|---|---|---|---|
 | Person 1 | Models, state, query construction, usage | acknowledged with requested changes | `f0dd286` | Sufficient to start P1/P2. Three blocking changes before `0.1.0` freezes; see Person 1 review responses below. |
-| Person 2 | Catalog, retrieval, evidence, index identity | pending | — | — |
+| Person 2 | Catalog, retrieval, evidence, index identity | acknowledged without further changes | `901478a` | Accepts the full proposal and every Person 1/3 requested change affecting retrieval; review responses and obligations are recorded below. |
 | Person 3 | Decision policy, reranking, diagnostics | acknowledged with requested changes | `143c7d4` | Sufficient to start P1/P2. Candidate diagnostics and decision semantics must be settled before `0.1.0` freezes; see Person 3 review responses below. |
-| Person 4 | Contracts, orchestration, evaluation boundary | proposed | `3db9434` | Awaiting affected-owner review |
+| Person 4 | Contracts, orchestration, evaluation boundary | proposed | `3db9434` | All affected-owner reviews are recorded; Person 4 must resolve requested changes and freeze the contract. |
 
 ## Coordination checklist
 
@@ -29,9 +29,10 @@ does not transfer file ownership.
 - [ ] Fake implementation obligations accepted by every owner.
 - [ ] Contract version `0.1.0` approved for P1 implementation.
 
-Person 1 has not ticked any box unilaterally. Every remaining item needs either
-Person 4's decision on the requested changes or acknowledgment from Persons 2
-and 3. Person 1's own positions on each are recorded below.
+Person 1 has not ticked any box unilaterally. Persons 1, 2, and 3 have now
+recorded their acknowledgments and positions below. Every remaining global
+checklist item requires Person 4's decision on the requested changes and final
+contract update.
 
 ## Person 1 review responses
 
@@ -295,6 +296,114 @@ reranker outputs covering duplicates, hallucinated IDs, omitted IDs, malformed
 structured output, timeout, and raised exception. Unit tests require neither a
 network nor the full catalog.
 
+## Person 2 review responses
+
+Reviewing commit: `901478a`. Person 2 build plan:
+`docs/ROLE2_BUILD_PLAN.md`.
+
+The complete `0.1.0` proposal is acknowledged without further requested
+changes from Person 2. This acknowledgment also accepts every Person 1 and
+Person 3 requested change currently recorded in this document. Those changes
+make the retrieval boundary safer and more explicit; Person 2 does not require
+Person 4 to preserve the superseded draft field shapes when landing the shared
+contract.
+
+### Answers to the Person 2 review questions
+
+**What exact evidence and route diagnostics are required on `Candidate`?**
+Each candidate needs its catalog-valid `parent_asin`, sparse and dense ranks and
+scores when present, structural and fused scores, matched fields, supporting
+snippets, tri-state constraint outcomes, normalized attribute values, evidence
+reliability, unknown fields, and route/model/index identifiers. Profile
+contribution remains separately identifiable from explicit dialogue evidence.
+Pool-level concentration, route overlap, rank margins, attribute distributions,
+and Top-10 stability may be derived from the candidate sequence by Person 3 and
+do not need to become mutable catalog or session state.
+
+Person 2 accepts Person 3's requested additions to `ProductEvidence`:
+`attribute_values: Mapping[str, tuple[object, ...]]` and
+`evidence_reliability: Mapping[str, float]`, with reliability normalized to
+`[0.0, 1.0]`.
+
+**What stable tie-break rule will retrieval expose?** Candidates sort by fused
+score descending, then structural score descending, then best available route
+rank ascending, then sparse rank ascending, then dense rank ascending, and
+finally `parent_asin` ascending. A missing rank sorts after every present rank.
+The full rule is deterministic configuration and will have an exact-order unit
+test. Person 3 may rerank the returned shortlist but cannot introduce IDs.
+
+**Which index identity fields belong in `SearchPlan` versus the index
+manifest?** Person 2 accepts Person 1's proposed `SearchPlan` fields:
+`text_query`, `must_terms`, `should_terms`, `exclude_terms`, `filters`,
+`attribute_values`, `mode`, `intent_version`, `revalidation_flags`,
+`no_preference`, and `profile_bias`. The plan additionally carries the selected
+route policy or pin, `embedding_route_id`, and `index_id` when dense retrieval
+is selected. The immutable index manifest owns catalog checksum and row count,
+ordered-ID checksum, product-text schema version, provider/model/route identity,
+dimension, vector dtype, normalization, document count, artifact format, build
+time, and artifact checksums. Retrieval fails closed if the plan's selected
+identity does not match the loaded manifest.
+
+**Which structured values need an explicit unknown state?** Every supported
+constraint attribute needs tri-state evidence: `match`, `contradiction`, or
+`unknown`. That includes category, material, color, size, style, brand, budget,
+feature, use case, and `other`. Missing metadata is always `unknown`, never an
+implicit contradiction. In particular, missing price cannot fail a budget
+constraint, and an exclusion contradicts a product only when reliable positive
+evidence identifies the excluded value.
+
+### Responses to Person 1 and Person 3 requested changes
+
+Person 2 acknowledges and accepts all currently recorded changes:
+
+- add `polarity`, `strength`, and `confidence` to `StateOperation`;
+- add normalized value, intent version, lifecycle status, and category
+  dependency to `Constraint`;
+- have `StateReducer.apply` take and return concrete Person 1-owned
+  `SessionState`, while consumers receive a read-only `SessionStateView`;
+- reject an invalid state operation individually and record
+  `rejected_operations` and `schema_version` on `StateDelta`;
+- add call, repair, reasoning-token, and cache metadata to provider-neutral
+  `Usage`, with explicit cost currency and units;
+- add normalized attribute values and evidence reliability to
+  `ProductEvidence`;
+- normalize `expected_information_gain` to `[0.0, 1.0]` and add Person 3's
+  closed `reason_code` enum to `TurnDecision`.
+
+### All-owner acknowledgments
+
+- Mutual-exclusion action invariant (DG-01): acknowledged. `CLARIFY` returns
+  one allowed attribute and no recommendations; `RECOMMEND` returns catalog
+  recommendations and `ask_attribute = null`.
+- Catalog-valid, shortlist-only reranking: acknowledged. Retrieval returns
+  unique validated catalog IDs, and no reranker may add a product ID.
+- Label-free participant runtime boundary: acknowledged. Person 2 modules never
+  receive or read `ground_truth`, `scenario_type`, public labels, hidden intent
+  cards, or evaluator internals.
+- Session isolation and profile boundary: acknowledged. Retrieval has no
+  cross-session memory, and profile input is a separate soft, decaying signal
+  that never overrides explicit dialogue.
+- Missing-metadata safeguard: acknowledged. Unknown evidence is neutral and
+  cannot silently remove a valid target.
+- Embedding/index identity: acknowledged. A query embedding is searched only
+  against the index built by its matching embedding route.
+- No cross-ownership import is required if retrieval consumes shared immutable
+  contracts and provider-neutral embedding interfaces.
+
+### Ownership and obligations
+
+Person 2 claims `tikitaka/retrieval/`, retrieval preprocessing/index scripts,
+`tests/test_catalog.py`, `tests/test_retrieval_text.py`,
+`tests/test_structured_retrieval.py`, `tests/test_sparse_retrieval.py`,
+`tests/test_dense_retrieval.py`, `tests/test_fusion.py`,
+`tests/test_hybrid_retrieval.py`, and Role 2 catalog/retrieval fixtures.
+
+Fake obligation accepted: a tiny synthetic catalog, deterministic fake
+embedder, sparse/dense/structured route fixtures, a manifest mismatch fixture,
+and faulty-route cases covering empty results, duplicate/invalid IDs, missing
+metadata, query/index mismatch, timeout, and raised exception. Unit tests will
+require neither network access nor the full catalog.
+
 ## Change log
 
 Record review-driven changes here before freezing the contract.
@@ -310,3 +419,4 @@ Record review-driven changes here before freezing the contract.
 | 2026-08-29 | Person 1 | Concrete `SearchPlan` field names for Person 2 review | Persons 1, 2, 4 | proposed |
 | 2026-08-29 | Person 3 | Add normalized `attribute_values` and `evidence_reliability` to `ProductEvidence` | Persons 2, 3, 4 | requested |
 | 2026-08-29 | Person 3 | Normalize `expected_information_gain` to `[0, 1]` and add machine-readable `reason_code` | Persons 3, 4 | requested |
+| 2026-08-29 | Person 2 | Acknowledge the full `0.1.0` proposal and every recorded Person 1/3 requested change affecting retrieval | Persons 1–4 | acknowledged |

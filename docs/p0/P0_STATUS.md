@@ -33,10 +33,10 @@ Owner: Person 4
 
 ## Blocked or awaiting people
 
-- [ ] Confirm branch/file ownership with Persons 1, 2, and 3.
-- [ ] Obtain Person 1 acknowledgment of the model/state-facing contracts.
-- [ ] Obtain Person 2 acknowledgment of the retrieval-facing contracts.
-- [ ] Obtain Person 3 acknowledgment of the decision/ranking-facing contracts.
+- [x] Confirm branch/file ownership with Persons 1, 2, and 3.
+- [x] Obtain Person 1 acknowledgment of the model/state-facing contracts.
+- [x] Obtain Person 2 acknowledgment of the retrieval-facing contracts.
+- [x] Obtain Person 3 acknowledgment of the decision/ranking-facing contracts.
 - [ ] Resolve review comments and mark contract version `0.1.0` accepted.
 
 ## Baseline reproduction
@@ -71,8 +71,9 @@ other owners need to provision the catalog.
 ## P0 exit decision
 
 P0 is **not yet closed**. All machine-verifiable local baseline work is
-complete. The remaining exit gate is acknowledgment from all affected
-workstream owners, including confirmation of branch and file ownership.
+complete, and Persons 1, 2, and 3 have acknowledged their affected interfaces
+and confirmed ownership. The remaining exit gate is Person 4's resolution of
+the recorded review changes and final acceptance of contract version `0.1.0`.
 
 P1 scaffolding may be prepared in parallel, but shared contracts must not be
 declared frozen or merged as final until those conditions are satisfied.
