@@ -8,9 +8,10 @@ import hashlib
 import importlib
 import json
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import asdict, replace
 from pathlib import Path
+from typing import Mapping, Sequence
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -79,6 +80,129 @@ def _take_usage(embedder: object | None) -> Usage | None:
     return usage
 
 
+def _mean(values: Sequence[float]) -> float:
+    return sum(values) / len(values) if values else 0.0
+
+
+def _summarize_diagnostics(records: Sequence[Mapping[str, object]]) -> dict[str, object]:
+    """Aggregate route evidence without mixing it into retrieval scoring."""
+
+    candidate_fields = (
+        "sparse_candidates",
+        "dense_candidates",
+        "fused_candidates",
+        "hard_filtered_candidates",
+        "returned_candidates",
+    )
+    candidate_means = {
+        name: _mean([float(record[name]) for record in records])
+        for name in candidate_fields
+    }
+    overlap_depths = sorted(
+        {
+            int(depth)
+            for record in records
+            for depth in record.get("route_overlap", {})
+        }
+    )
+    overlap_means = {
+        str(depth): _mean(
+            [
+                float(record.get("route_overlap", {}).get(depth, 0))
+                for record in records
+            ]
+        )
+        for depth in overlap_depths
+    }
+    overlap_rates = {
+        str(depth): _mean(
+            [
+                (
+                    float(record.get("route_overlap", {}).get(depth, 0)) / denominator
+                    if (
+                        denominator := min(
+                            depth,
+                            int(record["sparse_candidates"]),
+                            int(record["dense_candidates"]),
+                        )
+                    )
+                    else 0.0
+                )
+                for record in records
+            ]
+        )
+        for depth in overlap_depths
+    }
+    timing_names = sorted(
+        {
+            str(name)
+            for record in records
+            for name in record.get("route_timings_ms", {})
+        }
+    )
+    timing_means = {
+        name: _mean(
+            [
+                float(record.get("route_timings_ms", {}).get(name, 0.0))
+                for record in records
+            ]
+        )
+        for name in timing_names
+    }
+    return {
+        "case_count": len(records),
+        "mean_candidate_counts": candidate_means,
+        "mean_route_overlap_count": overlap_means,
+        "mean_route_overlap_rate": overlap_rates,
+        "mean_route_timings_ms": timing_means,
+    }
+
+
+def _diagnostic_report(cases, records: Sequence[Mapping[str, object]]) -> dict[str, object]:
+    if len(cases) != len(records):
+        raise RuntimeError("retrieval diagnostics must contain exactly one record per case")
+    indexed = tuple(zip(cases, records))
+    splits: dict[str, object] = {}
+    for split in sorted({case.split for case in cases}):
+        split_records = [record for case, record in indexed if case.split == split]
+        scenario_records: dict[str, list[Mapping[str, object]]] = defaultdict(list)
+        for case, record in indexed:
+            if case.split == split:
+                scenario_records[case.scenario].append(record)
+        splits[split] = {
+            "overall": _summarize_diagnostics(split_records),
+            "scenarios": {
+                scenario: _summarize_diagnostics(items)
+                for scenario, items in sorted(scenario_records.items())
+            },
+        }
+    return {"splits": splits}
+
+
+def _sparse_diagnostic_record(diagnostics) -> dict[str, object]:
+    return {
+        "sparse_candidates": diagnostics.sparse_candidates,
+        "dense_candidates": 0,
+        "fused_candidates": diagnostics.sparse_candidates,
+        "hard_filtered_candidates": diagnostics.hard_filtered_candidates,
+        "returned_candidates": diagnostics.returned_candidates,
+        "route_overlap": {},
+        "route_timings_ms": {"total": diagnostics.elapsed_ms},
+    }
+
+
+def _hybrid_diagnostic_record(diagnostics) -> dict[str, object]:
+    return {
+        "sparse_candidates": diagnostics.sparse_candidates,
+        "dense_candidates": diagnostics.dense_candidates,
+        "fused_candidates": diagnostics.fused_candidates,
+        "hard_filtered_candidates": diagnostics.hard_filtered_candidates,
+        "returned_candidates": diagnostics.returned_candidates,
+        "route_overlap": dict(diagnostics.route_overlap),
+        "route_timings_ms": dict(diagnostics.route_timings_ms),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cases", type=Path, required=True)
@@ -124,8 +248,12 @@ def main() -> int:
     try:
         for route in arguments.routes:
             _take_usage(embedder)
+            diagnostic_records: list[dict[str, object]] = []
             if route == "sparse":
-                search = lambda request, limit: sparse.search(request, limit)
+                def search(request, limit):
+                    result = sparse.retrieve(request, limit=limit)
+                    diagnostic_records.append(_sparse_diagnostic_record(result.diagnostics))
+                    return [contract_candidate(hit) for hit in result.hits]
             else:
                 assert hybrid is not None and dense_index is not None
                 executed_counts: Counter[str] = Counter()
@@ -143,6 +271,7 @@ def main() -> int:
                         index_id=dense_index.manifest.index_id,
                     )
                     result = hybrid.retrieve(pinned, limit=limit)
+                    diagnostic_records.append(_hybrid_diagnostic_record(result.diagnostics))
                     executed_counts[result.diagnostics.executed_route] += 1
                     failure_counts.update(result.diagnostics.route_failures)
                     return [contract_candidate(hit) for hit in result.hits]
@@ -156,6 +285,9 @@ def main() -> int:
             route_usage = _take_usage(embedder)
             results[route]["embedding_usage"] = (
                 None if route_usage is None else embedding_usage_as_dict(route_usage)
+            )
+            results[route]["retrieval_diagnostics"] = _diagnostic_report(
+                cases, diagnostic_records
             )
             if route_usage is not None:
                 total_usage = (
@@ -196,7 +328,7 @@ def main() -> int:
         cumulative = getattr(embedder, "usage", None)
         usage = cumulative if isinstance(cumulative, Usage) else None
     payload = {
-        "benchmark_schema_version": "retrieval-benchmark-v1",
+        "benchmark_schema_version": "retrieval-benchmark-v2",
         "case_file": str(arguments.cases),
         "case_file_sha256": _sha256(arguments.cases),
         "catalog_checksum": catalog.identity.source_sha256,

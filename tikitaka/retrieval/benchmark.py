@@ -213,6 +213,22 @@ def load_retrieval_benchmark_cases(
     splits = {case.split for case in cases}
     if require_both_splits and splits != ALLOWED_SPLITS:
         raise BenchmarkValidationError("benchmark must contain tuning and heldout cases")
+    targets_by_split = {
+        split: {case.target_parent_asin for case in cases if case.split == split}
+        for split in splits
+    }
+    if ALLOWED_SPLITS.issubset(targets_by_split):
+        leaked_targets = targets_by_split["tuning"].intersection(
+            targets_by_split["heldout"]
+        )
+        if leaked_targets:
+            preview = ", ".join(sorted(leaked_targets)[:5])
+            suffix = "" if len(leaked_targets) <= 5 else ", ..."
+            raise BenchmarkValidationError(
+                "benchmark target leakage across tuning and heldout splits: "
+                + preview
+                + suffix
+            )
     if require_all_scenarios_per_split:
         for split in sorted(splits):
             scenarios = {case.scenario for case in cases if case.split == split}

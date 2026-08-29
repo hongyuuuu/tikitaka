@@ -96,9 +96,10 @@ does not decide whether to ask a question.
 `scripts/benchmark_retrieval.py` compares sparse, dense, and hybrid coverage on
 a strict JSONL case file supplied by Person 4. Every split must contain Buying,
 Browsing, Intent Override, and Boundary cases, and every file must contain
-explicit `tuning` and `heldout` splits. The benchmark never derives cases from
-evaluator internals and never passes a target ID into retrieval; it compares
-the target only after a candidate pool has been returned.
+explicit `tuning` and `heldout` splits. Targets must be disjoint across those
+splits; the loader rejects cross-split leakage. The benchmark never derives
+cases from evaluator internals and never passes a target ID into retrieval; it
+compares the target only after a candidate pool has been returned.
 
 Each JSONL record uses this retrieval-only boundary:
 
@@ -136,8 +137,10 @@ python3 scripts/benchmark_retrieval.py \
 
 Reports include the case-file checksum, catalog and dense-index identities,
 complete retrieval configuration, usage, latency, overall metrics, and
-per-scenario metrics for each split. Dense or hybrid fallback fails a benchmark
-by default so a sparse fallback cannot masquerade as dense-model quality. Use
+per-scenario metrics for each split. Candidate counts, hard-filter counts,
+sparse/dense overlap, and route timings are also summarized overall and per
+scenario. Dense or hybrid fallback fails a benchmark by default so a sparse
+fallback cannot masquerade as dense-model quality. Use
 `--allow-route-degradation` only for an explicit failure-path experiment.
 
 ## Current dependency status
