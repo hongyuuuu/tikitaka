@@ -270,7 +270,8 @@ class HybridRetriever:
                 self.config.ranking,
             )
             if (
-                constraint.strength == "hard"
+                self.config.ranking.hard_filtering
+                and constraint.strength == "hard"
                 and not constraint.needs_revalidation
                 and evaluation.outcome == "contradiction"
                 and evaluation.reliability >= self.config.ranking.hard_filter_reliability

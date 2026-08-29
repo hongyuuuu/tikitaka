@@ -152,3 +152,57 @@ deliberately small deterministic semantic fixture only to prove artifact,
 compatibility, usage, fusion, fallback, and adapter behavior. Fixture results
 are not model-quality evidence and must never be reported as a production
 embedding benchmark.
+
+## M4 configuration sweeps
+
+`configs/retrieval_m4_sweep.json` is the versioned Role 2 experiment grid. It
+contains the M3 sparse baseline plus controlled variants for BM25 field
+weights, structured scoring, hard-filter versus boost-only behavior, the
+session-local profile prior, dense-only retrieval, balanced and coverage-heavy
+hybrid fusion, candidate-pool depth, mode multipliers, and automatic routing.
+
+The retrieval-only runner accepts a matching dense artifact and provider-neutral
+embedder factory:
+
+```bash
+python3 scripts/sweep_retrieval.py \
+  --spec configs/retrieval_m4_sweep.json \
+  --cases /path/to/versioned-retrieval-cases.jsonl \
+  --artifact /path/to/matching-dense-index \
+  --embedder-factory package.module:create_embedder \
+  --evidence-tier public-development \
+  --output /path/outside-the-repository/m4-retrieval-sweep.json
+```
+
+Selection is lexicographic in the project priority order: tuning Hit Rate@K,
+tuning MRR@K, mean hit rank, and then latency only as a final tie-breaker.
+Every variant must also pass the per-scenario Hit Rate guard relative to the
+declared baseline. Held-out results are reported only after the tuning choice
+and carry `used_for_selection: false`. A `fixture` run exercises all mechanics
+but deliberately returns `selected_variant_id: null`; synthetic embeddings can
+never choose the production configuration. Public-development evidence also
+requires a clean committed worktree.
+
+Until the live embedding route is merged, the five sparse variants can run
+through the complete official simulator:
+
+```bash
+python3 scripts/sweep_sparse_runtime.py \
+  --spec configs/retrieval_m4_sweep.json \
+  --catalog data/catalog.jsonl \
+  --dataset data/public_set.jsonl \
+  --output-directory /path/outside-the-repository/m4-sparse-runtime
+```
+
+That command uses Person 4's stable stratified split and experiment report
+contracts, records aggregate and per-scenario Hit Rate@10, MRR, MTTC,
+Efficiency, TechnicalScore, question counts, latency, and configuration
+fingerprints, and chooses from tuning only. Dense, hybrid, and automatic runtime
+variants remain explicitly deferred in its summary rather than being silently
+evaluated as sparse fallbacks.
+
+The sweep records the dense backend (`numpy-exact` or `python-exact`) with the
+index manifest. ANN is intentionally not another default variant: the frozen
+50,000-product catalog already runs exact cosine in memory, and the project
+prioritizes accuracy over latency. Add an ANN candidate only if production
+full-catalog timing evidence shows exact search is a material bottleneck.

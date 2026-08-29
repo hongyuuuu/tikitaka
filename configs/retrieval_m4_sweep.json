@@ -1,0 +1,89 @@
+{
+  "schema_version": "retrieval-m4-sweep-v1",
+  "baseline_variant_id": "sparse-baseline",
+  "selection_k": 10,
+  "max_scenario_hit_rate_drop": 0.0,
+  "variants": [
+    {
+      "variant_id": "sparse-baseline",
+      "route": "sparse",
+      "description": "Frozen M3 sparse and structured baseline."
+    },
+    {
+      "variant_id": "sparse-title-category-heavy",
+      "route": "sparse",
+      "description": "Increase reliable title/category evidence and reduce noisy long fields.",
+      "sparse": {
+        "title_weight": 8.0,
+        "category_weight": 5.0,
+        "feature_weight": 2.0,
+        "detail_weight": 2.0,
+        "store_weight": 1.0,
+        "description_weight": 0.5
+      }
+    },
+    {
+      "variant_id": "sparse-structured-strong",
+      "route": "sparse",
+      "description": "Increase explicit structured evidence influence while retaining safe hard filters.",
+      "ranking": {
+        "structural_weight": 0.08,
+        "hard_match_weight": 1.2,
+        "soft_match_weight": 0.4
+      }
+    },
+    {
+      "variant_id": "sparse-boost-only",
+      "route": "sparse",
+      "description": "Ablate hard contradiction removal and retain every candidate for score-only treatment.",
+      "ranking": {
+        "hard_filtering": false
+      }
+    },
+    {
+      "variant_id": "sparse-profile-soft",
+      "route": "sparse",
+      "description": "Ablate a weak session-local profile prior against weight zero.",
+      "request_profile_weight": 0.25,
+      "ranking": {
+        "max_profile_contribution": 0.01
+      }
+    },
+    {
+      "variant_id": "dense-only",
+      "route": "dense",
+      "description": "Pinned semantic retrieval without lexical fusion."
+    },
+    {
+      "variant_id": "hybrid-balanced",
+      "route": "hybrid",
+      "description": "Pinned M3 balanced sparse and dense reciprocal-rank fusion."
+    },
+    {
+      "variant_id": "hybrid-coverage",
+      "route": "hybrid",
+      "description": "Deeper semantic candidate pools with stronger browsing coverage.",
+      "candidate_limit": 200,
+      "ranking": {
+        "pool_depth": 300
+      },
+      "hybrid": {
+        "sparse_depth": 300,
+        "dense_depth": 300,
+        "fused_depth": 300,
+        "rrf_k": 80,
+        "sparse_weight": 0.9,
+        "dense_weight": 1.1,
+        "buying_sparse_multiplier": 1.2,
+        "buying_dense_multiplier": 0.8,
+        "browsing_sparse_multiplier": 0.75,
+        "browsing_dense_multiplier": 1.25
+      }
+    },
+    {
+      "variant_id": "auto-runtime",
+      "route": "auto",
+      "description": "Automatic runtime route compared against explicitly pinned routes."
+    }
+  ]
+}

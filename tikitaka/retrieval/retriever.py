@@ -29,6 +29,7 @@ class RetrievalConfig:
     rrf_k: int = 60
     structural_weight: float = 0.05
     hard_filter_reliability: float = 0.8
+    hard_filtering: bool = True
     hard_match_weight: float = 1.0
     soft_match_weight: float = 0.35
     hard_contradiction_weight: float = -1.0
@@ -55,6 +56,8 @@ class RetrievalConfig:
             raise ValueError("retrieval weights must be finite")
         if not 0.0 <= self.hard_filter_reliability <= 1.0:
             raise ValueError("hard_filter_reliability must be within [0.0, 1.0]")
+        if not isinstance(self.hard_filtering, bool):
+            raise TypeError("hard_filtering must be a bool")
         if min(
             self.structural_weight,
             self.hard_match_weight,
@@ -186,7 +189,8 @@ class SparseStructuredRetriever:
             evaluations.append(evaluation)
             structural_score += _constraint_score(constraint, evaluation, self.config)
             if (
-                constraint.strength == "hard"
+                self.config.hard_filtering
+                and constraint.strength == "hard"
                 and not constraint.needs_revalidation
                 and evaluation.outcome == "contradiction"
                 and evaluation.reliability >= self.config.hard_filter_reliability

@@ -271,6 +271,10 @@ def _metrics(observations: Sequence[RetrievalObservation], ks: tuple[int, ...]) 
     ranks = tuple(item.target_rank for item in observations)
     maximum = max(ks)
     hit_ranks = tuple(rank for rank in ranks if rank is not None and rank <= maximum)
+    hit_ranks_by_k = {
+        k: tuple(rank for rank in ranks if rank is not None and rank <= k)
+        for k in ks
+    }
     return {
         "case_count": count,
         "hit_rate_at_k": {
@@ -279,6 +283,18 @@ def _metrics(observations: Sequence[RetrievalObservation], ks: tuple[int, ...]) 
         },
         "mrr_at_k": {
             str(k): sum(1.0 / rank for rank in ranks if rank is not None and rank <= k) / count
+            for k in ks
+        },
+        "mean_rank_on_hit_at_k": {
+            str(k): (
+                sum(hit_ranks_by_k[k]) / len(hit_ranks_by_k[k])
+                if hit_ranks_by_k[k]
+                else None
+            )
+            for k in ks
+        },
+        "misses_at_k": {
+            str(k): count - len(hit_ranks_by_k[k])
             for k in ks
         },
         "mean_rank_on_hit_at_max_k": (

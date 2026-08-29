@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import sqlite3
 from dataclasses import dataclass
 from threading import RLock
@@ -24,10 +25,25 @@ class SparseIndexConfig:
 
     def __post_init__(self) -> None:
         weights = self.field_weights
+        if any(
+            isinstance(weight, bool) or not isinstance(weight, (int, float))
+            for weight in weights
+        ):
+            raise TypeError("BM25 field weights must be numeric")
+        if not all(math.isfinite(weight) for weight in weights):
+            raise ValueError("BM25 field weights must be finite")
         if any(weight < 0 for weight in weights):
             raise ValueError("BM25 field weights must be non-negative")
+        if isinstance(self.max_query_terms, bool) or not isinstance(
+            self.max_query_terms, int
+        ):
+            raise TypeError("max_query_terms must be an integer")
         if self.max_query_terms <= 0:
             raise ValueError("max_query_terms must be positive")
+        if isinstance(self.batch_size, bool) or not isinstance(
+            self.batch_size, int
+        ):
+            raise TypeError("batch_size must be an integer")
         if self.batch_size <= 0:
             raise ValueError("batch_size must be positive")
 

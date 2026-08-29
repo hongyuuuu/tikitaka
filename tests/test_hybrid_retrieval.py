@@ -5,7 +5,7 @@ from pathlib import Path
 
 from tikitaka.retrieval.catalog import load_catalog
 from tikitaka.retrieval.request import RetrievalConstraint, RetrievalRequest
-from tikitaka.retrieval.retriever import SparseStructuredRetriever
+from tikitaka.retrieval.retriever import RetrievalConfig, SparseStructuredRetriever
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "catalog_small.jsonl"
@@ -54,6 +54,25 @@ class HybridRetrievalTest(unittest.TestCase):
         identifiers = [hit.parent_asin for hit in self.retriever.search_hits(request, 10)]
         self.assertNotIn("A_HIKE", identifiers)
         self.assertIn("E_CANVAS_BOOT", identifiers)
+
+    def test_boost_only_ablation_retains_known_hard_contradictions(self) -> None:
+        request = RetrievalRequest(
+            text_query="comfortable shoes",
+            constraints=(
+                RetrievalConstraint(
+                    attribute="budget", values=(60,), strength="hard", operator="lte"
+                ),
+            ),
+        )
+        with SparseStructuredRetriever(
+            self.catalog,
+            retrieval_config=RetrievalConfig(hard_filtering=False),
+        ) as retriever:
+            result = retriever.retrieve(request, limit=10)
+
+        identifiers = [hit.parent_asin for hit in result.hits]
+        self.assertIn("A_HIKE", identifiers)
+        self.assertEqual(result.diagnostics.hard_filtered_candidates, 0)
 
     def test_profile_weight_zero_is_provably_inert(self) -> None:
         without_profile = RetrievalRequest(text_query="shoes")
