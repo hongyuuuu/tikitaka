@@ -1,38 +1,52 @@
-# P0 Owner Acknowledgments
+# P0 Owner Acknowledgments and Freeze Record
 
-Contract proposal: `docs/p0/CONTRACT_PROPOSAL.md`
+Accepted contract: `docs/p0/CONTRACT_PROPOSAL.md`
 
-Proposed version: `0.1.0`
+Frozen version: `0.1.0`
 
-Each affected owner should review the proposal, answer their review questions,
-and replace `pending` with an acknowledgment plus the reviewing commit hash.
-Acknowledgment means the interface is sufficient to begin implementation; it
-does not transfer file ownership.
+Persons 1, 2, and 3 reviewed the initial proposal and recorded their requested
+changes. Person 4 incorporated every accepted request into version `0.1.0` and
+froze it as the P1 implementation target. Acknowledgment does not transfer file
+ownership.
 
 | Owner | Scope | Status | Reviewing commit | Notes |
 |---|---|---|---|---|
-| Person 1 | Models, state, query construction, usage | acknowledged with requested changes | `f0dd286` | Sufficient to start P1/P2. Three blocking changes before `0.1.0` freezes; see Person 1 review responses below. |
-| Person 2 | Catalog, retrieval, evidence, index identity | acknowledged without further changes | `901478a` | Accepts the full proposal and every Person 1/3 requested change affecting retrieval; review responses and obligations are recorded below. |
-| Person 3 | Decision policy, reranking, diagnostics | acknowledged with requested changes | `143c7d4` | Sufficient to start P1/P2. Candidate diagnostics and decision semantics must be settled before `0.1.0` freezes; see Person 3 review responses below. |
-| Person 4 | Contracts, orchestration, evaluation boundary | proposed | `3db9434` | All affected-owner reviews are recorded; Person 4 must resolve requested changes and freeze the contract. |
+| Person 1 | Models, state, query construction, usage | acknowledged; requested changes incorporated | `143c7d4` | State, operation, reducer, and usage requests are included in `0.1.0`. |
+| Person 2 | Catalog, retrieval, evidence, index identity | acknowledged without further changes | `812a81d` | Accepted the proposal and all Person 1/3 changes affecting retrieval. |
+| Person 3 | Decision policy, reranking, diagnostics | acknowledged; requested changes incorporated | `901478a` | Evidence, information-gain, and decision-reason requests are included in `0.1.0`. |
+| Person 4 | Contracts, orchestration, evaluation boundary | accepted and frozen | `3fb4ebe` + freeze revision | Resolved ownership and mutation boundaries and froze `0.1.0` for P1. |
 
 ## Coordination checklist
 
-- [ ] Branch and primary file ownership confirmed.
-- [ ] Enum values and allowed attributes accepted.
-- [ ] State validation failure granularity settled.
-- [ ] Candidate evidence and diagnostics settled.
-- [ ] Search-plan and index identity fields settled.
-- [ ] Decision diagnostics and information-gain scale settled.
-- [ ] Usage attribution fields settled.
-- [ ] No circular dependency introduced by `SessionStateView`.
-- [ ] Fake implementation obligations accepted by every owner.
-- [ ] Contract version `0.1.0` approved for P1 implementation.
+- [x] Branch and primary file ownership confirmed.
+- [x] Enum values and allowed attributes accepted.
+- [x] State validation failure granularity settled.
+- [x] Candidate evidence and diagnostics settled.
+- [x] Search-plan and index identity fields settled.
+- [x] Decision diagnostics and information-gain scale settled.
+- [x] Usage attribution fields settled.
+- [x] No circular dependency introduced by `SessionStateView`.
+- [x] Fake implementation obligations accepted by every owner.
+- [x] Contract version `0.1.0` approved for P1 implementation.
 
-Person 1 has not ticked any box unilaterally. Persons 1, 2, and 3 have now
-recorded their acknowledgments and positions below. Every remaining global
-checklist item requires Person 4's decision on the requested changes and final
-contract update.
+Version `0.1.0` is now the implementation target. Any semantic or shape change
+after this freeze follows the versioning process in the accepted specification
+and requires acknowledgment from every affected owner.
+
+## Person 4 resolution
+
+Person 4 accepted all recorded changes and resolved the shared ownership issue
+as follows:
+
+- Person 1 owns the concrete mutable `SessionState`, state reducer, and every
+  mutation method, including asked/shown history updates.
+- Person 4 owns the registry containing isolated state instances and invokes
+  Person 1-owned methods; orchestration does not mutate state fields directly.
+- Shared consumers use a structural, read-only `SessionStateView`, so
+  `tikitaka/contracts/` does not import the concrete state implementation.
+- Invalid operations are rejected individually and counted on `StateDelta`.
+- The accepted `SearchPlan`, evidence, candidate, decision, usage, and embedding
+  shapes are defined in the frozen specification.
 
 ## Person 1 review responses
 
@@ -410,13 +424,14 @@ Record review-driven changes here before freezing the contract.
 
 | Date | Proposed by | Change | Affected owners | Status |
 |---|---|---|---|---|
-| 2026-08-29 | Person 4 | Initial P0 proposal | Persons 1–4 | pending review |
-| 2026-08-29 | Person 1 | Add `polarity`, `strength`, `confidence` to `StateOperation` | Persons 1, 3, 4 | requested |
-| 2026-08-29 | Person 1 | Add `normalized_value`, `intent_version`, `status`, `category_dependent` to `Constraint` | Persons 1, 3, 4 | requested |
-| 2026-08-29 | Person 1 | `StateReducer.apply` takes and returns concrete `SessionState`, not `SessionStateView` | Persons 1, 4 | requested |
-| 2026-08-29 | Person 1 | Add `rejected_operations`, `schema_version` to `StateDelta` | Persons 1, 4 | proposed |
-| 2026-08-29 | Person 1 | Add `calls`, `repairs`, `reasoning_tokens`, `cache_hit` to `Usage`; state cost units | Persons 1, 4 | proposed |
-| 2026-08-29 | Person 1 | Concrete `SearchPlan` field names for Person 2 review | Persons 1, 2, 4 | proposed |
-| 2026-08-29 | Person 3 | Add normalized `attribute_values` and `evidence_reliability` to `ProductEvidence` | Persons 2, 3, 4 | requested |
-| 2026-08-29 | Person 3 | Normalize `expected_information_gain` to `[0, 1]` and add machine-readable `reason_code` | Persons 3, 4 | requested |
+| 2026-08-29 | Person 4 | Initial P0 proposal | Persons 1–4 | superseded by `0.1.0` |
+| 2026-08-29 | Person 1 | Add `polarity`, `strength`, `confidence` to `StateOperation` | Persons 1, 3, 4 | incorporated in `0.1.0` |
+| 2026-08-29 | Person 1 | Add `normalized_value`, `intent_version`, `status`, `category_dependent` to `Constraint` | Persons 1, 3, 4 | incorporated in `0.1.0` |
+| 2026-08-29 | Person 1 | `StateReducer.apply` takes and returns concrete `SessionState`, not `SessionStateView` | Persons 1, 4 | incorporated in `0.1.0` |
+| 2026-08-29 | Person 1 | Add `rejected_operations`, `schema_version` to `StateDelta` | Persons 1, 4 | incorporated in `0.1.0` |
+| 2026-08-29 | Person 1 | Add `calls`, `repairs`, `reasoning_tokens`, `cache_hit` to `Usage`; state cost units | Persons 1, 4 | incorporated in `0.1.0` |
+| 2026-08-29 | Person 1 | Concrete `SearchPlan` field names for Person 2 review | Persons 1, 2, 4 | incorporated in `0.1.0` |
+| 2026-08-29 | Person 3 | Add normalized `attribute_values` and `evidence_reliability` to `ProductEvidence` | Persons 2, 3, 4 | incorporated in `0.1.0` |
+| 2026-08-29 | Person 3 | Normalize `expected_information_gain` to `[0, 1]` and add machine-readable `reason_code` | Persons 3, 4 | incorporated in `0.1.0` |
 | 2026-08-29 | Person 2 | Acknowledge the full `0.1.0` proposal and every recorded Person 1/3 requested change affecting retrieval | Persons 1–4 | acknowledged |
+| 2026-08-29 | Person 4 | Resolve reviews and freeze shared contract `0.1.0` | Persons 1–4 | accepted |
