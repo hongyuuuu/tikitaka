@@ -5,13 +5,16 @@ from pathlib import Path
 
 from tikitaka.retrieval.catalog import load_catalog
 from tikitaka.retrieval.text import (
+    DENSE_QUERY_SCHEMA_VERSION,
     PRODUCT_TEXT_SCHEMA_VERSION,
+    build_dense_query,
     build_dense_text,
     build_sparse_fields,
     fts5_expression,
     normalize_text,
     query_terms,
 )
+from tikitaka.retrieval.request import RetrievalConstraint
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "catalog_small.jsonl"
@@ -45,6 +48,28 @@ class RetrievalTextTest(unittest.TestCase):
         self.assertEqual(query_terms("I need BOOTS boots in size S"), ("need", "boots", "size", "s"))
         expression = fts5_expression(text_query='boots" OR *', should_terms=("waterproof",))
         self.assertEqual(expression, '"boots" OR "waterproof"')
+
+    def test_dense_query_contains_only_current_positive_structured_intent(self) -> None:
+        query = build_dense_query(
+            "comfortable travel shoes",
+            must_terms=("walking",),
+            should_terms=("water resistant",),
+            constraints=(
+                RetrievalConstraint("category", ("shoes",), strength="hard"),
+                RetrievalConstraint(
+                    "material",
+                    ("leather",),
+                    polarity="exclude",
+                    strength="hard",
+                ),
+                RetrievalConstraint("budget", (80,), strength="hard", operator="lte"),
+            ),
+        )
+        self.assertEqual(DENSE_QUERY_SCHEMA_VERSION, "dense_query_v1")
+        self.assertIn("QUERY: comfortable travel shoes", query)
+        self.assertIn("CONSTRAINT_CATEGORY: shoes", query)
+        self.assertIn("CONSTRAINT_BUDGET: 80", query)
+        self.assertNotIn("leather", query)
 
 
 if __name__ == "__main__":

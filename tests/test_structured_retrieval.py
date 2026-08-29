@@ -82,16 +82,43 @@ class StructuredRetrievalTest(unittest.TestCase):
             revalidation_flags=frozenset({"material"}),
             no_preference=frozenset(),
             profile_bias=SimpleNamespace(terms=("blue",), weight=0.2),
+            route_policy="hybrid",
+            embedding_route_id="embed-test-v1",
+            index_id="dense-test-v1",
         )
         request = request_from_search_plan(plan)
         self.assertEqual(request.intent_version, 2)
         self.assertEqual(request.profile_terms, ("blue",))
         self.assertEqual(request.profile_weight, 0.2)
+        self.assertEqual(request.route_policy, "hybrid")
+        self.assertEqual(request.embedding_route_id, "embed-test-v1")
+        self.assertEqual(request.index_id, "dense-test-v1")
         constraints = {item.attribute: item for item in request.constraints}
         self.assertEqual(constraints["budget"].operator, "lte")
         self.assertEqual(constraints["material"].polarity, "exclude")
         self.assertEqual(constraints["material"].strength, "soft")
         self.assertTrue(constraints["material"].needs_revalidation)
+
+    def test_no_preference_suppresses_stale_constraint_input(self) -> None:
+        plan = SimpleNamespace(
+            text_query="walking shoes",
+            must_terms=(),
+            should_terms=(),
+            exclude_terms=(),
+            filters={"color": {"value": "red"}},
+            attribute_values={"color": ("red",)},
+            mode="browsing",
+            intent_version=4,
+            revalidation_flags=frozenset(),
+            no_preference=frozenset({"color"}),
+            profile_bias=SimpleNamespace(terms=(), weight=0.0),
+            route_policy="sparse",
+            embedding_route_id=None,
+            index_id=None,
+        )
+        request = request_from_search_plan(plan)
+        self.assertEqual(request.no_preference, frozenset({"color"}))
+        self.assertFalse(any(item.attribute == "color" for item in request.constraints))
 
 
 if __name__ == "__main__":

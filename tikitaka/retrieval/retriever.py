@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -37,10 +38,33 @@ class RetrievalConfig:
     def __post_init__(self) -> None:
         if self.pool_depth <= 0 or self.rrf_k <= 0:
             raise ValueError("pool_depth and rrf_k must be positive")
+        numeric_values = (
+            self.structural_weight,
+            self.hard_filter_reliability,
+            self.hard_match_weight,
+            self.soft_match_weight,
+            self.hard_contradiction_weight,
+            self.soft_contradiction_weight,
+            self.exclude_term_penalty,
+            self.max_profile_contribution,
+        )
+        if not all(math.isfinite(value) for value in numeric_values):
+            raise ValueError("retrieval weights must be finite")
         if not 0.0 <= self.hard_filter_reliability <= 1.0:
             raise ValueError("hard_filter_reliability must be within [0.0, 1.0]")
-        if self.max_profile_contribution < 0:
-            raise ValueError("max_profile_contribution must be non-negative")
+        if min(
+            self.structural_weight,
+            self.hard_match_weight,
+            self.soft_match_weight,
+            self.max_profile_contribution,
+        ) < 0:
+            raise ValueError("retrieval boost weights must be non-negative")
+        if max(
+            self.hard_contradiction_weight,
+            self.soft_contradiction_weight,
+            self.exclude_term_penalty,
+        ) > 0:
+            raise ValueError("retrieval contradiction weights must be non-positive")
 
 
 @dataclass(frozen=True, slots=True)

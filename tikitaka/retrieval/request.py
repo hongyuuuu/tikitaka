@@ -43,8 +43,12 @@ class RetrievalRequest:
     constraints: tuple[RetrievalConstraint, ...] = ()
     mode: str = "unknown"
     intent_version: int = 1
+    no_preference: frozenset[str] = frozenset()
     profile_terms: tuple[str, ...] = ()
     profile_weight: float = 0.0
+    route_policy: str = "auto"
+    embedding_route_id: str | None = None
+    index_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.mode not in {"buying", "browsing", "unknown"}:
@@ -53,6 +57,16 @@ class RetrievalRequest:
             raise ValueError("intent_version must be positive")
         if not 0.0 <= self.profile_weight <= 1.0:
             raise ValueError("profile_weight must be within [0.0, 1.0]")
+        if self.route_policy not in {"auto", "sparse", "dense", "hybrid"}:
+            raise ValueError(f"invalid retrieval route policy: {self.route_policy}")
+        if (self.embedding_route_id is None) != (self.index_id is None):
+            raise ValueError(
+                "embedding_route_id and index_id must be provided together or both omitted"
+            )
+        for field_name in ("embedding_route_id", "index_id"):
+            value = getattr(self, field_name)
+            if value is not None and (not isinstance(value, str) or not value.strip()):
+                raise ValueError(f"{field_name} must be a non-empty string when provided")
 
 
 def _values(value: object) -> tuple[object, ...]:
@@ -128,7 +142,11 @@ def request_from_search_plan(plan: object) -> RetrievalRequest:
         "mode",
         "intent_version",
         "revalidation_flags",
+        "no_preference",
         "profile_bias",
+        "route_policy",
+        "embedding_route_id",
+        "index_id",
     )
     missing = tuple(name for name in required_fields if not hasattr(plan, name))
     if missing:
@@ -138,8 +156,11 @@ def request_from_search_plan(plan: object) -> RetrievalRequest:
     if not isinstance(attribute_values, Mapping) or not isinstance(filters, Mapping):
         raise TypeError("SearchPlan attribute_values and filters must be mappings")
     revalidation = frozenset(str(value) for value in getattr(plan, "revalidation_flags"))
+    no_preference = frozenset(str(value) for value in getattr(plan, "no_preference"))
     constraints: list[RetrievalConstraint] = []
     for attribute in ATTRIBUTE_NAMES:
+        if attribute in no_preference:
+            continue
         fallback_values = _values(attribute_values.get(attribute))
         if attribute in filters:
             constraint = _constraint_from_filter(
@@ -168,6 +189,10 @@ def request_from_search_plan(plan: object) -> RetrievalRequest:
         constraints=tuple(constraints),
         mode=str(getattr(plan, "mode")),
         intent_version=int(getattr(plan, "intent_version")),
+        no_preference=no_preference,
         profile_terms=tuple(str(value) for value in getattr(profile_bias, "terms", ())),
         profile_weight=float(getattr(profile_bias, "weight", 0.0)),
+        route_policy=str(getattr(plan, "route_policy")),
+        embedding_route_id=getattr(plan, "embedding_route_id"),
+        index_id=getattr(plan, "index_id"),
     )

@@ -192,7 +192,7 @@ def _category_evidence(product: ProductDocument) -> AttributeEvidence:
     return AttributeEvidence(
         values=unique,
         reliability=1.0 if unique else 0.0,
-        snippets=tuple(product.categories[:3]),
+        snippets=tuple(categories[:3]),
     )
 
 

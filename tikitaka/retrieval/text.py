@@ -10,6 +10,7 @@ from .catalog import ProductDocument
 
 
 PRODUCT_TEXT_SCHEMA_VERSION = "product_text_v1"
+DENSE_QUERY_SCHEMA_VERSION = "dense_query_v1"
 TOKEN_RE = re.compile(r"[a-z0-9]+", re.IGNORECASE)
 STOPWORDS = frozenset(
     {
@@ -123,6 +124,33 @@ def build_dense_text(product: ProductDocument) -> str:
         ("DESCRIPTION", _truncate(fields.description, 2_000)),
         ("PRICE", "" if product.price is None else format(product.price, "f")),
     )
+    return "\n".join(f"{label}: {value}" for label, value in sections if value)
+
+
+def build_dense_query(
+    text_query: str,
+    *,
+    must_terms: tuple[str, ...] = (),
+    should_terms: tuple[str, ...] = (),
+    constraints: tuple[object, ...] = (),
+) -> str:
+    """Build a deterministic active-intent query for the matching dense route."""
+
+    sections: list[tuple[str, str]] = [
+        ("QUERY", normalize_text(text_query)),
+        ("MUST", _join(must_terms)),
+        ("PREFER", _join(should_terms)),
+    ]
+    for constraint in constraints:
+        if str(getattr(constraint, "polarity", "include")) != "include":
+            continue
+        attribute = normalize_text(getattr(constraint, "attribute", "")).upper()
+        values = getattr(constraint, "values", ())
+        if isinstance(values, (str, bytes)):
+            values = (values,)
+        value_text = _join(tuple(str(value) for value in values))
+        if attribute and value_text:
+            sections.append((f"CONSTRAINT_{attribute}", value_text))
     return "\n".join(f"{label}: {value}" for label, value in sections if value)
 
 
