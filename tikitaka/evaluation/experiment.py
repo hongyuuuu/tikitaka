@@ -10,6 +10,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Callable, Mapping, Sequence
 
+from tikitaka.contracts import Usage
+
 from evaluator.local_evaluator import (
     MAX_TURNS,
     TOP_K,
@@ -48,6 +50,7 @@ class ExperimentConfig:
     split_version: str
     catalog_checksum: str
     code_revision: str
+    ablation_parameters: tuple[tuple[str, object], ...] = ()
 
     def __post_init__(self) -> None:
         for name in (
@@ -68,6 +71,16 @@ class ExperimentConfig:
             raise ValueError("fusion parameter names must be unique and non-empty")
         if any(not math.isfinite(value) for _, value in self.fusion_parameters):
             raise ValueError("fusion parameter values must be finite")
+        ablation_names = [name for name, _ in self.ablation_parameters]
+        if (
+            len(ablation_names) != len(set(ablation_names))
+            or any(not isinstance(name, str) or not name.strip() for name in ablation_names)
+        ):
+            raise ValueError("ablation parameter names must be unique and non-empty")
+        try:
+            json.dumps(dict(self.ablation_parameters), sort_keys=True, allow_nan=False)
+        except (TypeError, ValueError) as error:
+            raise ValueError("ablation parameters must be finite JSON values") from error
 
     def to_dict(self) -> dict:
         return {
@@ -90,6 +103,7 @@ class ExperimentConfig:
             "split_version": self.split_version,
             "catalog_checksum": self.catalog_checksum,
             "code_revision": self.code_revision,
+            "ablation_parameters": dict(self.ablation_parameters),
         }
 
     @property
@@ -143,6 +157,65 @@ def _usage_values(response: object) -> dict:
     return {name: usage[name] for name in allowed if name in usage}
 
 
+def _component_usage_events(agent: object, session_id: str, offset: int) -> tuple:
+    """Read evaluation telemetry without adding fields to the official response."""
+
+    inner = getattr(agent, "_shopping_agent", agent)
+    sessions = getattr(inner, "sessions", None)
+    usage_events = getattr(sessions, "usage_events", None)
+    if not callable(usage_events):
+        return ()
+    try:
+        events = tuple(usage_events(session_id))
+    except Exception:
+        return ()
+    return events[offset:]
+
+
+def _usage_event_values(event: object) -> tuple[str, dict[str, object]] | None:
+    usage = getattr(event, "usage", None)
+    component = getattr(event, "component", None)
+    if not isinstance(usage, Usage) or not isinstance(component, str):
+        return None
+    return _canonical_usage_values(component, usage)
+
+
+def _canonical_usage_values(component: str, usage: Usage) -> tuple[str, dict[str, object]]:
+    return component, {
+        "prompt_tokens": usage.prompt_tokens,
+        "completion_tokens": usage.completion_tokens,
+        "reasoning_tokens": usage.reasoning_tokens,
+        "calls": usage.calls,
+        "repairs": usage.repairs,
+        "latency_ms": usage.latency_ms,
+        "estimated_cost": usage.estimated_cost or 0.0,
+        "provider": usage.provider,
+        "model": usage.model,
+        "reasoning_level": usage.reasoning_level,
+        "route": usage.route,
+        "component": component,
+        "fallback_activations": int(bool(usage.route and usage.route.endswith(":fallback"))),
+    }
+
+
+def _retrieval_usage(agent: object) -> tuple[str, dict[str, object]] | None:
+    """Drain provider-neutral embedding usage from a hybrid retrieval turn."""
+
+    inner = getattr(agent, "_shopping_agent", agent)
+    retriever = getattr(inner, "_retriever", None)
+    embedder = getattr(retriever, "query_embedder", None)
+    take_usage = getattr(embedder, "take_usage", None)
+    if not callable(take_usage):
+        return None
+    try:
+        usage = take_usage()
+    except Exception:
+        return None
+    if not isinstance(usage, Usage) or (usage.calls == 0 and not usage.cache_hit):
+        return None
+    return _canonical_usage_values("retrieval", usage)
+
+
 def evaluate_samples(
     agent_factory: Callable[[], object],
     samples: Sequence[Mapping[str, object]],
@@ -160,6 +233,7 @@ def evaluate_samples(
     route_totals: dict[tuple[str, str, str, str, str], Counter] = defaultdict(Counter)
     total_agent_latency_ms = 0.0
     agent = agent_factory()
+    event_offsets: dict[str, int] = {}
 
     for sample in sorted(samples, key=lambda item: str(item["sample_id"])):
         sample_id = str(sample["sample_id"])
@@ -169,6 +243,7 @@ def evaluate_samples(
         ).hexdigest()[:24]
         # Only the documented profile snapshot crosses the reset boundary.
         agent.reset(session_id, dict(sample["user_profile"]))
+        event_offsets[session_id] = 0
         target = str(sample["ground_truth"]["parent_asin"])
         card, behavior = materialize_hidden_fields(dict(sample), dict(products))
         effective_sample = {**sample, "intent_card": card, "behavior": behavior}
@@ -199,21 +274,37 @@ def evaluate_samples(
             if isinstance(ask_attribute, str):
                 asked[ask_attribute] += 1
                 question_count += 1
-            usage = _usage_values(response)
-            numeric_names = (
-                "prompt_tokens", "completion_tokens", "reasoning_tokens", "calls", "retries",
-                "failures", "fallback_activations", "latency_ms", "estimated_cost",
+            events = _component_usage_events(agent, session_id, event_offsets[session_id])
+            event_offsets[session_id] += len(events)
+            event_values = tuple(
+                value for event in events if (value := _usage_event_values(event)) is not None
             )
-            valid_usage: dict[str, int | float] = {}
-            for name in numeric_names:
-                value = usage.get(name, 0)
-                if isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0:
-                    usage_totals[name] += value
-                    valid_usage[name] = value
-            route_key = tuple(str(usage.get(name) or "unknown") for name in (
-                "component", "route", "provider", "model", "reasoning_level"
-            ))
-            if usage:
+            retrieval_usage = _retrieval_usage(agent)
+            if retrieval_usage is not None:
+                event_values += (retrieval_usage,)
+            usage_records = (
+                event_values
+                if event_values
+                else ((str(_usage_values(response).get("component") or "unknown"), _usage_values(response)),)
+            )
+            numeric_names = (
+                "prompt_tokens", "completion_tokens", "reasoning_tokens", "calls", "repairs",
+                "retries", "failures", "fallback_activations", "latency_ms", "estimated_cost",
+            )
+            for component, usage in usage_records:
+                if not usage:
+                    continue
+                valid_usage: dict[str, int | float] = {}
+                for name in numeric_names:
+                    value = usage.get(name, 0)
+                    if isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0:
+                        usage_totals[name] += value
+                        valid_usage[name] = value
+                route_key = tuple(str(usage.get(name) or "unknown") for name in (
+                    "component", "route", "provider", "model", "reasoning_level"
+                ))
+                if route_key[0] == "unknown":
+                    route_key = (component, *route_key[1:])
                 route_totals[route_key].update(valid_usage)
 
             ranked = normalize_recommendations(response.get("recommendations"), catalog_ids)

@@ -2,10 +2,12 @@
 
 from tikitaka.evaluation.experiment import ExperimentConfig, evaluate_samples
 from tikitaka.evaluation.reporting import build_report, canonical_report_json
+from tikitaka.evaluation.p5 import P5ExperimentArm, select_release_report
 from tikitaka.evaluation.splits import SplitManifest, SplitSpec, create_split, partition_samples
 
 __all__ = [
     "ExperimentConfig",
+    "P5ExperimentArm",
     "SplitManifest",
     "SplitSpec",
     "build_report",
@@ -13,4 +15,5 @@ __all__ = [
     "create_split",
     "evaluate_samples",
     "partition_samples",
+    "select_release_report",
 ]
