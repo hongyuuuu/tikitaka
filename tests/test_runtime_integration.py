@@ -265,5 +265,56 @@ class PrimaryRuntimeIntegrationTest(unittest.TestCase):
         self.assertTrue(agent.degraded)
 
 
+class NoInformationReplyTest(unittest.TestCase):
+    """A recognised no-information reply must not become a search constraint."""
+
+    def _state_after(self, message: str) -> SessionState:
+        from tikitaka.state.session import new_session
+
+        interpreter = VisibleMessageInterpreter()
+        state = new_session("no-info", {})
+        delta, _ = interpreter.interpret(message, state)
+        return StateReducer().apply(state, delta, 1)
+
+    def test_a_spent_question_reply_adds_no_constraint(self) -> None:
+        state = self._state_after("I don't have an additional preference for style.")
+        self.assertEqual(state.active_constraints, ())
+
+    def test_a_boundary_reply_records_no_preference_not_free_text(self) -> None:
+        state = self._state_after(
+            "I don't have a preference for color; please use your judgment."
+        )
+        self.assertIn("color", state.no_preference)
+        self.assertEqual(
+            [str(item.attribute) for item in state.active_constraints], []
+        )
+
+    def test_an_unparsed_message_is_still_preserved_as_other(self) -> None:
+        # The fallback still earns its keep: free-form input that the heuristic
+        # cannot template must not collapse to an empty retrieval query.
+        state = self._state_after("something iridescent for a winter gala")
+        self.assertEqual(
+            [str(item.attribute) for item in state.active_constraints], ["other"]
+        )
+
+    def test_composite_no_information_reply_preserves_visible_requirement(
+        self,
+    ) -> None:
+        messages = (
+            "I don't have an additional preference for style, but it must be waterproof.",
+            "I need waterproof boots; I don't have an additional preference for style.",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                state = self._state_after(message)
+                self.assertEqual(
+                    [str(item.attribute) for item in state.active_constraints], ["other"]
+                )
+                self.assertEqual(
+                    state.active_constraints[0].normalized_value,
+                    message.lower(),
+                )
+
+
 if __name__ == "__main__":
     unittest.main()
