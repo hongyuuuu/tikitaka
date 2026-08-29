@@ -15,6 +15,7 @@ from tikitaka.ranking.constraints import (
     normalized_value,
     unique_candidates,
 )
+from tikitaka.ranking.deterministic import normalized_score_magnitudes
 
 
 ALLOWED_ATTRIBUTES: tuple[str, ...] = (
@@ -71,12 +72,7 @@ def _finite(value: object) -> float:
 
 def _normalized_scores(candidates: Sequence[object]) -> tuple[float, ...]:
     values = tuple(_finite(getattr(item, "fused_score", 0.0)) for item in candidates)
-    if not values:
-        return ()
-    low, high = min(values), max(values)
-    if math.isclose(low, high):
-        return tuple(0.5 for _ in values)
-    return tuple((value - low) / (high - low) for value in values)
+    return normalized_score_magnitudes(values)
 
 
 def _softmax(values: Sequence[float], temperature: float) -> tuple[float, ...]:
