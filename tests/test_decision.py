@@ -10,6 +10,7 @@ from tikitaka.decision.intent_router import VisibleModePolicy
 from tikitaka.decision.phrasing import (
     LLMClarifier,
     LLMClarifierConfig,
+    TextModelClarificationModel,
     clarification_message,
     recommendation_message,
 )
@@ -19,7 +20,8 @@ from tikitaka.decision.question_value import (
     _ranking_change,
 )
 from tikitaka.decision.response_policy import ResponsePolicy, ResponsePolicyConfig
-from tikitaka.contracts import DecisionPolicy, TurnDecision
+from tikitaka.contracts import DecisionPolicy, TurnDecision, Usage
+from tikitaka.models.base import ModelRoute
 
 
 def question_candidates(count: int = 14):
@@ -350,6 +352,87 @@ class ModeAndPhrasingTests(unittest.TestCase):
         message, usage = LLMClarifier(Model()).phrase("material", question_candidates(4))
         self.assertEqual(message.count("?"), 1)
         self.assertEqual(usage.calls, 1)
+        self.assertEqual(usage.route, "clarification_fallback")
+
+    def test_single_question_about_wrong_attribute_uses_fallback(self) -> None:
+        class Model:
+            def clarify(self, request):
+                return "Which color would you like?", Usage(calls=1)
+
+        message, usage = LLMClarifier(Model()).phrase(
+            "material", question_candidates(4)
+        )
+        self.assertIn("material", message.lower())
+        self.assertNotIn("color", message.lower())
+        self.assertEqual(usage.route, "clarification_fallback")
+
+    def test_example_substring_cannot_fake_question_grounding(self) -> None:
+        class Model:
+            def clarify(self, request):
+                return "Which brand do you prefer?", Usage(calls=1)
+
+        candidates = [
+            candidate("A", 1.0, values={"color": ("red",)}),
+            candidate("B", 0.9, values={"color": ("blue",)}),
+        ]
+        message, usage = LLMClarifier(Model()).phrase("color", candidates)
+        self.assertIn("color", message.lower())
+        self.assertNotIn("brand", message.lower())
+        self.assertEqual(usage.route, "clarification_fallback")
+
+    def test_provider_neutral_clarifier_uses_strict_grounded_schema(self) -> None:
+        class TextModel:
+            def __init__(self):
+                self.calls = []
+
+            def complete_structured(self, prompt, schema, route):
+                self.calls.append((prompt, schema, route))
+                return {"question": "Would canvas or leather suit you better?"}, Usage(
+                    prompt_tokens=9,
+                    completion_tokens=4,
+                    calls=1,
+                    provider="fake",
+                    model=route.model,
+                    reasoning_level=route.reasoning_level,
+                    route=route.route_id,
+                )
+
+        route = ModelRoute(
+            route_id="primary/gpt-5.6-terra",
+            provider="fake",
+            model="gpt-5.6-terra",
+            reasoning_level="xhigh",
+        )
+        text_model = TextModel()
+        adapter = TextModelClarificationModel(text_model, route)
+        message, usage = LLMClarifier(adapter).phrase(
+            "material", question_candidates(4)
+        )
+        prompt, schema, used_route = text_model.calls[0]
+        self.assertIn('"ask_attribute":"material"', prompt)
+        self.assertIn('"supported_examples":["canvas","leather"]', prompt)
+        self.assertFalse(schema["additionalProperties"])
+        self.assertEqual(used_route, route)
+        self.assertIn("canvas", message)
+        self.assertEqual(usage.prompt_tokens, 9)
+
+    def test_clarifier_failure_preserves_billed_usage(self) -> None:
+        class BilledFailure(RuntimeError):
+            def __init__(self):
+                super().__init__("malformed")
+                self.usage = Usage(
+                    prompt_tokens=7,
+                    completion_tokens=1,
+                    calls=1,
+                    provider="fake",
+                )
+
+        class Model:
+            def clarify(self, request):
+                raise BilledFailure()
+
+        _, usage = LLMClarifier(Model()).phrase("material", question_candidates(4))
+        self.assertEqual(usage.prompt_tokens, 7)
         self.assertEqual(usage.route, "clarification_fallback")
 
     def test_llm_clarifier_exception_counts_attempt_and_falls_back(self) -> None:

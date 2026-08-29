@@ -8,8 +8,13 @@ from pathlib import Path
 from tikitaka.ranking.constraints import assess_candidate
 from tikitaka.ranking.deterministic import DeterministicRanker, DeterministicRankerConfig
 from tikitaka.ranking.diversity import DiversityConfig, diversify
-from tikitaka.ranking.llm import LLMReranker, LLMRerankerConfig
+from tikitaka.ranking.llm import (
+    LLMReranker,
+    LLMRerankerConfig,
+    TextModelShortlistRanker,
+)
 from tikitaka.contracts import Candidate, ProductEvidence, Reranker, Usage
+from tikitaka.models.base import ModelRoute
 
 
 @dataclass(frozen=True)
@@ -352,6 +357,33 @@ class FakeModel:
         )()
 
 
+class FakeStructuredTextModel:
+    def __init__(self, output: object) -> None:
+        self.output = output
+        self.calls = []
+
+    def complete_structured(self, prompt, schema, route):
+        self.calls.append((prompt, schema, route))
+        return self.output, Usage(
+            prompt_tokens=20,
+            completion_tokens=5,
+            reasoning_tokens=3,
+            calls=1,
+            provider="fake",
+            model=route.model,
+            reasoning_level=route.reasoning_level,
+            route=route.route_id,
+        )
+
+
+PRIMARY_ROUTE = ModelRoute(
+    route_id="primary/gpt-5.6-terra",
+    provider="fake",
+    model="gpt-5.6-terra",
+    reasoning_level="xhigh",
+)
+
+
 class LLMRankingTests(unittest.TestCase):
     def setUp(self) -> None:
         self.state = FakeState()
@@ -405,13 +437,87 @@ class LLMRankingTests(unittest.TestCase):
         model = FakeModel(["BAD", "GOOD"])
         ids, _ = LLMReranker(model).rank(state, [bad, good], 3)
         self.assertEqual(ids, ["GOOD"])
-        self.assertEqual(
-            [item["parent_asin"] for item in model.requests[0].candidates], ["GOOD"]
+        self.assertEqual(model.requests, [])
+
+    def test_provider_neutral_adapter_uses_strict_schema_and_grounded_prompt(self) -> None:
+        state = FakeState(
+            mode="buying",
+            active_constraints=(FakeConstraint("material", "canvas", "canvas"),),
         )
+        text_model = FakeStructuredTextModel(
+            {"ranked_parent_asins": ["B", "A", "C"]}
+        )
+        adapter = TextModelShortlistRanker(text_model, PRIMARY_ROUTE)
+        ids, usage = LLMReranker(adapter).rank(state, self.candidates, 3)
+        self.assertEqual(ids, ["B", "A", "C"])
+        prompt, schema, route = text_model.calls[0]
+        self.assertIn('"intent_summary":"mode=buying; prefer material=canvas"', prompt)
+        self.assertIn('"deterministic_rank":1', prompt)
+        self.assertFalse(schema["additionalProperties"])
+        self.assertEqual(route, PRIMARY_ROUTE)
+        self.assertEqual(usage.reasoning_tokens, 3)
+
+    def test_large_deterministic_lead_is_anchored_against_llm_noise(self) -> None:
+        candidates = [candidate("A", 1.0), candidate("B", 0.4), candidate("C", 0.35)]
+        model = FakeModel(["C", "B", "A"])
+        ids, _ = LLMReranker(model).rank(FakeState(), candidates, 3)
+        self.assertEqual(ids, ["A", "C", "B"])
+        self.assertEqual(len(model.requests), 1)
+
+    def test_obvious_lead_skips_llm_call(self) -> None:
+        model = FakeModel(["B", "A"])
+        ids, usage = LLMReranker(model).rank(
+            FakeState(), [candidate("A", 1.0), candidate("B", 0.0)], 2
+        )
+        self.assertEqual(ids, ["A", "B"])
+        self.assertEqual(model.requests, [])
+        self.assertEqual(usage.calls, 0)
+        self.assertEqual(usage.route, "deterministic_gate")
+
+    def test_live_prompt_receives_only_bounded_shortlist(self) -> None:
+        candidates = [
+            candidate(f"P{index:02d}", 1.0 - index * 0.001)
+            for index in range(35)
+        ]
+        model = FakeModel([item.parent_asin for item in reversed(candidates)])
+        LLMReranker(model).rank(FakeState(), candidates, 10)
+        self.assertEqual(len(model.requests[0].candidates), 30)
+        self.assertEqual(
+            {item["deterministic_rank"] for item in model.requests[0].candidates},
+            set(range(1, 31)),
+        )
+
+    def test_failed_model_usage_is_preserved_in_fallback(self) -> None:
+        class BilledFailure(RuntimeError):
+            def __init__(self):
+                super().__init__("malformed")
+                self.usage = Usage(
+                    prompt_tokens=13,
+                    completion_tokens=2,
+                    calls=1,
+                    provider="fake",
+                )
+
+        ids, usage = LLMReranker(FakeModel(error=BilledFailure())).rank(
+            self.state, self.candidates, 3
+        )
+        self.assertEqual(ids, ["A", "B", "C"])
+        self.assertEqual(usage.prompt_tokens, 13)
+        self.assertEqual(usage.route, "deterministic_fallback")
 
     def test_unapproved_model_route_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
             LLMRerankerConfig(model="another-model")
+
+    def test_anchoring_can_be_disabled_for_controlled_ablation(self) -> None:
+        config = LLMRerankerConfig(maximum_anchors=0)
+        model = FakeModel(["C", "B", "A"])
+        ids, _ = LLMReranker(model, config=config).rank(
+            FakeState(),
+            [candidate("A", 1.0), candidate("B", 0.4), candidate("C", 0.35)],
+            3,
+        )
+        self.assertEqual(ids, ["C", "B", "A"])
 
     def test_cache_hit_adds_no_current_run_usage(self) -> None:
         class CachedModel:
