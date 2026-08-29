@@ -23,6 +23,11 @@ from tikitaka.models.http_transport import (
     HttpTransport,
     HttpTransportConfig,
 )
+from tikitaka.models.selector import (
+    AblationConfig,
+    ModelSelector,
+    RoutingThresholds,
+)
 
 PRIMARY_ROUTE = ModelRoute(
     route_id="primary/gpt-5.6-terra",
@@ -120,6 +125,31 @@ def gateway_from_env(
     )
 
 
+def selector_from_env(
+    environ: Mapping[str, str] | None = None,
+    *,
+    route: ModelRoute = PRIMARY_ROUTE,
+    credential_variable: str = CREDENTIAL_VARIABLE,
+    pins: Mapping[str, ModelRoute] | None = None,
+    ablation: AblationConfig | None = None,
+    thresholds: RoutingThresholds | None = None,
+) -> ModelSelector:
+    """Build the selector matching what the environment can actually reach.
+
+    Without a credential the selector has no generative route, so `identity()`
+    reports `degraded` rather than naming a model no call could have used.
+    """
+
+    environ = os.environ if environ is None else environ
+    configured = bool((environ.get(credential_variable) or "").strip())
+    return ModelSelector(
+        route if configured else None,
+        pins=pins,
+        ablation=ablation,
+        thresholds=thresholds,
+    )
+
+
 def describe_route(
     environ: Mapping[str, str] | None = None,
     *,
@@ -147,4 +177,5 @@ __all__ = [
     "describe_route",
     "gateway_from_env",
     "interpreter_from_env",
+    "selector_from_env",
 ]
