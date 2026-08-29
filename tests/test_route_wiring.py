@@ -8,16 +8,31 @@ import unittest
 from tikitaka.models.api_llm import ApiInterpreter
 from tikitaka.models.base import CredentialMissing
 from tikitaka.models.fake import HeuristicInterpreter
-from tikitaka.orchestration.runtime import build_agent, build_deterministic_agent
+from tikitaka.orchestration.runtime import (
+    RuntimeConfig,
+    build_agent,
+    build_deterministic_agent,
+)
 
 CATALOG = pathlib.Path(__file__).parent / "fixtures" / "tiny_catalog.jsonl"
 SECRET = "sk-not-a-real-key-0123456789"
 
 
 def inner(agent) -> object:
-    """The interpreter actually reached at runtime."""
+    """The interpreter actually reached at runtime.
 
-    return agent._interpreter._interpreter
+    Peels the resilience and visible-message wrappers the runtime composes
+    around the selected route, so this asserts on the real gateway rather than
+    on whichever adapter currently sits on top of it.
+    """
+
+    current = agent._interpreter
+    for _ in range(6):
+        nxt = getattr(current, "_primary", None) or getattr(current, "_interpreter", None)
+        if nxt is None:
+            break
+        current = nxt
+    return current
 
 
 class RouteWiringTests(unittest.TestCase):
@@ -32,8 +47,11 @@ class RouteWiringTests(unittest.TestCase):
         self.assertEqual(route_id, "primary/gpt-5.6-terra")
 
     def test_scored_runs_can_refuse_to_degrade(self) -> None:
+        # allow_degraded lives on RuntimeConfig rather than the call site.
         with self.assertRaises(CredentialMissing):
-            build_agent(CATALOG, environ={}, allow_degraded=False)
+            build_agent(
+                CATALOG, RuntimeConfig(allow_degraded=False), environ={}
+            )
 
     def test_deterministic_builder_is_unchanged_by_default(self) -> None:
         agent = build_deterministic_agent(CATALOG)

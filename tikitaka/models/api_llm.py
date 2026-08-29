@@ -14,6 +14,7 @@ exactly as it would be from a fake.
 from __future__ import annotations
 
 import hashlib
+import json
 import time
 from dataclasses import dataclass, field
 from typing import Callable, Mapping, Protocol
@@ -252,6 +253,77 @@ class ApiInterpreter:
         )
 
 
+class ApiTextModel:
+    """Provider-neutral structured text surface for ranking and phrasing.
+
+    Unlike :class:`ApiInterpreter`, this adapter does not assume the state
+    schema. Callers supply their own closed schema and remain responsible for
+    semantic validation of the returned object.
+    """
+
+    def __init__(
+        self,
+        transport: Transport,
+        route: ModelRoute,
+        *,
+        timeout_s: float = 30.0,
+        prompt_cost_per_1k: float = 0.0,
+        completion_cost_per_1k: float = 0.0,
+        cost_currency: str = "USD",
+    ) -> None:
+        if timeout_s <= 0:
+            raise ValueError("timeout_s must be positive")
+        self._transport = transport
+        self._route = route
+        self._timeout_s = timeout_s
+        self._prompt_cost_per_1k = prompt_cost_per_1k
+        self._completion_cost_per_1k = completion_cost_per_1k
+        self._cost_currency = cost_currency
+
+    def __repr__(self) -> str:
+        return f"ApiTextModel(route={self._route.route_id!r})"
+
+    def complete_structured(
+        self,
+        prompt: str,
+        schema: dict,
+        route: ModelRoute,
+    ) -> tuple[dict, Usage]:
+        if route != self._route:
+            raise ValueError("requested route does not match configured route")
+        started = time.monotonic()
+        response = self._transport.send(prompt, schema, self._timeout_s)
+        latency_ms = (time.monotonic() - started) * 1000.0
+        usage = usage_module.for_route(
+            route,
+            prompt_tokens=response.prompt_tokens,
+            completion_tokens=response.completion_tokens,
+            reasoning_tokens=response.reasoning_tokens,
+            latency_ms=latency_ms,
+            calls=1,
+            prompt_cost_per_1k=self._prompt_cost_per_1k,
+            completion_cost_per_1k=self._completion_cost_per_1k,
+            cost_currency=self._cost_currency,
+        )
+        try:
+            output = json.loads(response.text)
+        except (json.JSONDecodeError, TypeError) as error:
+            failure = MalformedModelOutput(
+                "structured text response was not a JSON object",
+                route,
+            )
+            failure.usage = usage  # type: ignore[attr-defined]
+            raise failure from error
+        if not isinstance(output, dict):
+            failure = MalformedModelOutput(
+                "structured text response must be a JSON object",
+                route,
+            )
+            failure.usage = usage  # type: ignore[attr-defined]
+            raise failure
+        return output, usage
+
+
 def build_prompt(message: str, state: object) -> str:
     """Pure function of `(message, state, PROMPT_VERSION)` so calls replay.
 
@@ -318,6 +390,7 @@ __all__ = [
     "PROMPT_VERSION",
     "ApiConfig",
     "ApiInterpreter",
+    "ApiTextModel",
     "InMemoryResponseCache",
     "ResponseCache",
     "Transport",

@@ -20,7 +20,12 @@ import unittest
 
 from tikitaka.models.api_llm import ApiConfig, ApiInterpreter, TransportResponse
 from tikitaka.models.base import ModelRoute
-from tikitaka.models.factory import PRIMARY_ROUTE, describe_route, interpreter_from_env
+from tikitaka.models.factory import (
+    PRIMARY_ROUTE,
+    describe_route,
+    gateway_from_env,
+    interpreter_from_env,
+)
 from tikitaka.models.fake import HeuristicInterpreter
 from tikitaka.state.extractor import Extractor
 from tikitaka.state.session import new_session
@@ -201,6 +206,12 @@ class FactoryTests(unittest.TestCase):
         self.assertIsInstance(interpreter, ApiInterpreter)
         self.assertEqual(route_id, "primary/gpt-5.6-terra")
         self.assertNotIn(SECRET, repr(interpreter))
+
+        gateway = gateway_from_env({"OPENAI_API_KEY": SECRET})
+        self.assertFalse(gateway.degraded)
+        self.assertIsNotNone(gateway.text_model)
+        self.assertEqual(gateway.route, PRIMARY_ROUTE)
+        self.assertNotIn(SECRET, repr(gateway.text_model))
 
     def test_describe_route_reports_without_leaking_the_credential(self) -> None:
         described = describe_route({"OPENAI_API_KEY": SECRET})

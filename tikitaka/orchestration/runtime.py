@@ -1,9 +1,9 @@
-"""Composition root for the deterministic, network-free owner integration."""
+"""Composition roots for API-primary and deterministic owner integration."""
 
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Mapping
 
@@ -15,13 +15,21 @@ from tikitaka.contracts import (
     StateDelta,
     StateOperation,
     StateOperationKind,
+    Usage,
 )
 from tikitaka.decision import ResponsePolicy, ResponsePolicyConfig
-from tikitaka.models.factory import interpreter_from_env
+from tikitaka.models.factory import GatewaySelection, gateway_from_env
 from tikitaka.models.fake import HeuristicInterpreter
+from tikitaka.models.usage import merge
 from tikitaka.orchestration.sessions import SessionRegistry
 from tikitaka.orchestration.shopping_agent import ShoppingAgent
-from tikitaka.ranking import DeterministicRanker, DeterministicRankerConfig
+from tikitaka.ranking import (
+    DeterministicRanker,
+    DeterministicRankerConfig,
+    LLMReranker,
+    LLMRerankerConfig,
+    TextModelShortlistRanker,
+)
 from tikitaka.retrieval import SparseStructuredRetriever, load_catalog
 from tikitaka.retrieval.retriever import RetrievalConfig
 from tikitaka.state.query_builder import ActiveQueryBuilder, QueryBuilderConfig
@@ -37,6 +45,7 @@ _VISIBLE_OVERRIDE_VALUE_RE = re.compile(
     r"what i need is:\s*(.+?)\.?$",
     re.IGNORECASE,
 )
+
 
 @dataclass(frozen=True)
 class DeterministicRuntimeConfig:
@@ -54,6 +63,15 @@ class DeterministicRuntimeConfig:
             raise ValueError("candidate_limit must be positive")
         if not 0.0 <= self.profile_weight <= 1.0:
             raise ValueError("profile_weight must be within [0.0, 1.0]")
+
+
+@dataclass(frozen=True)
+class RuntimeConfig(DeterministicRuntimeConfig):
+    """Automatic primary route with an explicit deterministic contingency."""
+
+    allow_degraded: bool = True
+    enable_llm_reranker: bool = True
+    llm_reranker: LLMRerankerConfig | None = None
 
 
 class VisibleMessageInterpreter:
@@ -139,6 +157,41 @@ class VisibleMessageInterpreter:
         )
 
 
+class ResilientInterpreter:
+    """Run one selected route and degrade locally on any call failure."""
+
+    def __init__(
+        self,
+        primary: object,
+        route_id: str,
+        fallback: object | None = None,
+    ) -> None:
+        self._primary = primary
+        self._route_id = route_id
+        self._fallback = fallback
+
+    def interpret(self, message: str, state: object) -> tuple[StateDelta, Usage]:
+        try:
+            delta, usage = self._primary.interpret(message, state)
+            if isinstance(usage, Usage) and usage.route is None:
+                usage = replace(usage, route=self._route_id)
+            return delta, usage
+        except Exception as error:
+            if self._fallback is None:
+                raise
+            spent = getattr(error, "usage", None)
+            spent = spent if isinstance(spent, Usage) else Usage()
+            delta, fallback_usage = self._fallback.interpret(message, state)
+            fallback_usage = (
+                fallback_usage if isinstance(fallback_usage, Usage) else Usage()
+            )
+            usage = merge(spent, fallback_usage)
+            return delta, replace(
+                usage,
+                route=f"{self._route_id}:fallback",
+            )
+
+
 def build_deterministic_agent(
     catalog_path: str | Path,
     config: DeterministicRuntimeConfig | None = None,
@@ -152,6 +205,87 @@ def build_deterministic_agent(
     """
 
     runtime = config or DeterministicRuntimeConfig()
+    return _build_agent(
+        catalog_path,
+        runtime,
+        interpreter=VisibleMessageInterpreter(),
+        reranker=DeterministicRanker(config=runtime.ranking),
+        route_id="heuristic/local",
+        degraded=True,
+    )
+
+
+def build_agent(
+    catalog_path: str | Path,
+    config: RuntimeConfig | None = None,
+    *,
+    environ: Mapping[str, str] | None = None,
+    model_selection: GatewaySelection | None = None,
+) -> tuple[ShoppingAgent[SessionState], str]:
+    """Build the automatic API-primary route used by ``starter.Agent``.
+
+    Returns the agent and the route id actually selected, so a report can
+    never claim the API route while the deterministic one did the work.
+    """
+
+    runtime = config or RuntimeConfig()
+    selection = model_selection or gateway_from_env(
+        environ,
+        allow_degraded=runtime.allow_degraded,
+    )
+    fallback = VisibleMessageInterpreter(HeuristicInterpreter())
+    primary = (
+        fallback
+        if selection.degraded
+        else ResilientInterpreter(
+            selection.interpreter,
+            selection.route.route_id,
+            fallback,
+        )
+    )
+    interpreter = (
+        ResilientInterpreter(primary, selection.route.route_id)
+        if selection.degraded
+        else primary
+    )
+    deterministic = DeterministicRanker(config=runtime.ranking)
+    reranker: object = deterministic
+    if (
+        runtime.enable_llm_reranker
+        and not selection.degraded
+        and selection.text_model is None
+    ):
+        raise ValueError("primary LLM reranking requires a structured text model")
+    if (
+        runtime.enable_llm_reranker
+        and not selection.degraded
+        and selection.text_model is not None
+    ):
+        reranker = LLMReranker(
+            TextModelShortlistRanker(selection.text_model, selection.route),
+            deterministic=deterministic,
+            config=runtime.llm_reranker,
+        )
+    agent = _build_agent(
+        catalog_path,
+        runtime,
+        interpreter=interpreter,
+        reranker=reranker,
+        route_id=selection.route.route_id,
+        degraded=selection.degraded,
+    )
+    return agent, selection.route.route_id
+
+
+def _build_agent(
+    catalog_path: str | Path,
+    runtime: DeterministicRuntimeConfig,
+    *,
+    interpreter: object,
+    reranker: object,
+    route_id: str,
+    degraded: bool,
+) -> ShoppingAgent[SessionState]:
     catalog = load_catalog(catalog_path)
     retriever = SparseStructuredRetriever(
         catalog,
@@ -165,40 +299,22 @@ def build_deterministic_agent(
     return ShoppingAgent(
         sessions=sessions,
         reducer=StateReducer(),
-        interpreter=VisibleMessageInterpreter(interpreter),
+        interpreter=interpreter,
         query_builder=ActiveQueryBuilder(query_config),
         retriever=retriever,
         decision_policy=ResponsePolicy(config=runtime.decision),
-        reranker=DeterministicRanker(config=runtime.ranking),
+        reranker=reranker,
         catalog_ids=catalog.ids,
         candidate_limit=runtime.candidate_limit,
+        runtime_route_id=route_id,
+        degraded=degraded,
     )
-
-
-def build_agent(
-    catalog_path: str | Path,
-    config: DeterministicRuntimeConfig | None = None,
-    *,
-    environ: Mapping[str, str] | None = None,
-    allow_degraded: bool = True,
-) -> tuple[ShoppingAgent[SessionState], str]:
-    """Build the agent on whichever generative route is actually available.
-
-    Returns the agent and the route id that was selected, so a report can never
-    claim the API route while the deterministic one did the work. A missing
-    credential degrades rather than failing, which is the M5 path; pass
-    `allow_degraded=False` for a scored run that must not silently fall back.
-    """
-
-    interpreter, route_id = interpreter_from_env(
-        environ, allow_degraded=allow_degraded
-    )
-    agent = build_deterministic_agent(catalog_path, config, interpreter=interpreter)
-    return agent, route_id
 
 
 __all__ = [
     "DeterministicRuntimeConfig",
+    "ResilientInterpreter",
+    "RuntimeConfig",
     "VisibleMessageInterpreter",
     "build_agent",
     "build_deterministic_agent",

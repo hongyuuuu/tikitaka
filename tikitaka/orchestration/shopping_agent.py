@@ -54,6 +54,8 @@ class ShoppingAgent(Generic[StateT]):
         reranker: Reranker,
         catalog_ids: set[str] | frozenset[str],
         candidate_limit: int = 100,
+        runtime_route_id: str | None = None,
+        degraded: bool = False,
     ) -> None:
         if candidate_limit <= 0:
             raise ValueError("candidate_limit must be positive")
@@ -66,6 +68,8 @@ class ShoppingAgent(Generic[StateT]):
         self._reranker = reranker
         self._catalog_ids = frozenset(catalog_ids)
         self._candidate_limit = candidate_limit
+        self.runtime_route_id = runtime_route_id
+        self.degraded = bool(degraded)
         # Injected components may own non-thread-safe model clients or SQLite
         # connections. Keep each turn atomic across their shared pipeline.
         self._pipeline_lock = RLock()
