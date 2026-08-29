@@ -13,6 +13,8 @@ from .phrasing import (
     ClarificationRequest,
     LLMClarifier,
     LLMClarifierConfig,
+    TextModelClarificationModel,
+    build_clarification_prompt,
     clarification_message,
     recommendation_message,
 )
@@ -29,6 +31,7 @@ __all__ = [
     "GeneralitySensor",
     "LLMClarifier",
     "LLMClarifierConfig",
+    "TextModelClarificationModel",
     "ModePolicyConfig",
     "QuestionValueConfig",
     "QuestionValueEstimator",
@@ -37,6 +40,7 @@ __all__ = [
     "ResponsePolicyConfig",
     "VisibleModePolicy",
     "clarification_message",
+    "build_clarification_prompt",
     "diagnose_pool",
     "recommendation_message",
 ]

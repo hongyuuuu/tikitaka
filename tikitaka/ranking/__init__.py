@@ -8,7 +8,13 @@ from .deterministic import (
     UsageRecord,
 )
 from .diversity import DiversityConfig, diversify
-from .llm import LLMReranker, LLMRerankerConfig, RerankRequest
+from .llm import (
+    LLMReranker,
+    LLMRerankerConfig,
+    RerankRequest,
+    TextModelShortlistRanker,
+    build_rerank_prompt,
+)
 
 __all__ = [
     "DeterministicRanker",
@@ -19,8 +25,10 @@ __all__ = [
     "LLMReranker",
     "LLMRerankerConfig",
     "RerankRequest",
+    "TextModelShortlistRanker",
     "ScoredCandidate",
     "UsageRecord",
     "assess_candidate",
+    "build_rerank_prompt",
     "diversify",
 ]
