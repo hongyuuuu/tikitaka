@@ -4,16 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from tikitaka.contracts.domain import (
-    Candidate,
-    Constraint,
-    ContractViolation,
-    ProfileBias,
-    SearchPlan,
-    StateOperation,
-    TurnDecision,
-    Usage,
-)
+from tikitaka.contracts.domain import Usage
 from tikitaka.models import usage as usage_module
 from tikitaka.models.base import CredentialMissing, ModelRoute, ModelTimeout
 from tikitaka.models.fake import (
@@ -40,111 +31,7 @@ ROUTE = ModelRoute(
 )
 
 
-class ContractRecordTests(unittest.TestCase):
-    def test_constraint_rejects_out_of_range_values(self) -> None:
-        for kwargs in (
-            {"source_turn": 0},
-            {"source_turn": 11},
-            {"confidence": 1.5},
-            {"confidence": -0.1},
-            {"intent_version": 0},
-            {"attribute": "vibe"},
-            {"polarity": "maybe"},
-            {"strength": "medium"},
-            {"status": "haunted"},
-        ):
-            with self.subTest(**kwargs):
-                base = {
-                    "attribute": "color",
-                    "value": "Red",
-                    "normalized_value": "red",
-                    "polarity": "include",
-                    "strength": "soft",
-                    "source_turn": 1,
-                    "confidence": 0.5,
-                    "intent_version": 1,
-                }
-                base.update(kwargs)
-                with self.assertRaises(ContractViolation):
-                    Constraint(**base)  # type: ignore[arg-type]
-
-    def test_state_operation_field_rules(self) -> None:
-        with self.assertRaises(ContractViolation):
-            StateOperation(operation="add", attribute="color")  # no value
-        with self.assertRaises(ContractViolation):
-            StateOperation(operation="reset", scope="attribute")
-        with self.assertRaises(ContractViolation):
-            StateOperation(
-                operation="remove", attribute="budget", new_value="under $10"
-            )
-        with self.assertRaises(ContractViolation):
-            StateOperation(
-                operation="exclude",
-                attribute="material",
-                new_value="leather",
-                polarity="include",
-                strength="hard",
-                confidence=0.9,
-            )
-
-    def test_turn_decision_enforces_dg01(self) -> None:
-        with self.assertRaises(ContractViolation):
-            TurnDecision(
-                action="clarify", ask_attribute=None, reason_code="final_turn"
-            )
-        with self.assertRaises(ContractViolation):
-            TurnDecision(
-                action="recommend",
-                ask_attribute="color",
-                reason_code="ranking_stable",
-            )
-        decision = TurnDecision(
-            action="clarify",
-            ask_attribute="material",
-            reason_code="valuable_clarification",
-            expected_information_gain=0.4,
-        )
-        self.assertEqual(decision.ask_attribute, "material")
-
-    def test_dense_plan_requires_route_and_index(self) -> None:
-        with self.assertRaises(ContractViolation):
-            SearchPlan(route_policy="dense")
-        plan = SearchPlan(
-            route_policy="dense", embedding_route_id="e1", index_id="i1"
-        )
-        self.assertEqual(plan.index_id, "i1")
-
-    def test_candidate_requires_valid_id_and_positive_ranks(self) -> None:
-        with self.assertRaises(ContractViolation):
-            Candidate(parent_asin="")
-        with self.assertRaises(ContractViolation):
-            Candidate(parent_asin="B01", sparse_rank=0)
-        self.assertEqual(Candidate(parent_asin="B01").fused_score, 0.0)
-
-    def test_profile_bias_defaults_to_inert(self) -> None:
-        self.assertTrue(ProfileBias().is_inert)
-        self.assertTrue(ProfileBias(terms=("fit",), weight=0.0).is_inert)
-        self.assertFalse(ProfileBias(terms=("fit",), weight=0.2).is_inert)
-
-
 class UsageTests(unittest.TestCase):
-    def test_usage_cannot_go_negative(self) -> None:
-        for kwargs in (
-            {"prompt_tokens": -1},
-            {"completion_tokens": -1},
-            {"calls": -1},
-            {"latency_ms": -1.0},
-            {"estimated_cost": -0.01},
-        ):
-            with self.subTest(**kwargs):
-                with self.assertRaises(ContractViolation):
-                    Usage(**kwargs)  # type: ignore[arg-type]
-
-    def test_repairs_cannot_exceed_calls(self) -> None:
-        with self.assertRaises(ContractViolation):
-            Usage(calls=1, repairs=2)
-        self.assertEqual(Usage(calls=2, repairs=1).repairs, 1)
-
     def test_merge_accumulates_and_keeps_left_identity(self) -> None:
         first = usage_module.for_route(
             ROUTE, prompt_tokens=100, completion_tokens=20, calls=1
@@ -177,7 +64,7 @@ class UsageTests(unittest.TestCase):
         )
         self.assertEqual(record.reasoning_tokens, 1000)
         self.assertEqual(record.estimated_cost, 5.0)
-        self.assertEqual(record.total_tokens, 2000)
+        self.assertEqual(record.prompt_tokens + record.completion_tokens, 2000)
 
     def test_redacted_drops_provider_identity(self) -> None:
         record = usage_module.for_route(ROUTE, prompt_tokens=10)

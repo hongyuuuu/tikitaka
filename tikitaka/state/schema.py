@@ -22,17 +22,73 @@ import json
 import re
 from dataclasses import dataclass, field
 
-from tikitaka.contracts.domain import (
-    ATTRIBUTES,
-    ContractViolation,
-    StateDelta,
-    StateOperation,
-)
+from tikitaka.config import STRUCTURED_OUTPUT_SCHEMA_VERSION
+from tikitaka.contracts.domain import Attribute, StateDelta, StateOperation
 
-SCHEMA_VERSION = "state-delta/1"
+# Person 4 declares the version constant; Person 1 owns the schema it names.
+# Aliasing keeps one source of truth, since the value participates in
+# experiment and cache identity per contract section 3.3.
+SCHEMA_VERSION = STRUCTURED_OUTPUT_SCHEMA_VERSION
 
 MAX_OPERATIONS = 24
 MAX_VALUE_LENGTH = 120
+
+
+def is_attribute(value: object) -> bool:
+    """Whether a value names an attribute in the closed contract vocabulary."""
+
+    try:
+        Attribute(value)
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def operation(
+    kind: str,
+    *,
+    attribute: object = None,
+    old_value: object = None,
+    new_value: object = None,
+    scope: str = "attribute",
+    polarity: object = None,
+    strength: object = None,
+    confidence: float | None = None,
+) -> StateOperation:
+    """Build a `StateOperation`, which the shared contract declares with no
+    field defaults. Person 1 supplies the defaults in one place."""
+
+    return StateOperation(
+        operation=kind,  # type: ignore[arg-type]
+        attribute=attribute,  # type: ignore[arg-type]
+        old_value=old_value,
+        new_value=new_value,
+        scope=scope,  # type: ignore[arg-type]
+        polarity=polarity,  # type: ignore[arg-type]
+        strength=strength,  # type: ignore[arg-type]
+        confidence=confidence,
+    )
+
+
+def make_delta(
+    *,
+    inferred_mode: str = "unknown",
+    mode_confidence: float = 0.0,
+    operations: tuple[StateOperation, ...] = (),
+    generality: float = 0.0,
+    rejected_operations: int = 0,
+    schema_version: str | None = None,
+) -> StateDelta:
+    """Build a `StateDelta` with Person 1's defaults."""
+
+    return StateDelta(
+        inferred_mode=inferred_mode,  # type: ignore[arg-type]
+        mode_confidence=mode_confidence,
+        operations=tuple(operations),
+        generality=generality,
+        rejected_operations=rejected_operations,
+        schema_version=SCHEMA_VERSION if schema_version is None else schema_version,
+    )
 
 _JSON_OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
 _BUDGET_RE = re.compile(r"(\d+(?:\.\d+)?)")
@@ -61,7 +117,7 @@ STRUCTURED_OUTPUT_SCHEMA: dict = {
                             "exclude", "no_preference", "reset",
                         ]
                     },
-                    "attribute": {"enum": sorted(ATTRIBUTES) + [None]},
+                    "attribute": {"enum": [item.value for item in Attribute] + [None]},
                     "old_value": {},
                     "new_value": {},
                     "scope": {"enum": ["attribute", "conversation", "intent"]},
@@ -177,7 +233,7 @@ def parse(raw: object, *, default_mode: str = "unknown") -> ParseResult:
     payload = extract_json(raw)
     if payload is None:
         return ParseResult(
-            delta=StateDelta(schema_version=SCHEMA_VERSION),
+            delta=make_delta(),
             errors=("model output was not a parseable JSON object",),
             top_level_failure=True,
         )
@@ -214,13 +270,12 @@ def parse(raw: object, *, default_mode: str = "unknown") -> ParseResult:
         mode = default_mode
 
     summary = payload.get("query_summary")
-    delta = StateDelta(
-        inferred_mode=mode,  # type: ignore[arg-type]
+    delta = make_delta(
+        inferred_mode=mode,
         mode_confidence=clamp_unit(payload.get("mode_confidence")),
         operations=tuple(operations),
         generality=clamp_unit(payload.get("generality")),
         rejected_operations=rejected,
-        schema_version=SCHEMA_VERSION,
     )
     return ParseResult(
         delta=delta,
@@ -232,7 +287,7 @@ def parse(raw: object, *, default_mode: str = "unknown") -> ParseResult:
 def empty_delta(mode: str = "unknown") -> StateDelta:
     """The deterministic fallback used when a model call fails outright."""
 
-    return StateDelta(inferred_mode=mode, schema_version=SCHEMA_VERSION)  # type: ignore[arg-type]
+    return make_delta(inferred_mode=mode)
 
 
 def _parse_operation(item: object) -> tuple[StateOperation | None, str]:
@@ -247,7 +302,7 @@ def _parse_operation(item: object) -> tuple[StateOperation | None, str]:
     attribute = item.get("attribute")
     if isinstance(attribute, str):
         attribute = attribute.strip().lower()
-        if attribute not in ATTRIBUTES:
+        if not is_attribute(attribute):
             return None, f"unknown attribute {attribute!r}"
     elif attribute is not None:
         return None, "attribute was not a string"
@@ -270,16 +325,24 @@ def _parse_operation(item: object) -> tuple[StateOperation | None, str]:
         polarity = "exclude" if kind == "exclude" else _default(polarity, "include")
         strength = _default(strength, "soft")
         confidence = clamp_unit(confidence, default=0.5)
+        if kind == "replace" and old_value is None:
+            # The contract requires a named old value for a replace. Without
+            # one this is an add, and the reducer already replaces a
+            # conflicting single-valued attribute.
+            kind = "add"
+        if kind in ("add", "exclude"):
+            old_value = None
     elif kind == "remove":
         polarity = None
         strength = None
         new_value = None
-        confidence = clamp_unit(confidence, default=0.5)
+        confidence = None
     elif kind == "no_preference":
         polarity = None
         strength = None
         new_value = None
-        confidence = clamp_unit(confidence, default=1.0)
+        old_value = None
+        confidence = None
     elif kind == "reset":
         attribute = None
         polarity = None
@@ -297,19 +360,19 @@ def _parse_operation(item: object) -> tuple[StateOperation | None, str]:
 
     try:
         return (
-            StateOperation(
-                operation=kind,  # type: ignore[arg-type]
-                attribute=attribute,  # type: ignore[arg-type]
+            operation(
+                kind,
+                attribute=attribute,
                 old_value=old_value,
                 new_value=new_value,
-                scope=scope,  # type: ignore[arg-type]
-                polarity=polarity,  # type: ignore[arg-type]
-                strength=strength,  # type: ignore[arg-type]
+                scope=scope,
+                polarity=polarity,
+                strength=strength,
                 confidence=confidence,
             ),
             "",
         )
-    except ContractViolation as error:
+    except (TypeError, ValueError) as error:
         return None, str(error)
 
 
@@ -321,6 +384,9 @@ def _default(value: object, fallback: str) -> str:
 
 __all__ = [
     "MAX_OPERATIONS",
+    "is_attribute",
+    "make_delta",
+    "operation",
     "SCHEMA_VERSION",
     "STRUCTURED_OUTPUT_SCHEMA",
     "ParseResult",

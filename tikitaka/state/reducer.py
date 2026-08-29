@@ -277,7 +277,7 @@ class StateReducer:
         old: Constraint,
         new: Constraint,
     ) -> None:
-        bucket = state._constraints.get(old.attribute)
+        bucket = state._constraints.get(str(old.attribute))
         if bucket is None:
             return
         for index, item in enumerate(bucket):
@@ -287,7 +287,7 @@ class StateReducer:
 
 
 def _sort_key(operation: StateOperation) -> tuple[int, str]:
-    return (_ORDER.get(operation.operation, 99), operation.attribute or "")
+    return (_ORDER.get(str(operation.operation), 99), str(operation.attribute or ""))
 
 
 __all__ = ["StateReducer"]

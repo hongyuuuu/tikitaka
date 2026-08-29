@@ -21,7 +21,13 @@ from tikitaka.models.base import (
     ModelRoute,
     ModelTimeout,
 )
-from tikitaka.state.schema import SCHEMA_VERSION, parse
+from tikitaka.state.schema import (
+    SCHEMA_VERSION,
+    is_attribute,
+    make_delta,
+    operation,
+    parse,
+)
 
 HEURISTIC_ROUTE = ModelRoute(
     route_id="heuristic/local",
@@ -101,7 +107,7 @@ class ScriptedInterpreter:
         index = min(self._calls, len(self._deltas) - 1) if self._deltas else -1
         self._calls += 1
         if index < 0:
-            return StateDelta(schema_version=SCHEMA_VERSION), Usage()
+            return make_delta(), Usage()
         return self._deltas[index], Usage()
 
 
@@ -117,10 +123,9 @@ class HeuristicInterpreter:
         boundary = _NO_PREFERENCE_RE.search(text)
         if boundary is not None:
             operations.append(
-                StateOperation(
-                    operation="no_preference",
+                operation(
+                    "no_preference",
                     attribute=_as_attribute(boundary.group(1)),
-                    confidence=1.0,
                 )
             )
             return self._delta(operations, mode, generality), Usage()
@@ -135,8 +140,8 @@ class HeuristicInterpreter:
         category = _LOOKING_FOR_RE.search(text)
         if category is not None:
             operations.append(
-                StateOperation(
-                    operation="add",
+                operation(
+                    "add",
                     attribute="category",
                     new_value=category.group(1).strip(),
                     polarity="include",
@@ -166,7 +171,7 @@ class HeuristicInterpreter:
         if is_override:
             remainder = _OVERRIDE_RE.sub(" ", text)
             operations.extend(
-                _constraint_operations(remainder, strength="hard", replace=True)
+                _constraint_operations(remainder, strength="hard")
             )
             generality = 0.4
 
@@ -178,12 +183,11 @@ class HeuristicInterpreter:
         mode: str,
         generality: float,
     ) -> StateDelta:
-        return StateDelta(
-            inferred_mode=mode,  # type: ignore[arg-type]
+        return make_delta(
+            inferred_mode=mode,
             mode_confidence=0.6 if mode != "unknown" else 0.0,
             operations=tuple(operations),
             generality=generality,
-            schema_version=SCHEMA_VERSION,
         )
 
 
@@ -222,18 +226,17 @@ def _constraint_operations(
     blob: str,
     *,
     strength: str,
-    replace: bool = False,
 ) -> list[StateOperation]:
     operations: list[StateOperation] = []
     for part in _split_values(blob):
         attribute = classify_constraint(part)
         operations.append(
-            StateOperation(
-                operation="replace" if replace else "add",
-                attribute=attribute,  # type: ignore[arg-type]
+            operation(
+                "add",
+                attribute=attribute,
                 new_value=part,
                 polarity="include",
-                strength=strength,  # type: ignore[arg-type]
+                strength=strength,
                 confidence=0.8,
             )
         )
@@ -247,9 +250,7 @@ def _split_values(blob: str) -> list[str]:
 
 def _as_attribute(word: str) -> str:
     lowered = word.strip().lower()
-    from tikitaka.contracts.domain import ATTRIBUTES
-
-    return lowered if lowered in ATTRIBUTES else "other"
+    return lowered if is_attribute(lowered) else "other"
 
 
 __all__ = [

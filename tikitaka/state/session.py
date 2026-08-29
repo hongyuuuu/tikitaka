@@ -103,7 +103,7 @@ class SessionState:
     def constraints_for(self, attribute: str) -> tuple[Constraint, ...]:
         return tuple(
             constraint
-            for constraint in self._constraints.get(attribute, ())
+            for constraint in self._constraints.get(str(attribute), ())
             if constraint.status == "active"
         )
 
@@ -127,7 +127,7 @@ class SessionState:
     # ---- Mutation, reducer-only ----------------------------------------
 
     def _add(self, constraint: Constraint) -> None:
-        bucket = self._constraints.setdefault(constraint.attribute, [])
+        bucket = self._constraints.setdefault(str(constraint.attribute), [])
         bucket.append(constraint)
         if constraint.attribute not in MULTI_VALUED:
             return
@@ -138,7 +138,7 @@ class SessionState:
                 self._retire(stale, "replaced")
 
     def _retire(self, constraint: Constraint, status: str) -> None:
-        bucket = self._constraints.get(constraint.attribute)
+        bucket = self._constraints.get(str(constraint.attribute))
         if bucket is None:
             return
         for index, item in enumerate(bucket):

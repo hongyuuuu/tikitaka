@@ -1,7 +1,5 @@
-"""TikiTaka conversational shopping agent."""
+"""Internal package for the TikiTaka shopping copilot."""
 
-from __future__ import annotations
+from tikitaka.config import CONTRACT_VERSION, STRUCTURED_OUTPUT_SCHEMA_VERSION
 
-CONTRACT_VERSION = "0.1.0"
-
-__all__ = ["CONTRACT_VERSION"]
+__all__ = ["CONTRACT_VERSION", "STRUCTURED_OUTPUT_SCHEMA_VERSION"]

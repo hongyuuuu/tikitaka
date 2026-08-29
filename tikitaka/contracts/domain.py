@@ -1,91 +1,159 @@
-"""Frozen `0.1.0` domain records.
+"""Strict, immutable shared domain records.
 
-Transcribed from `docs/p0/CONTRACT_PROPOSAL.md` sections 2 and 3. Serialized
-values and validation semantics must match that document exactly.
-
-Trusted internal constructors reject out-of-range values. Clamping belongs at
-the untrusted-input boundary in `tikitaka/state/schema.py`, never here.
+Trusted internal constructors reject invalid normalized values. Parsers at an
+untrusted boundary may use :func:`clamp_unit_interval` before construction.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
-from typing import Literal, Mapping
-
-MAX_TURNS = 10
-TOP_K = 10
-
-Attribute = Literal[
-    "category", "material", "color", "size", "style", "brand",
-    "budget", "feature", "use_case", "other",
-]
-
-ConstraintPolarity = Literal["include", "exclude"]
-ConstraintStrength = Literal["hard", "soft"]
-ConstraintStatus = Literal["active", "replaced", "retracted", "needs_revalidation"]
-StateOperationKind = Literal[
-    "add", "remove", "replace", "exclude", "no_preference", "reset",
-]
-OperationScope = Literal["attribute", "conversation", "intent"]
-InferredMode = Literal["buying", "browsing", "unknown"]
-TurnAction = Literal["clarify", "recommend"]
-EvidenceOutcome = Literal["match", "contradiction", "unknown"]
-RoutePolicy = Literal["auto", "sparse", "dense", "hybrid"]
-DecisionReasonCode = Literal[
-    "final_turn",
-    "valuable_clarification",
-    "low_question_value",
-    "no_eligible_attribute",
-    "ranking_stable",
-    "insufficient_evidence",
-    "component_fallback",
-]
-
-ATTRIBUTES: frozenset[str] = frozenset(
-    {
-        "category", "material", "color", "size", "style", "brand",
-        "budget", "feature", "use_case", "other",
-    }
-)
-POLARITIES: frozenset[str] = frozenset({"include", "exclude"})
-STRENGTHS: frozenset[str] = frozenset({"hard", "soft"})
-CONSTRAINT_STATUSES: frozenset[str] = frozenset(
-    {"active", "replaced", "retracted", "needs_revalidation"}
-)
-OPERATION_KINDS: frozenset[str] = frozenset(
-    {"add", "remove", "replace", "exclude", "no_preference", "reset"}
-)
-OPERATION_SCOPES: frozenset[str] = frozenset({"attribute", "conversation", "intent"})
-INFERRED_MODES: frozenset[str] = frozenset({"buying", "browsing", "unknown"})
-ROUTE_POLICIES: frozenset[str] = frozenset({"auto", "sparse", "dense", "hybrid"})
-DECISION_REASON_CODES: frozenset[str] = frozenset(
-    {
-        "final_turn",
-        "valuable_clarification",
-        "low_question_value",
-        "no_eligible_attribute",
-        "ranking_stable",
-        "insufficient_evidence",
-        "component_fallback",
-    }
-)
+from enum import Enum
+from types import MappingProxyType
+from typing import Mapping, TypeVar
 
 
-class ContractViolation(ValueError):
-    """A trusted constructor was given a value the frozen contract forbids."""
+class _ClosedValue(str, Enum):
+    def __str__(self) -> str:
+        return self.value
 
 
-def _require(condition: bool, message: str) -> None:
-    if not condition:
-        raise ContractViolation(message)
+class Attribute(_ClosedValue):
+    CATEGORY = "category"
+    MATERIAL = "material"
+    COLOR = "color"
+    SIZE = "size"
+    STYLE = "style"
+    BRAND = "brand"
+    BUDGET = "budget"
+    FEATURE = "feature"
+    USE_CASE = "use_case"
+    OTHER = "other"
 
 
-def _require_unit_interval(value: float, name: str) -> None:
-    _require(
-        isinstance(value, (int, float)) and not isinstance(value, bool),
-        f"{name} must be numeric",
-    )
-    _require(0.0 <= float(value) <= 1.0, f"{name} must be within [0.0, 1.0]")
+class ConstraintPolarity(_ClosedValue):
+    INCLUDE = "include"
+    EXCLUDE = "exclude"
+
+
+class ConstraintStrength(_ClosedValue):
+    HARD = "hard"
+    SOFT = "soft"
+
+
+class ConstraintStatus(_ClosedValue):
+    ACTIVE = "active"
+    REPLACED = "replaced"
+    RETRACTED = "retracted"
+    NEEDS_REVALIDATION = "needs_revalidation"
+
+
+class StateOperationKind(_ClosedValue):
+    ADD = "add"
+    REMOVE = "remove"
+    REPLACE = "replace"
+    EXCLUDE = "exclude"
+    NO_PREFERENCE = "no_preference"
+    RESET = "reset"
+
+
+class OperationScope(_ClosedValue):
+    ATTRIBUTE = "attribute"
+    CONVERSATION = "conversation"
+    INTENT = "intent"
+
+
+class InferredMode(_ClosedValue):
+    BUYING = "buying"
+    BROWSING = "browsing"
+    UNKNOWN = "unknown"
+
+
+class TurnAction(_ClosedValue):
+    CLARIFY = "clarify"
+    RECOMMEND = "recommend"
+
+
+class EvidenceOutcome(_ClosedValue):
+    MATCH = "match"
+    CONTRADICTION = "contradiction"
+    UNKNOWN = "unknown"
+
+
+class RoutePolicy(_ClosedValue):
+    AUTO = "auto"
+    SPARSE = "sparse"
+    DENSE = "dense"
+    HYBRID = "hybrid"
+
+
+class DecisionReasonCode(_ClosedValue):
+    FINAL_TURN = "final_turn"
+    VALUABLE_CLARIFICATION = "valuable_clarification"
+    LOW_QUESTION_VALUE = "low_question_value"
+    NO_ELIGIBLE_ATTRIBUTE = "no_eligible_attribute"
+    RANKING_STABLE = "ranking_stable"
+    INSUFFICIENT_EVIDENCE = "insufficient_evidence"
+    COMPONENT_FALLBACK = "component_fallback"
+
+
+EnumT = TypeVar("EnumT", bound=Enum)
+
+
+def _enum(value: object, enum_type: type[EnumT], name: str) -> EnumT:
+    try:
+        return enum_type(value)
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"unknown {name}: {value!r}") from error
+
+
+def _finite_number(value: object, name: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{name} must be a finite number")
+    converted = float(value)
+    if not math.isfinite(converted):
+        raise ValueError(f"{name} must be a finite number")
+    return converted
+
+
+def _unit_interval(value: object, name: str) -> float:
+    converted = _finite_number(value, name)
+    if not 0.0 <= converted <= 1.0:
+        raise ValueError(f"{name} must be between 0.0 and 1.0")
+    return converted
+
+
+def clamp_unit_interval(value: object) -> float:
+    """Normalize an untrusted finite numeric value into ``[0.0, 1.0]``."""
+
+    return min(1.0, max(0.0, _finite_number(value, "value")))
+
+
+def _positive_integer(value: object, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError(f"{name} must be a positive integer")
+    return value
+
+
+def _non_negative_integer(value: object, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{name} must be a non-negative integer")
+    return value
+
+
+def _mapping(value: Mapping[object, object], name: str) -> Mapping[object, object]:
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{name} must be a mapping")
+    return MappingProxyType(dict(value))
+
+
+def _attribute_mapping(
+    value: Mapping[object, object],
+    name: str,
+) -> Mapping[Attribute, object]:
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{name} must be a mapping")
+    return MappingProxyType({_enum(key, Attribute, "attribute"): item for key, item in value.items()})
 
 
 @dataclass(frozen=True)
@@ -98,121 +166,96 @@ class Constraint:
     source_turn: int
     confidence: float
     intent_version: int
-    status: ConstraintStatus = "active"
+    status: ConstraintStatus = ConstraintStatus.ACTIVE
     category_dependent: bool = False
 
     def __post_init__(self) -> None:
-        _require(self.attribute in ATTRIBUTES, f"unknown attribute {self.attribute!r}")
-        _require(self.polarity in POLARITIES, f"unknown polarity {self.polarity!r}")
-        _require(self.strength in STRENGTHS, f"unknown strength {self.strength!r}")
-        _require(
-            self.status in CONSTRAINT_STATUSES, f"unknown status {self.status!r}"
-        )
-        _require(
-            isinstance(self.source_turn, int) and 1 <= self.source_turn <= MAX_TURNS,
-            "source_turn must be within the official 1-to-10 range",
-        )
-        _require(
-            isinstance(self.intent_version, int) and self.intent_version >= 1,
-            "intent_version must be positive",
-        )
-        _require_unit_interval(self.confidence, "confidence")
-
-    @property
-    def is_active(self) -> bool:
-        return self.status == "active"
+        object.__setattr__(self, "attribute", _enum(self.attribute, Attribute, "attribute"))
+        object.__setattr__(self, "polarity", _enum(self.polarity, ConstraintPolarity, "polarity"))
+        object.__setattr__(self, "strength", _enum(self.strength, ConstraintStrength, "strength"))
+        object.__setattr__(self, "status", _enum(self.status, ConstraintStatus, "status"))
+        if isinstance(self.source_turn, bool) or not isinstance(self.source_turn, int) or not 1 <= self.source_turn <= 10:
+            raise ValueError("source_turn must be between 1 and 10")
+        _positive_integer(self.intent_version, "intent_version")
+        object.__setattr__(self, "confidence", _unit_interval(self.confidence, "confidence"))
+        if not isinstance(self.category_dependent, bool):
+            raise TypeError("category_dependent must be a bool")
 
 
 @dataclass(frozen=True)
 class StateOperation:
     operation: StateOperationKind
-    attribute: Attribute | None = None
-    old_value: object | None = None
-    new_value: object | None = None
-    scope: OperationScope = "attribute"
-    polarity: ConstraintPolarity | None = None
-    strength: ConstraintStrength | None = None
-    confidence: float | None = None
+    attribute: Attribute | None
+    old_value: object | None
+    new_value: object | None
+    scope: OperationScope
+    polarity: ConstraintPolarity | None
+    strength: ConstraintStrength | None
+    confidence: float | None
 
     def __post_init__(self) -> None:
-        _require(
-            self.operation in OPERATION_KINDS, f"unknown operation {self.operation!r}"
-        )
-        _require(self.scope in OPERATION_SCOPES, f"unknown scope {self.scope!r}")
-        if self.attribute is not None:
-            _require(
-                self.attribute in ATTRIBUTES, f"unknown attribute {self.attribute!r}"
-            )
-        if self.polarity is not None:
-            _require(self.polarity in POLARITIES, f"unknown polarity {self.polarity!r}")
-        if self.strength is not None:
-            _require(self.strength in STRENGTHS, f"unknown strength {self.strength!r}")
-        if self.confidence is not None:
-            _require_unit_interval(self.confidence, "confidence")
+        operation = _enum(self.operation, StateOperationKind, "operation")
+        scope = _enum(self.scope, OperationScope, "scope")
+        attribute = None if self.attribute is None else _enum(self.attribute, Attribute, "attribute")
+        polarity = None if self.polarity is None else _enum(self.polarity, ConstraintPolarity, "polarity")
+        strength = None if self.strength is None else _enum(self.strength, ConstraintStrength, "strength")
+        confidence = None if self.confidence is None else _unit_interval(self.confidence, "confidence")
+        object.__setattr__(self, "operation", operation)
+        object.__setattr__(self, "scope", scope)
+        object.__setattr__(self, "attribute", attribute)
+        object.__setattr__(self, "polarity", polarity)
+        object.__setattr__(self, "strength", strength)
+        object.__setattr__(self, "confidence", confidence)
 
-        if self.operation in ("add", "exclude"):
-            _require(self.attribute is not None, f"{self.operation} requires attribute")
-            _require(self.new_value is not None, f"{self.operation} requires new_value")
-            _require(self.polarity is not None, f"{self.operation} requires polarity")
-            _require(self.strength is not None, f"{self.operation} requires strength")
-            _require(
-                self.confidence is not None, f"{self.operation} requires confidence"
-            )
-            if self.operation == "exclude":
-                _require(
-                    self.polarity == "exclude",
-                    "exclude normalizes polarity to 'exclude'",
-                )
-        elif self.operation == "replace":
-            _require(self.attribute is not None, "replace requires attribute")
-            _require(self.new_value is not None, "replace requires new_value")
-            _require(self.polarity is not None, "replace requires polarity")
-            _require(self.strength is not None, "replace requires strength")
-            _require(self.confidence is not None, "replace requires confidence")
-        elif self.operation == "remove":
-            _require(
-                self.attribute is not None or self.old_value is not None,
-                "remove requires an attribute or an unambiguous old value",
-            )
-            _require(
-                self.new_value is None, "remove does not create a negative constraint"
-            )
-            _require(
-                self.polarity is None, "remove does not create a negative constraint"
-            )
-        elif self.operation == "no_preference":
-            _require(self.attribute is not None, "no_preference requires attribute")
-            _require(self.new_value is None, "no_preference creates no constraint")
-        elif self.operation == "reset":
-            _require(
-                self.scope in ("conversation", "intent"),
-                "reset requires explicit 'conversation' or 'intent' scope",
-            )
-            _require(self.attribute is None, "reset does not name an attribute")
+        if operation is StateOperationKind.RESET:
+            if scope not in (OperationScope.CONVERSATION, OperationScope.INTENT):
+                raise ValueError("reset requires conversation or intent scope")
+            if any(value is not None for value in (attribute, self.old_value, self.new_value, polarity, strength, confidence)):
+                raise ValueError("reset contains fields that must be None")
+            return
+        if scope is not OperationScope.ATTRIBUTE:
+            raise ValueError(f"{operation.value} requires attribute scope")
+        if operation in (StateOperationKind.ADD, StateOperationKind.EXCLUDE):
+            if attribute is None or self.new_value is None or strength is None or confidence is None or polarity is None:
+                raise ValueError(f"{operation.value} is missing a required field")
+            if self.old_value is not None:
+                raise ValueError(f"{operation.value} requires old_value to be None")
+            if operation is StateOperationKind.EXCLUDE:
+                object.__setattr__(self, "polarity", ConstraintPolarity.EXCLUDE)
+        elif operation is StateOperationKind.REPLACE:
+            if any(value is None for value in (attribute, self.old_value, self.new_value, polarity, strength, confidence)):
+                raise ValueError("replace is missing a required field")
+        elif operation is StateOperationKind.REMOVE:
+            if attribute is None and self.old_value is None:
+                raise ValueError("remove requires attribute or old_value")
+            if any(value is not None for value in (self.new_value, polarity, strength, confidence)):
+                raise ValueError("remove contains fields that must be None")
+        elif operation is StateOperationKind.NO_PREFERENCE:
+            if attribute is None:
+                raise ValueError("no_preference requires attribute")
+            if any(value is not None for value in (self.old_value, self.new_value, polarity, strength, confidence)):
+                raise ValueError("no_preference contains fields that must be None")
 
 
 @dataclass(frozen=True)
 class StateDelta:
-    inferred_mode: InferredMode = "unknown"
-    mode_confidence: float = 0.0
-    operations: tuple[StateOperation, ...] = ()
-    generality: float = 0.0
-    rejected_operations: int = 0
-    schema_version: str = ""
+    inferred_mode: InferredMode
+    mode_confidence: float
+    operations: tuple[StateOperation, ...]
+    generality: float
+    rejected_operations: int
+    schema_version: str
 
     def __post_init__(self) -> None:
-        _require(
-            self.inferred_mode in INFERRED_MODES,
-            f"unknown inferred_mode {self.inferred_mode!r}",
-        )
-        _require_unit_interval(self.mode_confidence, "mode_confidence")
-        _require_unit_interval(self.generality, "generality")
-        _require(
-            isinstance(self.rejected_operations, int)
-            and self.rejected_operations >= 0,
-            "rejected_operations must be a non-negative integer",
-        )
-        _require(isinstance(self.operations, tuple), "operations must be a tuple")
+        object.__setattr__(self, "inferred_mode", _enum(self.inferred_mode, InferredMode, "mode"))
+        object.__setattr__(self, "mode_confidence", _unit_interval(self.mode_confidence, "mode_confidence"))
+        object.__setattr__(self, "generality", _unit_interval(self.generality, "generality"))
+        object.__setattr__(self, "operations", tuple(self.operations))
+        if not all(isinstance(item, StateOperation) for item in self.operations):
+            raise TypeError("operations must contain StateOperation values")
+        _non_negative_integer(self.rejected_operations, "rejected_operations")
+        if not isinstance(self.schema_version, str) or not self.schema_version:
+            raise ValueError("schema_version must be a non-empty string")
 
 
 @dataclass(frozen=True)
@@ -221,94 +264,110 @@ class ProfileBias:
     weight: float = 0.0
 
     def __post_init__(self) -> None:
-        _require_unit_interval(self.weight, "profile weight")
-        _require(isinstance(self.terms, tuple), "terms must be a tuple")
-
-    @property
-    def is_inert(self) -> bool:
-        return self.weight == 0.0 or not self.terms
+        object.__setattr__(self, "terms", tuple(str(term) for term in self.terms))
+        object.__setattr__(self, "weight", _unit_interval(self.weight, "weight"))
 
 
 @dataclass(frozen=True)
 class SearchPlan:
-    text_query: str = ""
-    must_terms: tuple[str, ...] = ()
-    should_terms: tuple[str, ...] = ()
-    exclude_terms: tuple[str, ...] = ()
-    filters: Mapping[str, object] = field(default_factory=dict)
-    attribute_values: Mapping[str, tuple[object, ...]] = field(default_factory=dict)
-    mode: InferredMode = "unknown"
-    intent_version: int = 1
-    revalidation_flags: frozenset[str] = frozenset()
-    no_preference: frozenset[str] = frozenset()
-    profile_bias: ProfileBias = field(default_factory=ProfileBias)
-    route_policy: RoutePolicy = "auto"
+    text_query: str
+    must_terms: tuple[str, ...]
+    should_terms: tuple[str, ...]
+    exclude_terms: tuple[str, ...]
+    filters: Mapping[str, object]
+    attribute_values: Mapping[Attribute, tuple[object, ...]]
+    mode: InferredMode
+    intent_version: int
+    revalidation_flags: frozenset[Attribute]
+    no_preference: frozenset[Attribute]
+    profile_bias: ProfileBias
+    route_policy: RoutePolicy = RoutePolicy.AUTO
     embedding_route_id: str | None = None
     index_id: str | None = None
 
     def __post_init__(self) -> None:
-        _require(self.mode in INFERRED_MODES, f"unknown mode {self.mode!r}")
-        _require(
-            self.route_policy in ROUTE_POLICIES,
-            f"unknown route_policy {self.route_policy!r}",
-        )
-        _require(
-            isinstance(self.intent_version, int) and self.intent_version >= 1,
-            "intent_version must be positive",
-        )
-        if self.route_policy == "dense":
-            _require(
-                self.embedding_route_id is not None and self.index_id is not None,
-                "dense retrieval requires both embedding_route_id and index_id",
-            )
+        for name in ("must_terms", "should_terms", "exclude_terms"):
+            object.__setattr__(self, name, tuple(str(item) for item in getattr(self, name)))
+        object.__setattr__(self, "filters", _mapping(self.filters, "filters"))
+        values = _attribute_mapping(self.attribute_values, "attribute_values")
+        object.__setattr__(self, "attribute_values", MappingProxyType({key: tuple(item) for key, item in values.items()}))
+        object.__setattr__(self, "mode", _enum(self.mode, InferredMode, "mode"))
+        object.__setattr__(self, "route_policy", _enum(self.route_policy, RoutePolicy, "route_policy"))
+        _positive_integer(self.intent_version, "intent_version")
+        object.__setattr__(self, "revalidation_flags", frozenset(_enum(item, Attribute, "attribute") for item in self.revalidation_flags))
+        object.__setattr__(self, "no_preference", frozenset(_enum(item, Attribute, "attribute") for item in self.no_preference))
+        if not isinstance(self.profile_bias, ProfileBias):
+            raise TypeError("profile_bias must be a ProfileBias")
+        paired = (self.embedding_route_id is None) == (self.index_id is None)
+        if not paired:
+            raise ValueError("embedding_route_id and index_id must be set together")
+        if self.route_policy in (RoutePolicy.DENSE, RoutePolicy.HYBRID) and self.embedding_route_id is None:
+            raise ValueError("dense and hybrid routes require embedding and index identities")
 
 
 @dataclass(frozen=True)
 class ProductEvidence:
-    matched_fields: tuple[str, ...] = ()
-    supporting_snippets: tuple[str, ...] = ()
-    constraint_outcomes: Mapping[str, EvidenceOutcome] = field(default_factory=dict)
-    attribute_values: Mapping[str, tuple[object, ...]] = field(default_factory=dict)
-    evidence_reliability: Mapping[str, float] = field(default_factory=dict)
-    unknown_fields: tuple[str, ...] = ()
-    route_details: Mapping[str, object] = field(default_factory=dict)
+    matched_fields: tuple[str, ...]
+    supporting_snippets: tuple[str, ...]
+    constraint_outcomes: Mapping[Attribute, EvidenceOutcome]
+    attribute_values: Mapping[Attribute, tuple[object, ...]]
+    evidence_reliability: Mapping[Attribute, float]
+    unknown_fields: tuple[str, ...]
+    route_details: Mapping[str, object]
     profile_contribution: float = 0.0
 
     def __post_init__(self) -> None:
-        for attribute, outcome in self.constraint_outcomes.items():
-            _require(attribute in ATTRIBUTES, f"unknown attribute {attribute!r}")
-            _require(
-                outcome in ("match", "contradiction", "unknown"),
-                f"unknown evidence outcome {outcome!r}",
-            )
-        for attribute, reliability in self.evidence_reliability.items():
-            _require(attribute in ATTRIBUTES, f"unknown attribute {attribute!r}")
-            _require_unit_interval(reliability, "evidence_reliability")
-        _require_unit_interval(self.profile_contribution, "profile_contribution")
+        object.__setattr__(self, "matched_fields", tuple(str(item) for item in self.matched_fields))
+        object.__setattr__(self, "supporting_snippets", tuple(str(item) for item in self.supporting_snippets))
+        outcomes = _attribute_mapping(self.constraint_outcomes, "constraint_outcomes")
+        object.__setattr__(self, "constraint_outcomes", MappingProxyType({key: _enum(item, EvidenceOutcome, "evidence outcome") for key, item in outcomes.items()}))
+        values = _attribute_mapping(self.attribute_values, "attribute_values")
+        object.__setattr__(self, "attribute_values", MappingProxyType({key: tuple(item) for key, item in values.items()}))
+        reliability = _attribute_mapping(self.evidence_reliability, "evidence_reliability")
+        object.__setattr__(self, "evidence_reliability", MappingProxyType({key: _unit_interval(item, "evidence reliability") for key, item in reliability.items()}))
+        object.__setattr__(self, "unknown_fields", tuple(str(item) for item in self.unknown_fields))
+        object.__setattr__(self, "route_details", _mapping(self.route_details, "route_details"))
+        object.__setattr__(self, "profile_contribution", _finite_number(self.profile_contribution, "profile_contribution"))
 
 
 @dataclass(frozen=True)
 class Candidate:
     parent_asin: str
-    product_evidence: ProductEvidence = field(default_factory=ProductEvidence)
-    sparse_rank: int | None = None
-    sparse_score: float | None = None
-    dense_rank: int | None = None
-    dense_score: float | None = None
-    structural_score: float = 0.0
-    fused_score: float = 0.0
+    product_evidence: ProductEvidence
+    sparse_rank: int | None
+    sparse_score: float | None
+    dense_rank: int | None
+    dense_score: float | None
+    structural_score: float
+    fused_score: float
 
     def __post_init__(self) -> None:
-        _require(
-            isinstance(self.parent_asin, str) and bool(self.parent_asin),
-            "parent_asin must be a non-empty string",
-        )
+        if not isinstance(self.parent_asin, str) or not self.parent_asin:
+            raise ValueError("parent_asin must be a non-empty catalog ID")
+        if not isinstance(self.product_evidence, ProductEvidence):
+            raise TypeError("product_evidence must be ProductEvidence")
         for name in ("sparse_rank", "dense_rank"):
-            rank = getattr(self, name)
-            if rank is not None:
-                _require(
-                    isinstance(rank, int) and rank >= 1, f"{name} must be positive"
-                )
+            value = getattr(self, name)
+            if value is not None:
+                _positive_integer(value, name)
+        for name in ("sparse_score", "dense_score"):
+            value = getattr(self, name)
+            if value is not None:
+                object.__setattr__(self, name, _finite_number(value, name))
+        object.__setattr__(self, "structural_score", _finite_number(self.structural_score, "structural_score"))
+        object.__setattr__(self, "fused_score", _finite_number(self.fused_score, "fused_score"))
+
+    def retrieval_sort_key(self) -> tuple[float, float, float, float, float, str]:
+        infinity = math.inf
+        route_ranks = [rank for rank in (self.sparse_rank, self.dense_rank) if rank is not None]
+        return (
+            -self.fused_score,
+            -self.structural_score,
+            min(route_ranks, default=infinity),
+            self.sparse_rank if self.sparse_rank is not None else infinity,
+            self.dense_rank if self.dense_rank is not None else infinity,
+            self.parent_asin,
+        )
 
 
 @dataclass(frozen=True)
@@ -316,29 +375,21 @@ class TurnDecision:
     action: TurnAction
     ask_attribute: Attribute | None
     reason_code: DecisionReasonCode
-    reason: str = ""
-    expected_information_gain: float = 0.0
+    reason: str
+    expected_information_gain: float
 
     def __post_init__(self) -> None:
-        _require(
-            self.action in ("clarify", "recommend"), f"unknown action {self.action!r}"
-        )
-        _require(
-            self.reason_code in DECISION_REASON_CODES,
-            f"unknown reason_code {self.reason_code!r}",
-        )
-        _require_unit_interval(
-            self.expected_information_gain, "expected_information_gain"
-        )
-        if self.action == "clarify":
-            _require(
-                self.ask_attribute in ATTRIBUTES,
-                "clarify requires one allowed ask_attribute",
-            )
-        else:
-            _require(
-                self.ask_attribute is None, "recommend requires ask_attribute is None"
-            )
+        object.__setattr__(self, "action", _enum(self.action, TurnAction, "action"))
+        object.__setattr__(self, "reason_code", _enum(self.reason_code, DecisionReasonCode, "decision reason code"))
+        attribute = None if self.ask_attribute is None else _enum(self.ask_attribute, Attribute, "attribute")
+        object.__setattr__(self, "ask_attribute", attribute)
+        object.__setattr__(self, "expected_information_gain", _unit_interval(self.expected_information_gain, "expected_information_gain"))
+        if not isinstance(self.reason, str):
+            raise TypeError("reason must be a string")
+        if self.action is TurnAction.CLARIFY and attribute is None:
+            raise ValueError("clarify requires ask_attribute")
+        if self.action is TurnAction.RECOMMEND and attribute is not None:
+            raise ValueError("recommend requires ask_attribute to be None")
 
 
 @dataclass(frozen=True)
@@ -358,51 +409,59 @@ class Usage:
     cache_hit: bool = False
 
     def __post_init__(self) -> None:
-        for name in (
-            "prompt_tokens",
-            "completion_tokens",
-            "reasoning_tokens",
-            "calls",
-            "repairs",
-        ):
-            value = getattr(self, name)
-            _require(
-                isinstance(value, int) and not isinstance(value, bool) and value >= 0,
-                f"{name} must be a non-negative integer",
-            )
-        _require(self.latency_ms >= 0.0, "latency_ms must be non-negative")
-        _require(self.repairs <= self.calls, "repairs cannot exceed calls")
+        for name in ("prompt_tokens", "completion_tokens", "reasoning_tokens", "calls", "repairs"):
+            _non_negative_integer(getattr(self, name), name)
+        if self.repairs > self.calls:
+            raise ValueError("repairs cannot exceed calls")
+        object.__setattr__(self, "latency_ms", _finite_number(self.latency_ms, "latency_ms"))
+        if self.latency_ms < 0:
+            raise ValueError("latency_ms cannot be negative")
         if self.estimated_cost is not None:
-            _require(self.estimated_cost >= 0.0, "estimated_cost must be non-negative")
+            cost = _finite_number(self.estimated_cost, "estimated_cost")
+            if cost < 0:
+                raise ValueError("estimated_cost cannot be negative")
+            object.__setattr__(self, "estimated_cost", cost)
+        if not isinstance(self.cost_currency, str) or len(self.cost_currency) != 3 or not self.cost_currency.isalpha():
+            raise ValueError("cost_currency must be a three-letter ISO-4217 code")
+        object.__setattr__(self, "cost_currency", self.cost_currency.upper())
+        if not isinstance(self.cache_hit, bool):
+            raise TypeError("cache_hit must be a bool")
+        if self.cache_hit and any((self.prompt_tokens, self.completion_tokens, self.reasoning_tokens, self.calls, self.repairs, self.latency_ms, self.estimated_cost or 0.0)):
+            raise ValueError("a cache hit cannot add calls, usage, latency, or cost")
 
-    @property
-    def total_tokens(self) -> int:
-        return self.prompt_tokens + self.completion_tokens
 
+@dataclass(frozen=True)
+class IndexManifest:
+    """Immutable identity and provenance for a product embedding index."""
 
-__all__ = [
-    "MAX_TURNS",
-    "TOP_K",
-    "ATTRIBUTES",
-    "Attribute",
-    "Candidate",
-    "Constraint",
-    "ConstraintPolarity",
-    "ConstraintStatus",
-    "ConstraintStrength",
-    "ContractViolation",
-    "DecisionReasonCode",
-    "EvidenceOutcome",
-    "InferredMode",
-    "OperationScope",
-    "ProductEvidence",
-    "ProfileBias",
-    "RoutePolicy",
-    "SearchPlan",
-    "StateDelta",
-    "StateOperation",
-    "StateOperationKind",
-    "TurnAction",
-    "TurnDecision",
-    "Usage",
-]
+    index_id: str
+    catalog_checksum: str
+    catalog_row_count: int
+    ordered_id_checksum: str
+    product_text_schema_version: str
+    provider: str
+    model: str
+    route_id: str
+    dimension: int
+    vector_dtype: str
+    normalized: bool
+    document_count: int
+    artifact_format: str
+    built_at: str
+    artifact_checksums: Mapping[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        for name in ("index_id", "catalog_checksum", "ordered_id_checksum", "product_text_schema_version", "provider", "model", "route_id", "vector_dtype", "artifact_format", "built_at"):
+            if not isinstance(getattr(self, name), str) or not getattr(self, name):
+                raise ValueError(f"{name} must be a non-empty string")
+        _positive_integer(self.catalog_row_count, "catalog_row_count")
+        _positive_integer(self.dimension, "dimension")
+        _positive_integer(self.document_count, "document_count")
+        if self.document_count != self.catalog_row_count:
+            raise ValueError("document_count must match catalog_row_count")
+        if not isinstance(self.normalized, bool):
+            raise TypeError("normalized must be a bool")
+        checksums = _mapping(self.artifact_checksums, "artifact_checksums")
+        if not all(isinstance(key, str) and key and isinstance(value, str) and value for key, value in checksums.items()):
+            raise ValueError("artifact_checksums must contain non-empty string pairs")
+        object.__setattr__(self, "artifact_checksums", checksums)

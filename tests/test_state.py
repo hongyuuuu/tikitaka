@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import unittest
 
-from tikitaka.contracts.domain import StateDelta, StateOperation
+from tikitaka.contracts.domain import StateDelta, TurnDecision
 from tikitaka.models.fake import FaultyInterpreter, HeuristicInterpreter
 from tikitaka.state.extractor import Extractor
 from tikitaka.state.reducer import StateReducer
-from tikitaka.state.schema import SCHEMA_VERSION, parse
+from tikitaka.state.schema import make_delta, operation, parse
 from tikitaka.state.session import SessionState, new_session
 
 PROFILE = {
@@ -20,9 +20,9 @@ PROFILE = {
 }
 
 
-def add(attribute: str, value: object, strength: str = "soft") -> StateOperation:
-    return StateOperation(
-        operation="add",
+def add(attribute: str, value: object, strength: str = "soft"):
+    return operation(
+        "add",
         attribute=attribute,
         new_value=value,
         polarity="include",
@@ -31,13 +31,12 @@ def add(attribute: str, value: object, strength: str = "soft") -> StateOperation
     )
 
 
-def delta(*operations: StateOperation, mode: str = "buying") -> StateDelta:
-    return StateDelta(
+def delta(*operations, mode: str = "buying") -> StateDelta:
+    return make_delta(
         inferred_mode=mode,
         mode_confidence=0.7,
         operations=operations,
         generality=0.4,
-        schema_version=SCHEMA_VERSION,
     )
 
 
@@ -84,7 +83,7 @@ class ReducerTests(unittest.TestCase):
     def test_remove_budget_does_not_create_negative_budget(self) -> None:
         self.reducer.apply(self.state, delta(add("budget", "under $50")), 1)
         self.reducer.apply(
-            self.state, delta(StateOperation(operation="remove", attribute="budget")), 2
+            self.state, delta(operation("remove", attribute="budget")), 2
         )
         self.assertEqual(self.state.constraints_for("budget"), ())
         for constraint in self.state.constraint_history:
@@ -97,16 +96,16 @@ class ReducerTests(unittest.TestCase):
         self.reducer.apply(
             self.state,
             delta(
-                StateOperation(
-                    operation="exclude",
+                operation(
+                    "exclude",
                     attribute="material",
                     new_value="leather",
                     polarity="exclude",
                     strength="hard",
                     confidence=0.9,
                 ),
-                StateOperation(
-                    operation="exclude",
+                operation(
+                    "exclude",
                     attribute="color",
                     new_value="red",
                     polarity="exclude",
@@ -124,7 +123,7 @@ class ReducerTests(unittest.TestCase):
     def test_no_preference_suppresses_future_asks(self) -> None:
         self.reducer.apply(
             self.state,
-            delta(StateOperation(operation="no_preference", attribute="material")),
+            delta(operation("no_preference", attribute="material")),
             1,
         )
         self.assertIn("material", self.state.no_preference)
@@ -143,7 +142,7 @@ class ReducerTests(unittest.TestCase):
 
         self.reducer.apply(
             self.state,
-            delta(StateOperation(operation="reset", scope="conversation")),
+            delta(operation("reset", scope="conversation")),
             3,
         )
         self.assertEqual(self.state.active_constraints, ())
@@ -163,7 +162,7 @@ class ReducerTests(unittest.TestCase):
                 )
                 self.reducer.apply(
                     state,
-                    delta(StateOperation(operation="reset", scope=scope)),
+                    delta(operation("reset", scope=scope)),
                     2,
                 )
                 self.assertEqual(values(state, "budget"), expected)
@@ -194,13 +193,15 @@ class ReducerTests(unittest.TestCase):
         self.assertEqual(values(self.state, "category"), {"wool sweaters"})
 
     def test_new_intent_version_reopens_shown_products(self) -> None:
-        from tikitaka.contracts.domain import TurnDecision
-
         self.reducer.apply(self.state, delta(add("category", "boots")), 1)
         self.reducer.record_decision(
             self.state,
             TurnDecision(
-                action="recommend", ask_attribute=None, reason_code="ranking_stable"
+                action="recommend",
+                ask_attribute=None,
+                reason_code="ranking_stable",
+                reason="shortlist settled",
+                expected_information_gain=0.0,
             ),
             ["B001", "B002"],
         )
@@ -209,14 +210,14 @@ class ReducerTests(unittest.TestCase):
         self.assertEqual(self.state.shown_product_ids, frozenset())
 
     def test_clarify_records_asked_attribute(self) -> None:
-        from tikitaka.contracts.domain import TurnDecision
-
         self.reducer.record_decision(
             self.state,
             TurnDecision(
                 action="clarify",
                 ask_attribute="material",
                 reason_code="valuable_clarification",
+                reason="material would move the ranking",
+                expected_information_gain=0.6,
             ),
         )
         self.assertIn("material", self.state.asked_attributes)
@@ -232,8 +233,8 @@ class ReducerTests(unittest.TestCase):
         self.reducer.apply(self.state, delta(add("color", "blue")), 1)
         override = delta(
             add("budget", "under $60"),
-            StateOperation(
-                operation="replace",
+            operation(
+                "replace",
                 attribute="color",
                 old_value="blue",
                 new_value="green",
