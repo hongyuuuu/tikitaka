@@ -274,6 +274,60 @@ class ReducerTests(unittest.TestCase):
         )
         self.assertEqual(self.state.intent_version, version + 1)
 
+    def test_attribute_correction_keeps_the_question_budget(self) -> None:
+        """A correction advances the version without reopening answered questions.
+
+        Bumping the version makes superseded products eligible again, which is
+        wanted. Clearing no-preference is not: re-asking a Boundary attribute
+        spends a turn to learn nothing, and the 5 percent Boundary slice is
+        scored on exactly that.
+        """
+
+        self.reducer.apply(
+            self.state,
+            delta(
+                add("color", "blue"),
+                operation("no_preference", attribute="material"),
+            ),
+            1,
+        )
+        version = self.state.intent_version
+        self.reducer.apply(
+            self.state,
+            delta(
+                operation(
+                    "replace",
+                    attribute="color",
+                    old_value="blue",
+                    new_value="green",
+                    polarity="include",
+                    strength="hard",
+                    confidence=0.9,
+                )
+            ),
+            2,
+        )
+        self.assertEqual(self.state.intent_version, version + 1)
+        self.assertIn("material", self.state.no_preference)
+        self.assertFalse(self.state.is_askable("material"))
+
+    def test_category_change_does_reopen_the_question_budget(self) -> None:
+        """The opposite case: prior answers were about a different product."""
+
+        self.reducer.apply(
+            self.state,
+            delta(
+                add("category", "boots", strength="hard"),
+                operation("no_preference", attribute="material"),
+            ),
+            1,
+        )
+        self.reducer.apply(
+            self.state, delta(add("category", "sweaters", strength="hard")), 2
+        )
+        self.assertNotIn("material", self.state.no_preference)
+        self.assertTrue(self.state.is_askable("material"))
+
     def test_sessions_do_not_share_state(self) -> None:
         first = new_session("a", PROFILE)
         second = new_session("b", PROFILE)

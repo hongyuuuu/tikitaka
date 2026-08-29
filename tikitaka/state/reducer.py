@@ -64,7 +64,11 @@ class StateReducer:
             for operation in delta.operations
         )
         if has_non_category_replace and not has_category_change:
-            self._new_intent_version(state)
+            # Advance the version so superseded products are eligible again,
+            # but keep the question budget. A colour correction says nothing
+            # about the customer's stated indifference to material, and
+            # reopening it would re-ask a Boundary attribute and burn a turn.
+            self._new_intent_version(state, reset_questions=False)
 
         for operation in sorted(delta.operations, key=_sort_key):
             self._apply_operation(state, operation, turn)
@@ -272,19 +276,30 @@ class StateReducer:
                 )
         self._new_intent_version(state)
 
-    def _new_intent_version(self, state: SessionState) -> None:
-        """Begin a new intent version and reopen the question budget.
+    def _new_intent_version(
+        self,
+        state: SessionState,
+        *,
+        reset_questions: bool = True,
+    ) -> None:
+        """Begin a new intent version.
 
-        Previously shown products become eligible again because
-        `shown_product_ids` is scoped to the current version, and suppressed
-        attributes reopen because a no-preference answer was given about the
-        old intent, not this one.
+        Previously shown products always become eligible again, because
+        `shown_product_ids` is scoped to the current version.
+
+        The question budget is a separate decision. A category change or an
+        explicit restart invalidates prior answers, since a no-preference
+        about boots says nothing about sweaters. A plain attribute correction
+        does not: the customer changed one value, not their mind about every
+        question already answered, and reopening those would re-ask a Boundary
+        attribute and spend a turn to learn nothing.
         """
 
         state.intent_version += 1
-        state._no_preference.clear()
-        state._asked.clear()
-        state._exhausted.clear()
+        if reset_questions:
+            state._no_preference.clear()
+            state._asked.clear()
+            state._exhausted.clear()
 
     def _swap(
         self,

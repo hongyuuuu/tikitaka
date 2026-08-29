@@ -72,9 +72,13 @@ def for_route(
 ) -> Usage:
     """Build one attributable record for a completed provider call.
 
-    Reasoning tokens are billed as output by most providers, so they are priced
-    with the completion rate while remaining separately reported. A cache hit
-    adds no call, tokens, latency, or cost to the current run.
+    `completion_tokens` is the billed output total. `reasoning_tokens` is an
+    informational *subset* of it, not an addition: the provider reports it
+    under `completion_tokens_details`, verified against a live response. Adding
+    the two would double-count every reasoning token, which at `xhigh` would
+    inflate the reported cost badly.
+
+    A cache hit adds no call, tokens, latency, or cost to the current run.
     """
 
     if cache_hit:
@@ -87,10 +91,9 @@ def for_route(
             cache_hit=True,
         )
 
-    billed_output = completion_tokens + reasoning_tokens
     estimated_cost = (
         prompt_tokens / 1000.0 * prompt_cost_per_1k
-        + billed_output / 1000.0 * completion_cost_per_1k
+        + completion_tokens / 1000.0 * completion_cost_per_1k
     )
     return Usage(
         prompt_tokens=prompt_tokens,

@@ -1,0 +1,58 @@
+{
+  "scenario": "buying",
+  "note": "Messages are verbatim local-evaluator templates. model_response is authored to mirror what the deterministic route derives from the same message, so the equivalence test isolates adapter and schema behaviour rather than comparing regex quality against a language model.",
+  "turns": [
+    {
+      "message": "I'm looking for hiking boots. A key requirement is: waterproof leather.",
+      "model_response": {
+        "inferred_mode": "buying",
+        "mode_confidence": 0.6,
+        "generality": 0.3,
+        "operations": [
+          {
+            "operation": "add",
+            "attribute": "category",
+            "new_value": "hiking boots",
+            "polarity": "include",
+            "strength": "hard",
+            "confidence": 0.9
+          },
+          {
+            "operation": "add",
+            "attribute": "material",
+            "new_value": "waterproof leather",
+            "polarity": "include",
+            "strength": "hard",
+            "confidence": 0.8
+          }
+        ]
+      }
+    },
+    {
+      "message": "For that, what matters is: wide width; ankle support.",
+      "model_response": {
+        "inferred_mode": "buying",
+        "mode_confidence": 0.6,
+        "generality": 0.35,
+        "operations": [
+          {
+            "operation": "add",
+            "attribute": "size",
+            "new_value": "wide width",
+            "polarity": "include",
+            "strength": "soft",
+            "confidence": 0.8
+          },
+          {
+            "operation": "add",
+            "attribute": "feature",
+            "new_value": "ankle support",
+            "polarity": "include",
+            "strength": "soft",
+            "confidence": 0.8
+          }
+        ]
+      }
+    }
+  ]
+}

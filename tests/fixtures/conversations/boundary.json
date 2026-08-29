@@ -1,0 +1,38 @@
+{
+  "scenario": "boundary",
+  "note": "Messages are verbatim local-evaluator templates. model_response is authored to mirror what the deterministic route derives from the same message, so the equivalence test isolates adapter and schema behaviour rather than comparing regex quality against a language model.",
+  "turns": [
+    {
+      "message": "I'm looking for scarves, but I'm still exploring.",
+      "model_response": {
+        "inferred_mode": "browsing",
+        "mode_confidence": 0.6,
+        "generality": 0.9,
+        "operations": [
+          {
+            "operation": "add",
+            "attribute": "category",
+            "new_value": "scarves",
+            "polarity": "include",
+            "strength": "hard",
+            "confidence": 0.9
+          }
+        ]
+      }
+    },
+    {
+      "message": "I don't have a preference for material; please use your judgment.",
+      "model_response": {
+        "inferred_mode": "unknown",
+        "mode_confidence": 0.6,
+        "generality": 0.5,
+        "operations": [
+          {
+            "operation": "no_preference",
+            "attribute": "material"
+          }
+        ]
+      }
+    }
+  ]
+}

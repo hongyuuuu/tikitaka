@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from tikitaka.contracts.domain import Usage
 from tikitaka.models.base import ModelError
 from tikitaka.models.fake import HeuristicInterpreter, detect_exhaustion
+from tikitaka.models.usage import merge
 from tikitaka.state.reducer import StateReducer
 from tikitaka.state.schema import empty_delta
 from tikitaka.state.session import SessionState
@@ -60,13 +61,19 @@ class Extractor:
         message: str,
         error: Exception,
     ) -> tuple[object, Usage, bool, str]:
+        # A failed call may still have burned tokens. Carrying its usage
+        # forward keeps the cost disclosure honest about work that was paid
+        # for and thrown away.
+        spent = getattr(error, "usage", None)
+        spent = spent if isinstance(spent, Usage) else Usage()
+
         if self.fallback is None:
-            return empty_delta(state.mode), Usage(), False, str(error)
+            return empty_delta(state.mode), spent, False, str(error)
         try:
             delta, usage = self.fallback.interpret(message, state)
-            return delta, usage, True, str(error)
+            return delta, merge(spent, usage), True, str(error)
         except Exception:
-            return empty_delta(state.mode), Usage(), False, str(error)
+            return empty_delta(state.mode), spent, False, str(error)
 
 
 __all__ = ["Extractor", "IngestResult"]
