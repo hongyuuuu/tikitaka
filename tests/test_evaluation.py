@@ -3,7 +3,9 @@ from __future__ import annotations
 import dataclasses
 import json
 import unittest
+from types import SimpleNamespace
 
+from tikitaka.contracts import Usage
 from tikitaka.evaluation.ablations import compare_reports
 from tikitaka.evaluation.experiment import ExperimentConfig, evaluate_samples
 from tikitaka.evaluation.reporting import build_report, canonical_report_json, normalized_metrics_json
@@ -69,6 +71,53 @@ class RecordingAgent:
                 "route": "fake-route",
             },
         }
+
+
+class RichUsageAgent(RecordingAgent):
+    def __init__(self) -> None:
+        super().__init__()
+        self.events: dict[str, list[object]] = {}
+        self.sessions = self
+        self._embedding_usage = Usage(
+            prompt_tokens=3,
+            calls=1,
+            provider="fake-provider",
+            model="fake-embedder",
+            route="fake-embedding-route",
+        )
+        self._retriever = SimpleNamespace(query_embedder=self)
+
+    def take_usage(self) -> Usage:
+        usage = self._embedding_usage
+        self._embedding_usage = Usage()
+        return usage
+
+    def reset(self, session_id: str, user_profile: dict) -> None:
+        super().reset(session_id, user_profile)
+        self.events[session_id] = []
+
+    def usage_events(self, session_id: str) -> tuple[object, ...]:
+        return tuple(self.events.get(session_id, ()))
+
+    def respond(self, session_id: str, *args: object) -> dict:
+        self.events[session_id].append(SimpleNamespace(
+            component="interpreter",
+            usage=Usage(
+                prompt_tokens=5,
+                completion_tokens=2,
+                reasoning_tokens=1,
+                calls=1,
+                latency_ms=3.5,
+                provider="fake-provider",
+                model="fake-model",
+                reasoning_level="none",
+                estimated_cost=0.01,
+                route="fake-route",
+            ),
+        ))
+        response = super().respond(session_id, *args)
+        response["usage"] = {"prompt_tokens": 5, "completion_tokens": 2}
+        return response
 
 
 class SplitTests(unittest.TestCase):
@@ -143,6 +192,27 @@ class ExperimentTests(unittest.TestCase):
         manifest = create_split(samples(), SplitSpec("split-v1", 7, 0.5))
         reports = [build_report(experiment_config, manifest, result, result) for result in results]
         self.assertEqual(normalized_metrics_json(reports[0]), normalized_metrics_json(reports[1]))
+
+    def test_internal_usage_telemetry_is_attributed_without_double_counting(self) -> None:
+        product = {
+            "parent_asin": "A", "title": "Blue shoe", "features": [],
+            "details": {}, "description": [], "categories": ["Shoes"], "price": 10,
+        }
+        sample = {
+            "sample_id": "s1", "scenario_type": "buying", "user_profile": {},
+            "ground_truth": {"parent_asin": "A"},
+        }
+        result = evaluate_samples(
+            RichUsageAgent, [sample], {"A"}, {"A": ["Shoes"]}, {"A": product},
+            config(), "tuning",
+        )
+        self.assertEqual(result["usage"]["prompt_tokens"], 8)
+        self.assertEqual(result["usage"]["completion_tokens"], 2)
+        self.assertEqual(result["usage"]["reasoning_tokens"], 1)
+        self.assertEqual(result["usage"]["estimated_cost"], 0.01)
+        routes = {item["component"]: item["route"] for item in result["usage_by_component_route"]}
+        self.assertEqual(routes["interpreter"], "fake-route")
+        self.assertEqual(routes["retrieval"], "fake-embedding-route")
 
 
 class ReportingTests(unittest.TestCase):

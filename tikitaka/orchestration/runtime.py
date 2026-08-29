@@ -199,6 +199,7 @@ def build_deterministic_agent(
     config: DeterministicRuntimeConfig | None = None,
     *,
     interpreter: object | None = None,
+    retriever: object | None = None,
 ) -> ShoppingAgent[SessionState]:
     """Wire the Person 1/2/3 implementations into Person 4 orchestration.
 
@@ -210,8 +211,9 @@ def build_deterministic_agent(
     return _build_agent(
         catalog_path,
         runtime,
-        interpreter=VisibleMessageInterpreter(),
+        interpreter=interpreter or VisibleMessageInterpreter(),
         reranker=DeterministicRanker(config=runtime.ranking),
+        retriever=retriever,
         route_id="heuristic/local",
         degraded=True,
     )
@@ -223,6 +225,7 @@ def build_agent(
     *,
     environ: Mapping[str, str] | None = None,
     model_selection: GatewaySelection | None = None,
+    retriever: object | None = None,
 ) -> tuple[ShoppingAgent[SessionState], str]:
     """Build the automatic API-primary route used by ``starter.Agent``.
 
@@ -270,6 +273,7 @@ def build_agent(
         runtime,
         interpreter=interpreter,
         reranker=reranker,
+        retriever=retriever,
         route_id=selection.route.route_id,
         degraded=selection.degraded,
     )
@@ -282,13 +286,13 @@ def _build_agent(
     *,
     interpreter: object,
     reranker: object,
+    retriever: object | None,
     route_id: str,
     degraded: bool,
 ) -> ShoppingAgent[SessionState]:
     catalog = load_catalog(catalog_path)
-    retriever = SparseStructuredRetriever(
-        catalog,
-        retrieval_config=runtime.retrieval,
+    selected_retriever = retriever or SparseStructuredRetriever(
+        catalog, retrieval_config=runtime.retrieval
     )
     query_config = runtime.query_builder or QueryBuilderConfig(
         profile_weight=runtime.profile_weight,
@@ -300,7 +304,7 @@ def _build_agent(
         reducer=StateReducer(),
         interpreter=interpreter,
         query_builder=ActiveQueryBuilder(query_config),
-        retriever=retriever,
+        retriever=selected_retriever,
         decision_policy=ResponsePolicy(config=runtime.decision),
         reranker=reranker,
         catalog_ids=catalog.ids,
