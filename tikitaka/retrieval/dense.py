@@ -42,6 +42,42 @@ class DenseRouteError(RuntimeError):
     """Raised when a query embedder cannot safely serve a dense index."""
 
 
+def _declared_identity(embedder: object, name: str) -> str | None:
+    value = getattr(embedder, name, None)
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise DenseRouteError(f"embedder {name} must be a non-empty string when declared")
+    if value != value.strip():
+        raise DenseRouteError(f"embedder {name} must not contain edge whitespace")
+    return value
+
+
+def assert_embedder_matches_manifest(embedder: object, manifest: IndexManifest) -> None:
+    """Fail closed on every identity a provider-neutral embedder declares."""
+
+    mismatches: list[str] = []
+    declared = {
+        "route_id": _route_id(embedder),
+        "provider": _declared_identity(embedder, "provider"),
+        "model": _declared_identity(embedder, "model"),
+        "index_id": _declared_identity(embedder, "index_id"),
+    }
+    expected = {
+        "route_id": manifest.route_id,
+        "provider": manifest.provider,
+        "model": manifest.model,
+        "index_id": manifest.index_id,
+    }
+    for name, value in declared.items():
+        if value is not None and value != expected[name]:
+            mismatches.append(name)
+    if mismatches:
+        raise DenseRouteError(
+            "query embedder does not match dense index manifest: " + ", ".join(mismatches)
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class DenseArtifactPaths:
     root: Path
@@ -88,7 +124,9 @@ def _route_id(embedder: object) -> str:
     route_id = getattr(embedder, "route_id", "")
     if not isinstance(route_id, str) or not route_id.strip():
         raise DenseRouteError("embedder must expose a non-empty route_id")
-    return route_id.strip()
+    if route_id != route_id.strip():
+        raise DenseRouteError("embedder route_id must not contain edge whitespace")
+    return route_id
 
 
 def _method(embedder: object, name: str) -> object:
@@ -259,6 +297,13 @@ def build_dense_artifact(
     if not provider or not model:
         raise ValueError("embedding provider and model must be non-empty")
     route_id = _route_id(embedder)
+    declared_provider = _declared_identity(embedder, "provider")
+    declared_model = _declared_identity(embedder, "model")
+    declared_index_id = _declared_identity(embedder, "index_id")
+    if declared_provider is not None and declared_provider != provider:
+        raise DenseRouteError("embedder provider does not match requested artifact provider")
+    if declared_model is not None and declared_model != model:
+        raise DenseRouteError("embedder model does not match requested artifact model")
     embed_documents = _method(embedder, "embed_documents")
     paths = DenseArtifactPaths(Path(output_directory))
     paths.root.mkdir(parents=True, exist_ok=True)
@@ -268,6 +313,7 @@ def build_dense_artifact(
             raise DenseArtifactError(
                 "existing dense artifact provider/model does not match the requested build"
             )
+        assert_embedder_matches_manifest(embedder, manifest)
         loaded = load_dense_index(
             paths.root,
             catalog,
@@ -287,6 +333,18 @@ def build_dense_artifact(
     )
     resuming = paths.checkpoint.exists()
     next_index, dimension, finalized = _validate_resume(paths, catalog, identity)
+    if dimension is not None and declared_index_id is not None:
+        expected_index_id = dense_index_id(
+            catalog,
+            embedding_provider=provider,
+            embedding_model=model,
+            embedding_route_id=route_id,
+            embedding_dimension=dimension,
+        )
+        if declared_index_id != expected_index_id:
+            raise DenseRouteError(
+                "embedder index_id does not match the artifact being resumed"
+            )
     if not resuming:
         paths.partial_ids.touch(exist_ok=False)
         paths.partial_vectors.touch(exist_ok=False)
@@ -311,11 +369,24 @@ def build_dense_artifact(
                         f"embedder returned {len(raw_batch)} vectors for {len(products)} documents"
                     )
                 normalized_batch: list[tuple[float, ...]] = []
+                discovered_dimension = dimension is None
                 for raw_vector in raw_batch:
                     normalized = normalize_embedding(raw_vector, expected_dimension=dimension)
                     if dimension is None:
                         dimension = len(normalized)
                     normalized_batch.append(normalized)
+                if discovered_dimension and declared_index_id is not None:
+                    expected_index_id = dense_index_id(
+                        catalog,
+                        embedding_provider=provider,
+                        embedding_model=model,
+                        embedding_route_id=route_id,
+                        embedding_dimension=int(dimension),
+                    )
+                    if declared_index_id != expected_index_id:
+                        raise DenseRouteError(
+                            "embedder index_id does not match the artifact being built"
+                        )
                 for product, vector in zip(products, normalized_batch):
                     id_handle.write(json.dumps(product.parent_asin, ensure_ascii=True) + "\n")
                     vector_handle.write(_float32_bytes(vector))
@@ -366,6 +437,7 @@ def build_dense_artifact(
         built_at=datetime.now(timezone.utc).isoformat(),
         artifact_checksums=checksums,
     )
+    assert_embedder_matches_manifest(embedder, manifest)
     _write_json_atomic(paths.manifest, dense_manifest_as_dict(manifest))
     verified = load_dense_index(
         paths.root,
@@ -584,11 +656,7 @@ def load_dense_index_safe(
 
 
 def embed_query_for_index(embedder: object, index: DenseIndex, text: str) -> tuple[float, ...]:
-    route_id = _route_id(embedder)
-    if route_id != index.manifest.route_id:
-        raise DenseRouteError(
-            "query embedder route does not match the loaded dense index route"
-        )
+    assert_embedder_matches_manifest(embedder, index.manifest)
     embed_query = _method(embedder, "embed_query")
     try:
         raw_vector = embed_query(text)  # type: ignore[operator]

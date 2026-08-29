@@ -13,7 +13,13 @@ from tikitaka.contracts import Candidate
 
 from .adapters import contract_candidate
 from .catalog import ProductCatalog, ProductDocument
-from .dense import DenseArtifactError, DenseIndex, DenseRouteError, embed_query_for_index
+from .dense import (
+    DenseArtifactError,
+    DenseIndex,
+    DenseRouteError,
+    assert_embedder_matches_manifest,
+    embed_query_for_index,
+)
 from .fusion import RRFConfig, reciprocal_rank_fusion, route_overlap
 from .manifests import assert_dense_manifest_compatible
 from .request import RetrievalConstraint, RetrievalRequest, request_from_search_plan
@@ -211,8 +217,11 @@ class HybridRetriever:
         if dense_index is not None:
             try:
                 assert_dense_manifest_compatible(dense_index.manifest, catalog)
-            except ValueError as error:
-                raise ValueError("dense index does not match the hybrid catalog") from error
+                assert_embedder_matches_manifest(query_embedder, dense_index.manifest)
+            except (ValueError, DenseRouteError) as error:
+                raise ValueError(
+                    "dense index/query embedder does not match hybrid configuration"
+                ) from error
         self.catalog = catalog
         self.sparse = SparseIndex(catalog, config=sparse_config)
         self.dense = dense_index

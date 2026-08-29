@@ -14,8 +14,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from tikitaka.contracts import Usage
 from tikitaka.retrieval.catalog import load_catalog
 from tikitaka.retrieval.dense import load_dense_index
+from tikitaka.retrieval.embedding import embedding_usage_as_dict
 from tikitaka.retrieval.hybrid import HybridRetriever
 from tikitaka.retrieval.request import RetrievalConstraint, RetrievalRequest
 
@@ -71,6 +73,7 @@ def main() -> int:
     )
     with HybridRetriever(catalog, dense_index=index, query_embedder=embedder) as retriever:
         result = retriever.retrieve(request, limit=arguments.limit)
+    usage = getattr(embedder, "usage", None)
     payload = {
         "diagnostics": {
             "requested_route": result.diagnostics.requested_route,
@@ -110,6 +113,9 @@ def main() -> int:
             }
             for rank, hit in enumerate(result.hits, start=1)
         ],
+        "embedding_usage": (
+            embedding_usage_as_dict(usage) if isinstance(usage, Usage) else None
+        ),
     }
     print(json.dumps(payload, indent=2, ensure_ascii=False))
     return 0

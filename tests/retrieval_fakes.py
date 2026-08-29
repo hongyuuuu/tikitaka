@@ -3,6 +3,10 @@ from __future__ import annotations
 import re
 from typing import Sequence
 
+from tikitaka.contracts import Usage
+from tikitaka.models.base import ModelRoute
+from tikitaka.models.usage import for_route
+
 
 class SemanticFakeEmbedder:
     """Deterministic fixture embedder; never a production model route."""
@@ -49,3 +53,75 @@ class SemanticFakeEmbedder:
 class FailingQueryEmbedder(SemanticFakeEmbedder):
     def embed_query(self, text: str) -> tuple[float, ...]:
         raise TimeoutError("intentional fixture query timeout")
+
+
+class GatewaySemanticFakeModel:
+    """Person 1 batch-model shape backed by the semantic fixture vectors."""
+
+    def __init__(
+        self,
+        *,
+        wrong_count: bool = False,
+        wrong_usage_route: bool = False,
+        fail: bool = False,
+    ) -> None:
+        self.wrong_count = wrong_count
+        self.wrong_usage_route = wrong_usage_route
+        self.fail = fail
+        self.calls: list[tuple[tuple[str, ...], ModelRoute]] = []
+
+    def embed(
+        self,
+        texts: Sequence[str],
+        route: ModelRoute,
+    ) -> tuple[list[list[float]], Usage]:
+        normalized = tuple(texts)
+        self.calls.append((normalized, route))
+        if self.fail:
+            raise TimeoutError("intentional gateway embedding timeout")
+        vectors = [list(SemanticFakeEmbedder._embed(text)) for text in normalized]
+        if self.wrong_count and vectors:
+            vectors.pop()
+        usage_route = (
+            ModelRoute("wrong/route", route.provider, route.model)
+            if self.wrong_usage_route
+            else route
+        )
+        usage = for_route(
+            usage_route,
+            prompt_tokens=sum(len(text.split()) for text in normalized),
+            latency_ms=1.25,
+        )
+        return vectors, usage
+
+
+def create_gateway_semantic_embedder():
+    """Zero-argument CLI factory for the provider-neutral gateway bridge."""
+
+    from tikitaka.retrieval.embedding import GatewayEmbedder
+
+    return GatewayEmbedder(
+        GatewaySemanticFakeModel(),
+        ModelRoute(
+            route_id="fixture/gateway-semantic-v1",
+            provider="fixture-gateway",
+            model="semantic-keywords-v1",
+            pinned=True,
+        ),
+    )
+
+
+def create_failing_gateway_semantic_embedder():
+    """Matching-identity factory whose query calls exercise sparse fallback."""
+
+    from tikitaka.retrieval.embedding import GatewayEmbedder
+
+    return GatewayEmbedder(
+        GatewaySemanticFakeModel(fail=True),
+        ModelRoute(
+            route_id="fixture/gateway-semantic-v1",
+            provider="fixture-gateway",
+            model="semantic-keywords-v1",
+            pinned=True,
+        ),
+    )
