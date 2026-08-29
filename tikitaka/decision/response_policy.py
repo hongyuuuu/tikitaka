@@ -56,12 +56,24 @@ class ResponsePolicyConfig:
     information_gain_threshold: float = 0.055
     buying_information_gain_adjustment: float = 0.020
     browsing_information_gain_adjustment: float = -0.010
+    clarification_turn_cost: float = 0.012
+    late_turn_cost: float = 0.075
+    recommendation_opportunity_weight: float = 0.035
+    minimum_utility_margin: float = 0.0
 
     def __post_init__(self) -> None:
         if not 0.0 <= self.generality_threshold <= 1.0:
             raise ValueError("generality_threshold must be in [0, 1]")
         if not 0.0 <= self.information_gain_threshold <= 1.0:
             raise ValueError("information_gain_threshold must be in [0, 1]")
+        utility_values = (
+            self.clarification_turn_cost,
+            self.late_turn_cost,
+            self.recommendation_opportunity_weight,
+            self.minimum_utility_margin,
+        )
+        if any(not 0.0 <= value <= 1.0 for value in utility_values):
+            raise ValueError("decision utility values must be in [0, 1]")
 
 
 class ResponsePolicy:
@@ -160,6 +172,32 @@ class ResponsePolicy:
                 (
                     "Best clarification does not justify a recommendation-free turn "
                     f"({question.expected_information_gain:.3f} < {threshold:.3f})."
+                ),
+                question.expected_information_gain,
+            )
+
+        diagnostics = generality.diagnostics
+        turn_progress = (turn - 1) / 9.0
+        clarification_utility = (
+            question.expected_information_gain * generality.evidence_confidence
+            - self.config.clarification_turn_cost
+            - self.config.late_turn_cost * turn_progress
+        )
+        ranking_stability = 1.0 - diagnostics.top_k_instability
+        recommendation_utility = self.config.recommendation_opportunity_weight * (
+            0.5 * diagnostics.score_concentration + 0.5 * ranking_stability
+        )
+        if (
+            clarification_utility
+            <= recommendation_utility + self.config.minimum_utility_margin
+        ):
+            return self._decision(
+                "recommend",
+                None,
+                "low_question_value",
+                (
+                    "The expected rank gain does not repay a recommendation-free "
+                    f"turn ({clarification_utility:.3f} <= {recommendation_utility:.3f})."
                 ),
                 question.expected_information_gain,
             )

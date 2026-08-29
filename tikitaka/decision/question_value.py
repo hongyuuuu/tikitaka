@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from collections import Counter
 from dataclasses import dataclass
 from typing import Mapping, Sequence
 
@@ -31,6 +30,7 @@ class QuestionValueConfig:
     temporary_mismatch_penalty: float = 0.25
     membership_weight: float = 0.75
     order_weight: float = 0.25
+    candidate_probability_temperature: float = 0.18
 
     def __post_init__(self) -> None:
         if min(self.competitive_limit, self.ranking_top_k, self.maximum_branches) <= 0:
@@ -45,6 +45,8 @@ class QuestionValueConfig:
             raise ValueError("question-value proportions must be in [0, 1]")
         if not math.isclose(self.membership_weight + self.order_weight, 1.0):
             raise ValueError("membership and order weights must sum to 1")
+        if self.candidate_probability_temperature <= 0.0:
+            raise ValueError("candidate_probability_temperature must be positive")
 
 
 @dataclass(frozen=True)
@@ -75,11 +77,24 @@ def _string_set(values: object) -> set[str]:
     return {enum_value(value) for value in (values or ())}
 
 
-def _rank_weights(ids: Sequence[str], top_k: int) -> Mapping[str, float]:
-    limited = ids[:top_k]
-    raw = {parent_asin: 1.0 / math.log2(rank + 2.0) for rank, parent_asin in enumerate(limited)}
-    total = sum(raw.values()) or 1.0
-    return {key: value / total for key, value in raw.items()}
+def _candidate_probabilities(
+    scored: Sequence[ScoredCandidate], temperature: float
+) -> Mapping[str, float]:
+    if not scored:
+        return {}
+    high = max(item.score for item in scored)
+    weights = {
+        item.parent_asin: math.exp((item.score - high) / temperature)
+        for item in scored
+    }
+    total = sum(weights.values()) or 1.0
+    return {parent_asin: weight / total for parent_asin, weight in weights.items()}
+
+
+def _reciprocal_rank(position: int | None, top_k: int) -> float:
+    if position is None or position >= top_k:
+        return 0.0
+    return 1.0 / (position + 1.0)
 
 
 def _ranking_change(
@@ -88,16 +103,23 @@ def _ranking_change(
     top_k: int,
     membership_weight: float,
     order_weight: float,
+    candidate_probabilities: Mapping[str, float],
 ) -> float:
     base_set = set(base[:top_k])
     branch_set = set(branch[:top_k])
-    union = base_set | branch_set
-    membership_change = 0.0 if not union else 1.0 - len(base_set & branch_set) / len(union)
-    base_weights = _rank_weights(base, top_k)
-    branch_weights = _rank_weights(branch, top_k)
-    order_change = 0.5 * sum(
-        abs(base_weights.get(parent_asin, 0.0) - branch_weights.get(parent_asin, 0.0))
-        for parent_asin in union
+    membership_change = sum(
+        candidate_probabilities.get(parent_asin, 0.0)
+        for parent_asin in base_set ^ branch_set
+    )
+    base_positions = {parent_asin: rank for rank, parent_asin in enumerate(base)}
+    branch_positions = {parent_asin: rank for rank, parent_asin in enumerate(branch)}
+    order_change = sum(
+        candidate_probabilities.get(parent_asin, 0.0)
+        * abs(
+            _reciprocal_rank(base_positions.get(parent_asin), top_k)
+            - _reciprocal_rank(branch_positions.get(parent_asin), top_k)
+        )
+        for parent_asin in set(base) | set(branch)
     )
     return min(
         1.0,
@@ -147,6 +169,9 @@ class QuestionValueEstimator:
             return QuestionValueResult(None, 0.0, ())
 
         base_ids = [item.parent_asin for item in scored]
+        candidate_probabilities = _candidate_probabilities(
+            scored, self.config.candidate_probability_temperature
+        )
         answered = _active_answered_attributes(
             state, self.config.confident_answer_threshold
         )
@@ -164,8 +189,8 @@ class QuestionValueEstimator:
                 continue
             if attribute in answered and attribute not in revalidation:
                 continue
-            counter: Counter[str] = Counter()
-            known_count = 0
+            value_mass: dict[str, float] = {}
+            known_mass = 0.0
             for item in scored:
                 normalized = {
                     normalized_value(value)
@@ -173,14 +198,17 @@ class QuestionValueEstimator:
                 }
                 if not normalized:
                     continue
-                known_count += 1
+                candidate_mass = candidate_probabilities[item.parent_asin]
+                known_mass += candidate_mass
                 share = 1.0 / len(normalized)
                 for value in normalized:
-                    counter[value] += share
-            coverage = known_count / len(scored)
+                    value_mass[value] = value_mass.get(value, 0.0) + candidate_mass * share
+            coverage = known_mass
             if coverage < self.config.minimum_attribute_coverage:
                 continue
-            branches = counter.most_common(self.config.maximum_branches)
+            branches = sorted(
+                value_mass.items(), key=lambda item: (-item[1], item[0])
+            )[: self.config.maximum_branches]
             if len(branches) < self.config.minimum_distinct_values:
                 continue
             branch_total = sum(amount for _, amount in branches)
@@ -196,6 +224,7 @@ class QuestionValueEstimator:
                     self.config.ranking_top_k,
                     self.config.membership_weight,
                     self.config.order_weight,
+                    candidate_probabilities,
                 )
             information_gain = min(
                 1.0,
@@ -206,7 +235,7 @@ class QuestionValueEstimator:
                     attribute=attribute,
                     expected_information_gain=information_gain,
                     coverage=coverage,
-                    distinct_values=len(counter),
+                    distinct_values=len(value_mass),
                     branch_probabilities=probabilities,
                 )
             )

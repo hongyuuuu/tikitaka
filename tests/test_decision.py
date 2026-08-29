@@ -13,7 +13,11 @@ from tikitaka.decision.phrasing import (
     clarification_message,
     recommendation_message,
 )
-from tikitaka.decision.question_value import QuestionValueEstimator, QuestionValueResult
+from tikitaka.decision.question_value import (
+    QuestionValueEstimator,
+    QuestionValueResult,
+    _ranking_change,
+)
 from tikitaka.decision.response_policy import ResponsePolicy, ResponsePolicyConfig
 from tikitaka.contracts import DecisionPolicy, TurnDecision
 
@@ -132,6 +136,41 @@ class QuestionValueTests(unittest.TestCase):
         result = QuestionValueEstimator().estimate(FakeState(), candidates, 2)
         self.assertNotIn("feature", [item.attribute for item in result.values])
 
+    def test_answer_probabilities_follow_relevance_not_catalog_counts(self) -> None:
+        candidates = [
+            candidate(
+                "LIKELY",
+                1.0,
+                values={"category": ("shoes",), "material": ("leather",)},
+            )
+        ] + [
+            candidate(
+                f"WEAK{index}",
+                0.10,
+                values={"category": ("shoes",), "material": ("canvas",)},
+            )
+            for index in range(6)
+        ]
+        result = QuestionValueEstimator().estimate(FakeState(), candidates, 2)
+        material = next(item for item in result.values if item.attribute == "material")
+        self.assertGreater(
+            material.branch_probabilities["leather"],
+            material.branch_probabilities["canvas"],
+        )
+
+    def test_rank_change_rewards_top_ten_and_reciprocal_rank_movement(self) -> None:
+        base = tuple("ABCDEFGHIJKL")
+        probabilities = {item: 1.0 / len(base) for item in base}
+        crosses_boundary = tuple("ABCDEFGHIKJL")
+        outside_only = tuple("ABCDEFGHIJLK")
+        boundary_value = _ranking_change(
+            base, crosses_boundary, 10, 0.75, 0.25, probabilities
+        )
+        outside_value = _ranking_change(
+            base, outside_only, 10, 0.75, 0.25, probabilities
+        )
+        self.assertGreater(boundary_value, outside_value)
+
 
 class StubGenerality:
     def __init__(self, score: float) -> None:
@@ -194,6 +233,21 @@ class ResponsePolicyTests(unittest.TestCase):
         ).choose(FakeState(), question_candidates(), 2)
         self.assertEqual(decision.reason_code, "low_question_value")
 
+    def test_turn_cost_suppresses_only_late_marginal_question(self) -> None:
+        policy = ResponsePolicy(
+            StubGenerality(0.9),
+            StubQuestionValue("material", 0.08),
+            config=ResponsePolicyConfig(
+                information_gain_threshold=0.05,
+                browsing_information_gain_adjustment=0.0,
+            ),
+        )
+        early = policy.choose(FakeState(mode="browsing"), question_candidates(), 2)
+        late = policy.choose(FakeState(mode="browsing"), question_candidates(), 9)
+        self.assertEqual(early.action, "clarify")
+        self.assertEqual(late.action, "recommend")
+        self.assertEqual(late.reason_code, "low_question_value")
+
     def test_no_eligible_attribute_recommends(self) -> None:
         decision = ResponsePolicy(
             StubGenerality(0.9), StubQuestionValue(None, 0.0)
@@ -241,6 +295,31 @@ class ModeAndPhrasingTests(unittest.TestCase):
         message = clarification_message("material", question_candidates(4))
         self.assertIn("canvas", message)
         self.assertIn("leather", message)
+
+    def test_clarification_examples_prefer_relevant_supported_branches(self) -> None:
+        candidates = [
+            candidate("OUTLIER", 1.0, values={"material": ("cork",)}),
+            *[
+                candidate(
+                    f"CANVAS{index}",
+                    0.9 - index * 0.01,
+                    values={"material": ("canvas",)},
+                )
+                for index in range(4)
+            ],
+            *[
+                candidate(
+                    f"LEATHER{index}",
+                    0.8 - index * 0.01,
+                    values={"material": ("leather",)},
+                )
+                for index in range(4)
+            ],
+        ]
+        message = clarification_message("material", candidates)
+        self.assertIn("canvas", message)
+        self.assertIn("leather", message)
+        self.assertNotIn("cork", message)
 
     def test_other_phrase_does_not_bundle_attributes(self) -> None:
         message = clarification_message("other", question_candidates())

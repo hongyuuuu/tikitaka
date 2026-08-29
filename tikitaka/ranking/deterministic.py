@@ -75,15 +75,28 @@ def _finite(value: object, default: float = 0.0) -> float:
     return number if math.isfinite(number) else default
 
 
-def _minmax(values: Sequence[float]) -> tuple[float, ...]:
+def normalized_score_magnitudes(values: Sequence[float]) -> tuple[float, ...]:
+    """Bound score magnitudes without turning tiny pool-local gaps into 0/1 gaps.
+
+    Retrieval scores are already comparable within a route.  Dividing
+    non-negative scores by the largest magnitude preserves that evidence,
+    whereas pool-local min/max scaling can make 0.501 look categorically better
+    than 0.500.  Signed scores are mapped around a neutral 0.5 instead.
+    """
+
     if not values:
         return ()
-    low = min(values)
-    high = max(values)
-    if math.isclose(low, high):
-        return tuple(0.5 for _ in values)
-    width = high - low
-    return tuple((value - low) / width for value in values)
+    finite = tuple(_finite(value) for value in values)
+    low = min(finite)
+    high = max(finite)
+    if low >= 0.0:
+        if math.isclose(high, 0.0):
+            return tuple(0.5 for _ in finite)
+        return tuple(clamp01(value / high) for value in finite)
+    scale = max(abs(low), abs(high))
+    if math.isclose(scale, 0.0):
+        return tuple(0.5 for _ in finite)
+    return tuple(clamp01(0.5 + 0.5 * value / scale) for value in finite)
 
 
 def _route_agreement(candidate: object) -> float:
@@ -124,8 +137,10 @@ class DeterministicRanker:
         if not unique:
             return ()
 
-        fused = _minmax(tuple(_finite(getattr(item, "fused_score", 0.0)) for item in unique))
-        structural = _minmax(
+        fused = normalized_score_magnitudes(
+            tuple(_finite(getattr(item, "fused_score", 0.0)) for item in unique)
+        )
+        structural = normalized_score_magnitudes(
             tuple(_finite(getattr(item, "structural_score", 0.0)) for item in unique)
         )
         shown_ids = {

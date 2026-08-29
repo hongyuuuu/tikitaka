@@ -9,7 +9,7 @@ from tikitaka.ranking.constraints import assess_candidate
 from tikitaka.ranking.deterministic import DeterministicRanker, DeterministicRankerConfig
 from tikitaka.ranking.diversity import DiversityConfig, diversify
 from tikitaka.ranking.llm import LLMReranker, LLMRerankerConfig
-from tikitaka.contracts import Reranker, Usage
+from tikitaka.contracts import Candidate, ProductEvidence, Reranker, Usage
 
 
 @dataclass(frozen=True)
@@ -98,6 +98,30 @@ class DeterministicRankingTests(unittest.TestCase):
         _, usage = ranker.rank(FakeState(), [candidate("A", 1.0)], 1)
         self.assertIsInstance(ranker, Reranker)
         self.assertIsInstance(usage, Usage)
+
+    def test_ranker_accepts_the_canonical_candidate_contract(self) -> None:
+        evidence = ProductEvidence(
+            matched_fields=("title",),
+            supporting_snippets=("canvas walking shoe",),
+            constraint_outcomes={},
+            attribute_values={"material": ("canvas",)},
+            evidence_reliability={"material": 0.9},
+            unknown_fields=(),
+            route_details={"source": "synthetic"},
+        )
+        canonical = Candidate(
+            parent_asin="CANONICAL",
+            product_evidence=evidence,
+            sparse_rank=1,
+            sparse_score=0.8,
+            dense_rank=2,
+            dense_score=0.7,
+            structural_score=0.6,
+            fused_score=0.75,
+        )
+        ids, usage = DeterministicRanker().rank(FakeState(), [canonical], 1)
+        self.assertEqual(ids, ["CANONICAL"])
+        self.assertEqual(usage.route, "deterministic")
 
     def test_synthetic_fixture_contains_unique_catalog_ids(self) -> None:
         path = Path(__file__).parent / "fixtures" / "decision_catalog.jsonl"
@@ -218,6 +242,13 @@ class DeterministicRankingTests(unittest.TestCase):
             state, [candidate("B", 0.5), candidate("A", 0.5)], 10
         )
         self.assertEqual(ids, ["A", "B"])
+
+    def test_tiny_retrieval_gap_is_not_exaggerated_by_pool_scaling(self) -> None:
+        ranked = DeterministicRanker().rank_candidates(
+            FakeState(), [candidate("A", 0.501), candidate("B", 0.500)]
+        )
+        self.assertEqual([item.parent_asin for item in ranked], ["A", "B"])
+        self.assertLess(ranked[0].score - ranked[1].score, 0.01)
 
     def test_same_intent_shown_products_are_backfill_after_unseen(self) -> None:
         state = FakeState(shown_product_ids=frozenset({"SHOWN"}))

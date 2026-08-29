@@ -37,20 +37,25 @@ def clarification_message(
         raise ValueError("attribute must be allowed by the official contract")
     if attribute == "other":
         return TEMPLATES[attribute]
-    values: list[str] = []
-    seen: set[str] = set()
-    for candidate in candidates:
+    value_mass: dict[str, float] = {}
+    display_values: dict[str, str] = {}
+    for rank, candidate in enumerate(candidates):
+        relevance = 1.0 / math.log2(rank + 2.0)
+        candidate_values: dict[str, str] = {}
         for value in known_values(candidate, attribute):
             display = str(value).strip()
             key = normalized_value(value)
-            if not display or key in seen:
+            if not display or not key:
                 continue
-            seen.add(key)
-            values.append(display)
-            if len(values) >= maximum_examples:
-                break
-        if len(values) >= maximum_examples:
-            break
+            candidate_values.setdefault(key, display)
+        if not candidate_values:
+            continue
+        share = relevance / len(candidate_values)
+        for key, display in candidate_values.items():
+            value_mass[key] = value_mass.get(key, 0.0) + share
+            display_values.setdefault(key, display)
+    ranked_values = sorted(value_mass, key=lambda key: (-value_mass[key], key))
+    values = [display_values[key] for key in ranked_values[:maximum_examples]]
     examples = ""
     if len(values) == 1:
         examples = f", such as {values[0]}"
