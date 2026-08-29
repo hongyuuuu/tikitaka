@@ -1,0 +1,51 @@
+{
+  "scenario": "intent_override",
+  "note": "Messages are verbatim local-evaluator templates. model_response is authored to mirror what the deterministic route derives from the same message, so the equivalence test isolates adapter and schema behaviour rather than comparing regex quality against a language model. The override turn is where the two routes deliberately diverge; see test_api_route_recovers_an_override_the_heuristic_mangles.",
+  "turns": [
+    {
+      "message": "I'm looking for boots. A key requirement is: under $120.",
+      "model_response": {
+        "inferred_mode": "buying",
+        "mode_confidence": 0.6,
+        "generality": 0.3,
+        "operations": [
+          {
+            "operation": "add",
+            "attribute": "category",
+            "new_value": "boots",
+            "polarity": "include",
+            "strength": "hard",
+            "confidence": 0.9
+          },
+          {
+            "operation": "add",
+            "attribute": "budget",
+            "new_value": "under $120",
+            "polarity": "include",
+            "strength": "hard",
+            "confidence": 0.8
+          }
+        ]
+      }
+    },
+    {
+      "message": "Actually, forget the boots, show me wool sweaters instead.",
+      "model_response": {
+        "inferred_mode": "buying",
+        "mode_confidence": 0.6,
+        "generality": 0.4,
+        "operations": [
+          {
+            "operation": "replace",
+            "attribute": "category",
+            "old_value": "boots",
+            "new_value": "wool sweaters",
+            "polarity": "include",
+            "strength": "hard",
+            "confidence": 0.9
+          }
+        ]
+      }
+    }
+  ]
+}
