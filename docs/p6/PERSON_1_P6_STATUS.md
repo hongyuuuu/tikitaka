@@ -12,6 +12,8 @@ Owner: Person 1. Phase reference: `docs/PERSON_1_BUILD_PLAN.md` section 11.
 | Every route pinnable for a reproducible run | met |
 | `PROMPT_VERSION` and `SCHEMA_VERSION` frozen and reported | met |
 | Ablation hooks for profile weight, rewrite, interpretation, reasoning | met |
+| Structured traces exist for the four scenarios | met |
+| Routing reason recorded durably for Person 4 | met |
 
 ## What routing can actually see
 
@@ -144,7 +146,66 @@ the same regex will drift. Proposing his module import mine.
 what the environment can actually reach, so with no credential `identity()`
 reports `degraded` rather than naming a model no call could have used.
 
+## Traces, and the three defects they exposed
+
+`capture()` had never been called outside tests, so the four scenario traces the
+definition of done requires did not exist. `scripts/capture_traces.py` produces
+them, mirroring `evaluator.local_evaluator.evaluate` including its break on
+first hit, and refusing to write if any evaluator label or the hidden target
+reaches a trace. Output is committed under `artifacts/traces/`.
+
+Writing the artifact once found three real bugs that tests had not:
+
+1. **`SessionState.active_query_summary` was dead.** Declared, read by the
+   trace, written by nothing — every trace carried an empty string where the
+   query belongs. Field removed; the summary is derived in `trace.py`, which
+   keeps the read-only state read-only.
+
+2. **`exhausted_attributes` was empty in every trace.** `state/extractor.py`
+   owns the spent-question/no-preference distinction and is *not in the running
+   agent* — the live path is `ShoppingAgent` → `RoutingInterpreter` →
+   `VisibleMessageInterpreter` → reducer. `RoutingInterpreter` now carries the
+   note, since it is the only Person 1 component in that path that sees both the
+   message and the session. Exhaustion stays distinct from no-preference.
+
+3. **No-information replies were becoming search constraints.** An empty
+   `StateDelta` means either "understood, nothing to add" or "failed to parse".
+   `VisibleMessageInterpreter` reads it as the second and injects the raw
+   message, so a Boundary reply searched on the customer's refusal to state a
+   preference. `carries_no_new_constraint()` lets a caller tell the two apart;
+   the guard itself is Person 4's file and went to him as PR #21.
+
+### The measurement that matters
+
+Removing the pollution **costs 0.0098** on the public set:
+
+| Variant | TechnicalScore |
+|---|---|
+| Raw sentence injected (current behaviour) | 0.715518 |
+| Same constraint, meaningless placeholder text | 0.713204 |
+| Constraint removed (correct behaviour) | 0.705672 |
+
+77% of the gap is the constraint merely existing, not its text. It is a count
+effect, not semantic matching: the extra constraint pushes the policy from
+CLARIFY to RECOMMEND, and under DG-01 a CLARIFY turn is a guaranteed miss.
+
+The reading is that **the agent over-clarifies by roughly 0.010 of score, and
+accidental pollution has been masking it.** That gain is real and recoverable in
+Person 3's threshold; the pollution is not, because it depends on one public
+template failing to match a regex. Risk 5, live.
+
+### Two paths that disagree
+
+`state/extractor.py` and the live interpreter chain both claim to own message
+ingestion, and only one of them runs. That is how defect 2 survived. The
+extractor is left in place because a lot of test coverage depends on it, but the
+duplication should be consolidated before submission rather than carried.
+
 ## What remains
+
+Cost rates in `ApiConfig` are still `0.0`, so `estimated_cost` is structurally
+zero and the M6 cost disclosure cannot be produced. Real per-token rates for
+`gpt-5.6-terra` are an owner input, not something to estimate.
 
 The ten-session live run, still deferred to avoid cost during the build phase.
 It is what decides whether `SELECTIVE` should be switched on and whether the API
