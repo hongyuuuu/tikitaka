@@ -119,8 +119,16 @@ class ApiConfig:
     max_repairs: int = 1
     transport_attempts: int = 2
     backoff_base_s: float = 0.5
-    prompt_cost_per_1k: float = 0.0
-    completion_cost_per_1k: float = 0.0
+    # gpt-5.6-terra list price, read 2026-08-29: $2.00 per 1M input, $12.00 per
+    # 1M output. Published per 1M, stored per 1k, hence the factor of 1000.
+    #
+    # The provider also lists cached input at $0.20 per 1M, a tenth of the
+    # standard rate. There is no field for it here, so a run that benefits from
+    # prompt caching is billed in this estimate at the full input rate. That
+    # makes the reported cost an upper bound, which is the safe direction for a
+    # disclosure to err.
+    prompt_cost_per_1k: float = 0.002
+    completion_cost_per_1k: float = 0.012
     cost_currency: str = "USD"
     cache: ResponseCache | None = None
 

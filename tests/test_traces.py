@@ -217,5 +217,35 @@ class NoInformationPredicateTests(unittest.TestCase):
         self.assertFalse(carries_no_new_constraint(""))
 
 
+class CostDisclosureTests(unittest.TestCase):
+    """M6 requires a cost disclosure; a zero rate makes one impossible."""
+
+    def test_default_rates_are_configured(self) -> None:
+        from tikitaka.models.api_llm import ApiConfig
+        from tikitaka.models.factory import PRIMARY_ROUTE
+
+        config = ApiConfig(route=PRIMARY_ROUTE)
+        self.assertGreater(config.prompt_cost_per_1k, 0.0)
+        self.assertGreater(config.completion_cost_per_1k, 0.0)
+        self.assertEqual(config.cost_currency, "USD")
+
+    def test_a_priced_call_reports_a_non_zero_cost(self) -> None:
+        from tikitaka.models.api_llm import ApiConfig
+        from tikitaka.models.factory import PRIMARY_ROUTE
+        from tikitaka.models.usage import for_route
+
+        config = ApiConfig(route=PRIMARY_ROUTE)
+        usage = for_route(
+            PRIMARY_ROUTE,
+            prompt_tokens=1000,
+            completion_tokens=1000,
+            prompt_cost_per_1k=config.prompt_cost_per_1k,
+            completion_cost_per_1k=config.completion_cost_per_1k,
+            cost_currency=config.cost_currency,
+        )
+        self.assertIsNotNone(usage.estimated_cost)
+        self.assertGreater(usage.estimated_cost, 0.0)
+
+
 if __name__ == "__main__":
     unittest.main()
