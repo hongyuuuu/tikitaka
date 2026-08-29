@@ -9,7 +9,14 @@ from tikitaka.orchestration.runtime import build_agent
 
 class Agent:
     def __init__(self, catalog_path: str | Path = "data/catalog.jsonl", *, shopping_agent=None) -> None:
-        self._shopping_agent = shopping_agent or build_agent(catalog_path)
+        if shopping_agent is None:
+            # Uses the API route when a credential is present and the
+            # deterministic route otherwise, so the official entry point
+            # stays valid with no network.
+            shopping_agent, self.route_id = build_agent(catalog_path)
+        else:
+            self.route_id = "injected"
+        self._shopping_agent = shopping_agent
 
     def reset(self, session_id: str, user_profile: dict) -> None:
         self._shopping_agent.reset(session_id, user_profile)

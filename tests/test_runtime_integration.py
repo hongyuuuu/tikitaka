@@ -169,7 +169,7 @@ class PrimaryRuntimeIntegrationTest(unittest.TestCase):
             route=PRIMARY_ROUTE,
             degraded=False,
         )
-        agent = build_agent(
+        agent, _route = build_agent(
             CATALOG,
             RuntimeConfig(
                 decision=ResponsePolicyConfig(generality_threshold=1.0),
@@ -208,7 +208,7 @@ class PrimaryRuntimeIntegrationTest(unittest.TestCase):
             route=PRIMARY_ROUTE,
             degraded=False,
         )
-        agent = build_agent(CATALOG, model_selection=selection)
+        agent, _route = build_agent(CATALOG, model_selection=selection)
         self.addCleanup(agent.close)
         agent.reset("fallback", {})
 
@@ -227,7 +227,7 @@ class PrimaryRuntimeIntegrationTest(unittest.TestCase):
             route=PRIMARY_ROUTE,
             degraded=False,
         )
-        agent = build_agent(
+        agent, _route = build_agent(
             CATALOG,
             RuntimeConfig(
                 decision=ResponsePolicyConfig(generality_threshold=1.0),
@@ -254,7 +254,7 @@ class PrimaryRuntimeIntegrationTest(unittest.TestCase):
             build_agent(CATALOG, model_selection=selection)
 
     def test_missing_credential_keeps_offline_default_deterministic(self) -> None:
-        agent = build_agent(CATALOG, environ={})
+        agent, _route = build_agent(CATALOG, environ={})
         self.addCleanup(agent.close)
         agent.reset("offline", {})
 

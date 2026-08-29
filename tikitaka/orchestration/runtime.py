@@ -195,8 +195,14 @@ class ResilientInterpreter:
 def build_deterministic_agent(
     catalog_path: str | Path,
     config: DeterministicRuntimeConfig | None = None,
+    *,
+    interpreter: object | None = None,
 ) -> ShoppingAgent[SessionState]:
-    """Wire the Person 1/2/3 implementations into Person 4 orchestration."""
+    """Wire the Person 1/2/3 implementations into Person 4 orchestration.
+
+    `interpreter` overrides the deterministic route. Left as None this builds
+    the fully local agent, which is what the M5 network-free run needs.
+    """
 
     runtime = config or DeterministicRuntimeConfig()
     return _build_agent(
@@ -215,8 +221,12 @@ def build_agent(
     *,
     environ: Mapping[str, str] | None = None,
     model_selection: GatewaySelection | None = None,
-) -> ShoppingAgent[SessionState]:
-    """Build the automatic API-primary route used by ``starter.Agent``."""
+) -> tuple[ShoppingAgent[SessionState], str]:
+    """Build the automatic API-primary route used by ``starter.Agent``.
+
+    Returns the agent and the route id actually selected, so a report can
+    never claim the API route while the deterministic one did the work.
+    """
 
     runtime = config or RuntimeConfig()
     selection = model_selection or gateway_from_env(
@@ -256,7 +266,7 @@ def build_agent(
             deterministic=deterministic,
             config=runtime.llm_reranker,
         )
-    return _build_agent(
+    agent = _build_agent(
         catalog_path,
         runtime,
         interpreter=interpreter,
@@ -264,6 +274,7 @@ def build_agent(
         route_id=selection.route.route_id,
         degraded=selection.degraded,
     )
+    return agent, selection.route.route_id
 
 
 def _build_agent(
