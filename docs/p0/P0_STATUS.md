@@ -15,7 +15,8 @@ Owner: Person 4
 - [x] Verified 200 public rows and the published 80/80/30/10 scenario mix.
 - [x] Ran the unchanged 3-test suite successfully with Python 3.14.2.
 - [x] Ran the unchanged 3-test suite successfully with Python 3.12.
-- [x] Confirmed the frozen catalog is ignored and absent from the checkout.
+- [x] Confirmed the frozen catalog was ignored and absent from the initial
+      checkout.
 - [x] Queried GitHub Releases and confirmed no release is currently published
       for `hongyuuuu/tikitaka`.
 - [x] Located the separately downloaded official `catalog.jsonl.gz` and
@@ -31,13 +32,13 @@ Owner: Person 4
       owner-specific review questions.
 - [x] Preserved the official evaluator, dataset, starter, and contract files.
 
-## Blocked or awaiting people
+## Exit gates
 
 - [x] Confirm branch/file ownership with Persons 1, 2, and 3.
 - [x] Obtain Person 1 acknowledgment of the model/state-facing contracts.
 - [x] Obtain Person 2 acknowledgment of the retrieval-facing contracts.
 - [x] Obtain Person 3 acknowledgment of the decision/ranking-facing contracts.
-- [ ] Resolve review comments and mark contract version `0.1.0` accepted.
+- [x] Resolve review comments and mark contract version `0.1.0` accepted.
 
 ## Baseline reproduction
 
@@ -70,10 +71,11 @@ other owners need to provision the catalog.
 
 ## P0 exit decision
 
-P0 is **not yet closed**. All machine-verifiable local baseline work is
-complete, and Persons 1, 2, and 3 have acknowledged their affected interfaces
-and confirmed ownership. The remaining exit gate is Person 4's resolution of
-the recorded review changes and final acceptance of contract version `0.1.0`.
+P0 is **closed**. All machine-verifiable baseline work is complete; Persons 1,
+2, and 3 acknowledged their affected interfaces and confirmed ownership; and
+Person 4 incorporated the accepted review changes into frozen contract version
+`0.1.0`.
 
-P1 scaffolding may be prepared in parallel, but shared contracts must not be
-declared frozen or merged as final until those conditions are satisfied.
+P1 may now implement the shared Python contracts, deterministic fakes, and
+contract tests against `docs/p0/CONTRACT_PROPOSAL.md`. Any post-freeze semantic
+or shape change follows the recorded versioning and acknowledgment process.
