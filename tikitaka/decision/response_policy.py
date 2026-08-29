@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Sequence
 
 from tikitaka.contracts import TurnDecision
+from tikitaka.ranking.deterministic import (
+    DeterministicRanker,
+    DeterministicRankerConfig,
+)
 
-from .diagnostics import ALLOWED_ATTRIBUTES
-from .generality import GeneralitySensor
+from .diagnostics import ALLOWED_ATTRIBUTES, DiagnosticsConfig
+from .generality import GeneralityConfig, GeneralitySensor
 from .intent_router import VisibleModePolicy
-from .question_value import QuestionValueEstimator
+from .question_value import QuestionValueConfig, QuestionValueEstimator
 
 
 DECISION_REASON_CODES = frozenset(
@@ -52,6 +56,7 @@ class DecisionRecord:
 
 @dataclass(frozen=True)
 class ResponsePolicyConfig:
+    clarification_enabled: bool = True
     generality_threshold: float = 0.46
     information_gain_threshold: float = 0.055
     buying_information_gain_adjustment: float = 0.020
@@ -60,8 +65,16 @@ class ResponsePolicyConfig:
     late_turn_cost: float = 0.075
     recommendation_opportunity_weight: float = 0.035
     minimum_utility_margin: float = 0.0
+    generality: GeneralityConfig = field(default_factory=GeneralityConfig)
+    diagnostics: DiagnosticsConfig = field(default_factory=DiagnosticsConfig)
+    question_value: QuestionValueConfig = field(default_factory=QuestionValueConfig)
+    question_ranker: DeterministicRankerConfig = field(
+        default_factory=DeterministicRankerConfig
+    )
 
     def __post_init__(self) -> None:
+        if not isinstance(self.clarification_enabled, bool):
+            raise TypeError("clarification_enabled must be bool")
         if not 0.0 <= self.generality_threshold <= 1.0:
             raise ValueError("generality_threshold must be in [0, 1]")
         if not 0.0 <= self.information_gain_threshold <= 1.0:
@@ -74,6 +87,15 @@ class ResponsePolicyConfig:
         )
         if any(not 0.0 <= value <= 1.0 for value in utility_values):
             raise ValueError("decision utility values must be in [0, 1]")
+        nested = (
+            (self.generality, GeneralityConfig, "generality"),
+            (self.diagnostics, DiagnosticsConfig, "diagnostics"),
+            (self.question_value, QuestionValueConfig, "question_value"),
+            (self.question_ranker, DeterministicRankerConfig, "question_ranker"),
+        )
+        for value, expected, name in nested:
+            if not isinstance(value, expected):
+                raise TypeError(f"{name} must be {expected.__name__}")
 
 
 class ResponsePolicy:
@@ -85,10 +107,16 @@ class ResponsePolicy:
         config: ResponsePolicyConfig | None = None,
         decision_type: type = TurnDecision,
     ) -> None:
-        self.generality_sensor = generality_sensor or GeneralitySensor()
-        self.question_value = question_value or QuestionValueEstimator()
-        self.mode_policy = mode_policy or VisibleModePolicy()
         self.config = config or ResponsePolicyConfig()
+        self.generality_sensor = generality_sensor or GeneralitySensor(
+            config=self.config.generality,
+            diagnostics_config=self.config.diagnostics,
+        )
+        self.question_value = question_value or QuestionValueEstimator(
+            ranker=DeterministicRanker(config=self.config.question_ranker),
+            config=self.config.question_value,
+        )
+        self.mode_policy = mode_policy or VisibleModePolicy()
         self.decision_type = decision_type
 
     def _decision(
@@ -125,6 +153,14 @@ class ResponsePolicy:
                 None,
                 "insufficient_evidence",
                 "No validated candidates support a clarification simulation.",
+                0.0,
+            )
+        if not self.config.clarification_enabled:
+            return self._decision(
+                "recommend",
+                None,
+                "low_question_value",
+                "Clarification is disabled by the pinned experiment policy.",
                 0.0,
             )
 
