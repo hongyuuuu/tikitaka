@@ -53,17 +53,20 @@ class UsageTests(unittest.TestCase):
         self.assertEqual(cached.prompt_tokens, 0)
         self.assertIsNone(cached.estimated_cost)
 
-    def test_reasoning_tokens_are_priced_but_separately_reported(self) -> None:
+    def test_reasoning_tokens_are_a_subset_of_completion_not_an_addition(self) -> None:
+        # Verified against a live gpt-5.6-terra response: the provider reports
+        # reasoning_tokens under completion_tokens_details, so it is already
+        # inside completion_tokens. Pricing both would double-count.
         record = usage_module.for_route(
             ROUTE,
             prompt_tokens=1000,
             completion_tokens=1000,
-            reasoning_tokens=1000,
+            reasoning_tokens=800,
             prompt_cost_per_1k=1.0,
             completion_cost_per_1k=2.0,
         )
-        self.assertEqual(record.reasoning_tokens, 1000)
-        self.assertEqual(record.estimated_cost, 5.0)
+        self.assertEqual(record.reasoning_tokens, 800)
+        self.assertEqual(record.estimated_cost, 3.0)
         self.assertEqual(record.prompt_tokens + record.completion_tokens, 2000)
 
     def test_redacted_drops_provider_identity(self) -> None:

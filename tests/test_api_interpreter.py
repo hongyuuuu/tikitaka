@@ -74,7 +74,9 @@ class FakeTransport:
         return TransportResponse(
             text=str(item),
             prompt_tokens=100,
-            completion_tokens=20,
+            # 40 of the 60 output tokens were reasoning, matching how the
+            # provider actually reports the breakdown.
+            completion_tokens=60,
             reasoning_tokens=40,
         )
 
@@ -97,6 +99,7 @@ class HappyPathTests(unittest.TestCase):
         self.assertEqual(usage.calls, 1)
         self.assertEqual(usage.repairs, 0)
         self.assertEqual(usage.prompt_tokens, 100)
+        self.assertEqual(usage.completion_tokens, 60)
         self.assertEqual(usage.reasoning_tokens, 40)
         self.assertEqual(usage.model, "gpt-5.6-terra")
         self.assertEqual(usage.reasoning_level, "xhigh")
@@ -126,7 +129,8 @@ class HappyPathTests(unittest.TestCase):
             completion_cost_per_1k=2.0,
         )
         _, usage = interpreter.interpret("hi", None)
-        # 100 prompt tokens plus 60 billed output tokens.
+        # 100 prompt tokens at 1.0/1k, 60 completion tokens at 2.0/1k. The 40
+        # reasoning tokens are already inside the 60 and are not priced again.
         self.assertAlmostEqual(usage.estimated_cost, 0.1 + 0.12)
         self.assertEqual(usage.cost_currency, "USD")
 
