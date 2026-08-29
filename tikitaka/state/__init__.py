@@ -6,6 +6,7 @@ The extractor proposes, the reducer disposes. No model output reaches
 
 from __future__ import annotations
 
+from tikitaka.state.query_builder import ActiveQueryBuilder, QueryBuilderConfig
 from tikitaka.state.schema import SCHEMA_VERSION
 
-__all__ = ["SCHEMA_VERSION"]
+__all__ = ["SCHEMA_VERSION", "ActiveQueryBuilder", "QueryBuilderConfig"]
