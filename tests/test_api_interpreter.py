@@ -15,6 +15,7 @@ from tikitaka.models.api_llm import (
     PROMPT_VERSION,
     ApiConfig,
     ApiInterpreter,
+    ApiTextModel,
     InMemoryResponseCache,
     TransportResponse,
     build_prompt,
@@ -104,6 +105,32 @@ class HappyPathTests(unittest.TestCase):
         self.assertEqual(usage.model, "gpt-5.6-terra")
         self.assertEqual(usage.reasoning_level, "xhigh")
         self.assertGreaterEqual(usage.latency_ms, 0.0)
+
+    def test_structured_text_model_supports_non_state_schemas(self) -> None:
+        transport = FakeTransport('{"ranked_parent_asins":["B","A"]}')
+        model = ApiTextModel(transport, ROUTE)
+
+        output, usage = model.complete_structured(
+            "rank these",
+            {
+                "type": "object",
+                "properties": {"ranked_parent_asins": {"type": "array"}},
+                "required": ["ranked_parent_asins"],
+                "additionalProperties": False,
+            },
+            ROUTE,
+        )
+
+        self.assertEqual(output["ranked_parent_asins"], ["B", "A"])
+        self.assertEqual(usage.prompt_tokens, 100)
+        self.assertEqual(usage.route, ROUTE.route_id)
+
+    def test_structured_text_model_preserves_usage_on_malformed_json(self) -> None:
+        model = ApiTextModel(FakeTransport("not-json"), ROUTE)
+        with self.assertRaises(MalformedModelOutput) as caught:
+            model.complete_structured("rank", {"type": "object"}, ROUTE)
+        self.assertEqual(caught.exception.usage.calls, 1)
+        self.assertEqual(caught.exception.usage.completion_tokens, 60)
 
     def test_hallucinated_attribute_is_dropped_not_trusted(self) -> None:
         payload = json.dumps(

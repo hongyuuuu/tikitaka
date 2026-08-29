@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from starter.agent import Agent
 
@@ -37,7 +38,8 @@ class AgentContractTest(unittest.TestCase):
         self.assertEqual(response["message"], "delegated")
 
     def test_default_adapter_emits_official_shape_on_tiny_catalog(self) -> None:
-        agent = Agent("tests/fixtures/tiny_catalog.jsonl")
+        with patch.dict("os.environ", {"OPENAI_API_KEY": ""}):
+            agent = Agent("tests/fixtures/tiny_catalog.jsonl")
         self.addCleanup(agent.close)
         agent.reset("session", {
             "purchase_frequency": "monthly",

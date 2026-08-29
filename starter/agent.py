@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tikitaka.orchestration.runtime import build_deterministic_agent
+from tikitaka.orchestration.runtime import build_agent
 
 
 class Agent:
     def __init__(self, catalog_path: str | Path = "data/catalog.jsonl", *, shopping_agent=None) -> None:
-        self._shopping_agent = shopping_agent or build_deterministic_agent(catalog_path)
+        self._shopping_agent = shopping_agent or build_agent(catalog_path)
 
     def reset(self, session_id: str, user_profile: dict) -> None:
         self._shopping_agent.reset(session_id, user_profile)
