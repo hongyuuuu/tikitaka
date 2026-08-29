@@ -44,17 +44,44 @@ _ATTRIBUTE_LIST = (
 _SYSTEM_INSTRUCTIONS = f"""\
 You convert one shopping message into structured state operations.
 
-Return ONLY a JSON object matching the supplied schema. No prose, no markdown.
+Return ONLY a JSON object in exactly this shape. No prose, no markdown, no code
+fence. Field names are exact; a renamed field is discarded.
 
-Allowed attributes: {_ATTRIBUTE_LIST}. Never invent an attribute outside this
-list; use `other` when nothing fits.
+{{
+  "inferred_mode": "buying" | "browsing" | "unknown",
+  "mode_confidence": 0.0-1.0,
+  "generality": 0.0-1.0,
+  "operations": [
+    {{
+      "operation": "add" | "remove" | "replace" | "exclude" | "no_preference" | "reset",
+      "attribute": one of {_ATTRIBUTE_LIST},
+      "new_value": "the value, as a string",
+      "old_value": "only for replace, otherwise null",
+      "scope": "attribute" | "intent" | "conversation",
+      "polarity": "include" | "exclude",
+      "strength": "hard" | "soft",
+      "confidence": 0.0-1.0
+    }}
+  ]
+}}
 
-Operations:
-- add: a new constraint the customer just stated.
-- replace: a correction of a value you were already told; name old_value.
-- remove: the customer withdrew a constraint without replacing it.
-- exclude: a negative constraint, such as "not leather".
-- no_preference: the customer said the attribute does not matter to them.
+The value field is called "new_value", never "value". An operation without it
+is rejected.
+
+"generality" and "mode_confidence" are NUMBERS, not words: generality 1.0 for a
+vague request, 0.0 for a fully specified one.
+
+Never invent an attribute outside the list above; use `other` when nothing fits.
+
+Per-operation rules. Breaking one rejects that operation:
+- add, exclude: "new_value" required, "old_value" must be null. Use exclude for
+  a negative constraint such as "not leather".
+- replace: both "old_value" and "new_value" required. This is a correction of a
+  value you were already told.
+- remove: the customer withdrew a constraint without replacing it. Omit
+  "confidence".
+- no_preference: the customer said the attribute does not matter to them. Omit
+  "confidence".
 - reset: the customer restarted. Use scope "conversation" for a full restart
   and "intent" when they switched to a different kind of product.
 
@@ -64,9 +91,26 @@ Distinguish carefully:
   they have nothing further to add about X. Emit no operation for it.
 
 Set inferred_mode to "buying" when a concrete requirement is on the table, and
-"browsing" when the customer is still exploring. Set generality high when the
-request is vague and low when it is already specific.
+"browsing" when the customer is still exploring.
+
+Worked example. Message: "I'm looking for Bras Sports Bras, but I'm still
+exploring."
+
+{{"inferred_mode":"browsing","mode_confidence":0.8,"generality":0.8,\
+"operations":[{{"operation":"add","attribute":"category",\
+"new_value":"sports bras","old_value":null,"scope":"attribute",\
+"polarity":"include","strength":"soft","confidence":0.9}}]}}
 """
+
+#: The worked example above, as the parser must be able to read it. A prompt
+#: that documents a shape the parser rejects is exactly the defect this pair
+#: exists to prevent, and `tests/test_prompt_contract.py` asserts they agree.
+PROMPT_EXAMPLE_OUTPUT = (
+    '{"inferred_mode":"browsing","mode_confidence":0.8,"generality":0.8,'
+    '"operations":[{"operation":"add","attribute":"category",'
+    '"new_value":"sports bras","old_value":null,"scope":"attribute",'
+    '"polarity":"include","strength":"soft","confidence":0.9}]}'
+)
 
 
 @dataclass(frozen=True)
@@ -119,8 +163,16 @@ class ApiConfig:
     max_repairs: int = 1
     transport_attempts: int = 2
     backoff_base_s: float = 0.5
-    prompt_cost_per_1k: float = 0.0
-    completion_cost_per_1k: float = 0.0
+    # gpt-5.6-terra list price, read 2026-08-29: $2.00 per 1M input, $12.00 per
+    # 1M output. Published per 1M, stored per 1k, hence the factor of 1000.
+    #
+    # The provider also lists cached input at $0.20 per 1M, a tenth of the
+    # standard rate. There is no field for it here, so a run that benefits from
+    # prompt caching is billed in this estimate at the full input rate. That
+    # makes the reported cost an upper bound, which is the safe direction for a
+    # disclosure to err.
+    prompt_cost_per_1k: float = 0.002
+    completion_cost_per_1k: float = 0.012
     cost_currency: str = "USD"
     cache: ResponseCache | None = None
 

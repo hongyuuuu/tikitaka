@@ -1,0 +1,136 @@
+{
+  "cost": {
+    "completion_cost_per_1k": 0.012,
+    "currency": "USD",
+    "per_session": 0.033959,
+    "projected_private_800": 27.1672,
+    "projected_public_200": 6.7918,
+    "prompt_cost_per_1k": 0.002,
+    "total": 0.33959
+  },
+  "metrics_api": {
+    "efficiency": 0.0,
+    "hit_rate_at_10": 0.0,
+    "mrr": 0.0,
+    "mttc": 11.0,
+    "recommended_technical_score": 0.0,
+    "reported_token_usage": {
+      "completion_tokens": 22476,
+      "prompt_tokens": 34939,
+      "total_tokens": 57415
+    },
+    "sample_count": 10,
+    "scenario_metrics": {
+      "boundary": {
+        "hit_rate_at_10": 0.0,
+        "mrr": 0.0,
+        "mttc": 11.0,
+        "sample_count": 1
+      },
+      "browsing": {
+        "hit_rate_at_10": 0.0,
+        "mrr": 0.0,
+        "mttc": 11.0,
+        "sample_count": 4
+      },
+      "buying": {
+        "hit_rate_at_10": 0.0,
+        "mrr": 0.0,
+        "mttc": 11.0,
+        "sample_count": 3
+      },
+      "intent_override": {
+        "hit_rate_at_10": 0.0,
+        "mrr": 0.0,
+        "mttc": 11.0,
+        "sample_count": 2
+      }
+    }
+  },
+  "metrics_deterministic": {
+    "efficiency": 0.38,
+    "hit_rate_at_10": 0.8,
+    "mrr": 0.345,
+    "mttc": 7.2,
+    "recommended_technical_score": 0.5795,
+    "reported_token_usage": {
+      "completion_tokens": 0,
+      "prompt_tokens": 0,
+      "total_tokens": 0
+    },
+    "sample_count": 10,
+    "scenario_metrics": {
+      "boundary": {
+        "hit_rate_at_10": 1.0,
+        "mrr": 1.0,
+        "mttc": 7.0,
+        "sample_count": 1
+      },
+      "browsing": {
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.270833,
+        "mttc": 5.0,
+        "sample_count": 4
+      },
+      "buying": {
+        "hit_rate_at_10": 0.666667,
+        "mrr": 0.388889,
+        "mttc": 8.333333,
+        "sample_count": 3
+      },
+      "intent_override": {
+        "hit_rate_at_10": 0.5,
+        "mrr": 0.1,
+        "mttc": 10.0,
+        "sample_count": 2
+      }
+    }
+  },
+  "per_call": {
+    "completion_tokens": 224.8,
+    "prompt_tokens": 349.4,
+    "reasoning_tokens": 181.1
+  },
+  "preflight": {
+    "completion_tokens": 299,
+    "estimated_cost": 0.004268,
+    "latency_ms": 4167.4,
+    "prompt_tokens": 340,
+    "reasoning_tokens": 242,
+    "route_id": "primary/gpt-5.6-terra"
+  },
+  "route": {
+    "credential_present": true,
+    "credential_variable": "OPENAI_API_KEY",
+    "degraded": false,
+    "model": "gpt-5.6-terra",
+    "provider": "openai",
+    "reasoning_level": "xhigh",
+    "route_id": "primary/gpt-5.6-terra"
+  },
+  "scenario_breakdown": {
+    "boundary": 1,
+    "browsing": 4,
+    "buying": 3,
+    "intent_override": 2
+  },
+  "seed": 2026,
+  "sessions": 10,
+  "usage": {
+    "calls": 100,
+    "calls_by_component": {
+      "interpreter": 100,
+      "reranker": 0
+    },
+    "completion_tokens": 22476,
+    "estimated_cost": 0.33958999999999984,
+    "fallback_turns": 0,
+    "latency_ms_mean": 3861.0,
+    "latency_ms_p95": 5814.1,
+    "prompt_tokens": 34939,
+    "reasoning_tokens": 18109,
+    "repairs": 0,
+    "sessions": 10
+  },
+  "wall_seconds": 386.2
+}
