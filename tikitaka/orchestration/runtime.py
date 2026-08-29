@@ -20,6 +20,7 @@ from tikitaka.contracts import (
 from tikitaka.decision import ResponsePolicy, ResponsePolicyConfig
 from tikitaka.models.factory import GatewaySelection, gateway_from_env
 from tikitaka.models.fake import HeuristicInterpreter
+from tikitaka.models.selector import ModelSelector, RoutingInterpreter
 from tikitaka.models.usage import merge
 from tikitaka.orchestration.sessions import SessionRegistry
 from tikitaka.orchestration.shopping_agent import ShoppingAgent
@@ -72,6 +73,7 @@ class RuntimeConfig(DeterministicRuntimeConfig):
     allow_degraded: bool = True
     enable_llm_reranker: bool = True
     llm_reranker: LLMRerankerConfig | None = None
+    selector: ModelSelector | None = None
 
 
 class VisibleMessageInterpreter:
@@ -234,19 +236,16 @@ def build_agent(
         allow_degraded=runtime.allow_degraded,
     )
     fallback = VisibleMessageInterpreter(HeuristicInterpreter())
-    primary = (
-        fallback
-        if selection.degraded
-        else ResilientInterpreter(
-            selection.interpreter,
-            selection.route.route_id,
-            fallback,
-        )
+    # Route per turn rather than once per build. A degraded selector has no
+    # generative route, so it always chooses `fallback` and the deterministic
+    # path behaves exactly as it did before routing existed.
+    selector = runtime.selector or ModelSelector(
+        None if selection.degraded else selection.route
     )
-    interpreter = (
-        ResilientInterpreter(primary, selection.route.route_id)
-        if selection.degraded
-        else primary
+    interpreter = RoutingInterpreter(
+        selector,
+        fallback if selection.degraded else selection.interpreter,
+        fallback,
     )
     deterministic = DeterministicRanker(config=runtime.ranking)
     reranker: object = deterministic
