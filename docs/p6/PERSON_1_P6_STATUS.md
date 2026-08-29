@@ -105,7 +105,7 @@ reported tokens  prompt 0, completion 0
 Per scenario, unchanged: browsing 0.9875, buying 0.8625, boundary 0.9000,
 intent_override 0.7333.
 
-Test suite: 355 tests, zero new failures. The 9 remaining errors are the
+Test suite: 372 tests, zero new failures. The 9 remaining errors are the
 pre-existing Windows `np.memmap` handle leak in `retrieval/dense.py` (Person 2),
 present at baseline and unrelated to this phase.
 
