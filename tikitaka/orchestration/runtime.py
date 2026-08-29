@@ -19,7 +19,7 @@ from tikitaka.contracts import (
 )
 from tikitaka.decision import ResponsePolicy, ResponsePolicyConfig
 from tikitaka.models.factory import GatewaySelection, gateway_from_env
-from tikitaka.models.fake import HeuristicInterpreter
+from tikitaka.models.fake import HeuristicInterpreter, carries_no_new_constraint
 from tikitaka.models.selector import ModelSelector, RoutingInterpreter
 from tikitaka.models.usage import merge
 from tikitaka.orchestration.sessions import SessionRegistry
@@ -92,6 +92,13 @@ class VisibleMessageInterpreter:
         delta, usage = self._interpreter.interpret(message, state)
         delta = self._mark_explicit_replacements(message, state, delta)
         if delta.operations or not message.strip():
+            return delta, usage
+        if carries_no_new_constraint(message):
+            # An empty delta means either "understood, nothing to add" or
+            # "failed to parse". Only the second warrants preserving the raw
+            # text; injecting a recognised no-information reply would put the
+            # customer's negative sentence into the retrieval query as a
+            # preference.
             return delta, usage
         operation = StateOperation(
             operation=StateOperationKind.ADD,
