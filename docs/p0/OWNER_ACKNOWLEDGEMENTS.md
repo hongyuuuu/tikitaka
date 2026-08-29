@@ -13,7 +13,7 @@ does not transfer file ownership.
 |---|---|---|---|---|
 | Person 1 | Models, state, query construction, usage | acknowledged with requested changes | `f0dd286` | Sufficient to start P1/P2. Three blocking changes before `0.1.0` freezes; see Person 1 review responses below. |
 | Person 2 | Catalog, retrieval, evidence, index identity | pending | — | — |
-| Person 3 | Decision policy, reranking, diagnostics | pending | — | — |
+| Person 3 | Decision policy, reranking, diagnostics | acknowledged with requested changes | `143c7d4` | Sufficient to start P1/P2. Candidate diagnostics and decision semantics must be settled before `0.1.0` freezes; see Person 3 review responses below. |
 | Person 4 | Contracts, orchestration, evaluation boundary | proposed | `3db9434` | Awaiting affected-owner review |
 
 ## Coordination checklist
@@ -173,6 +173,128 @@ returning up to two undisclosed constraints of any kind. On the public set
 `docs/PERSON_1_BUILD_PLAN.md` section 2.1 rather than acted on: it is Person 3's
 policy call, and an obvious overfitting risk against the 800 private sessions.
 
+## Person 3 review responses
+
+Reviewing commit: `143c7d4`. Person 3 build plan:
+`docs/PERSON_3_BUILD_PLAN.md`.
+
+The proposal is sufficient to begin implementation behind fakes. Two contract
+changes are required before `0.1.0` freezes so the decision policy can estimate
+ranking change without importing Person 2's catalog implementation or encoding
+unstable semantics in free text.
+
+### Blocking 1 — Candidate evidence cannot support question-value simulation
+
+`ProductEvidence` identifies which fields matched but does not expose normalized
+candidate attribute values or the reliability of contradiction evidence.
+`DecisionPolicy.choose()` receives only `SessionStateView` and candidates, so it
+cannot simulate how a candidate ranking would change after an answer such as
+`material=canvas` without reaching across the ownership boundary into retrieval
+or reparsing display text.
+
+Requested additions to `ProductEvidence`:
+
+- `attribute_values: Mapping[str, tuple[object, ...]]`, containing normalized
+  known values for allowed clarification attributes;
+- `evidence_reliability: Mapping[str, float]`, normalized into `[0.0, 1.0]`, so
+  hard-constraint enforcement can distinguish a confirmed contradiction from
+  weak inferred metadata.
+
+Unknown values remain represented in `unknown_fields`; an absent attribute is
+never a contradiction. Pool-level concentration, route disagreement, margins,
+facet distributions, and Top-10 stability can then be computed as private
+Person 3 diagnostics from the candidate sequence rather than expanding the
+shared contract further.
+
+### Blocking 2 — Decision score and reason semantics are underspecified
+
+`expected_information_gain` must be a deterministic normalized score in
+`[0.0, 1.0]`, defined as expected rank-weighted Top-10 membership/order change,
+not unbounded Shannon entropy. This keeps thresholds, fakes, tests, and reports
+comparable across implementations.
+
+Requested addition to `TurnDecision`:
+
+```python
+reason_code: Literal[
+    "final_turn",
+    "valuable_clarification",
+    "low_question_value",
+    "no_eligible_attribute",
+    "ranking_stable",
+    "insufficient_evidence",
+    "component_fallback",
+]
+```
+
+The existing `reason` remains human-readable diagnostic detail. Reporting must
+group by `reason_code`, not parse prose.
+
+### Answers to the Person 3 review questions
+
+**Which candidate diagnostics are required by generality and question value?**
+Constraint coverage/confidence, score concentration and effective candidate
+mass, lead and Top-10-boundary margins, sparse/dense/structural route overlap,
+known-value coverage and distributions per eligible attribute, and Top-10
+stability under temporary answer branches. These are derived by Person 3 from
+the shared candidate evidence; they do not need to become shared records.
+
+**Is `expected_information_gain` normalized or unbounded?** Normalized to
+`[0.0, 1.0]`. It represents expected rank-weighted Top-10 change after applying
+a plausible answer branch. It is not raw facet entropy.
+
+**Does deterministic reranking need richer constraint-match evidence?** Yes.
+It needs normalized attribute values, explicit match/contradiction/unknown
+states, and evidence reliability. A confirmed hard contradiction may exclude a
+candidate; unknown metadata may not.
+
+**Which decision reasons must be machine-readable?** Final-turn guard, valuable
+clarification, low question value, no eligible attribute, stable ranking,
+insufficient evidence, and component fallback. The proposed `reason_code` enum
+is the initial closed set.
+
+### Responses to Person 1 changes affecting Person 3
+
+- Adding `polarity`, `strength`, and `confidence` to `StateOperation` is
+  acknowledged and required for safe constraint enforcement.
+- Adding normalized value, intent version, lifecycle status, and category
+  dependency to `Constraint` is acknowledged. Category clearing must remain
+  dependency-aware and evidence-based; it must not use one unconditional table
+  that retracts every constraint of a given attribute after every category
+  change.
+- Person 3 requires a read-only `SessionStateView` containing current mode and
+  confidence, active and revalidation constraints, no-preference and asked
+  attributes, intent version, shown products for that version, and profile soft
+  signals kept separate from explicit dialogue.
+- The public simulator's apparent preference for `ask_attribute="other"` will
+  not be hard-coded into runtime policy. Question choice must be justified by
+  visible session state and candidate evidence, then evaluated on the held-out
+  split to avoid exploiting an evaluator-specific quirk.
+
+### All-owner acknowledgements
+
+- Mutual-exclusion action invariant (DG-01): acknowledged. `CLARIFY` has one
+  allowed attribute and no recommendations; `RECOMMEND` has
+  `ask_attribute = null`.
+- Catalog-valid, shortlist-only reranking: acknowledged. LLM output is untrusted;
+  invalid and duplicate IDs are discarded, and missing positions are filled
+  from deterministic shortlist order.
+- Label-free participant runtime boundary: acknowledged. Person 3 modules never
+  receive or read `ground_truth`, `scenario_type`, public labels, intent cards,
+  or evaluator internals.
+- Cross-ownership imports: none are required if normalized candidate evidence
+  and a read-only state view are supplied through shared contracts.
+
+### Ownership and obligations
+
+Person 3 claims `tikitaka/decision/`, `tikitaka/ranking/`,
+`tests/test_decision.py`, `tests/test_ranking.py`, and Person 3 decision fixtures.
+
+Fake obligation accepted: deterministic candidate/state fixtures plus faulty
+reranker outputs covering duplicates, hallucinated IDs, omitted IDs, malformed
+structured output, timeout, and raised exception. Unit tests require neither a
+network nor the full catalog.
+
 ## Change log
 
 Record review-driven changes here before freezing the contract.
@@ -186,3 +308,5 @@ Record review-driven changes here before freezing the contract.
 | 2026-08-29 | Person 1 | Add `rejected_operations`, `schema_version` to `StateDelta` | Persons 1, 4 | proposed |
 | 2026-08-29 | Person 1 | Add `calls`, `repairs`, `reasoning_tokens`, `cache_hit` to `Usage`; state cost units | Persons 1, 4 | proposed |
 | 2026-08-29 | Person 1 | Concrete `SearchPlan` field names for Person 2 review | Persons 1, 2, 4 | proposed |
+| 2026-08-29 | Person 3 | Add normalized `attribute_values` and `evidence_reliability` to `ProductEvidence` | Persons 2, 3, 4 | requested |
+| 2026-08-29 | Person 3 | Normalize `expected_information_gain` to `[0, 1]` and add machine-readable `reason_code` | Persons 3, 4 | requested |
