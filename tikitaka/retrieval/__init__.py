@@ -3,6 +3,13 @@
 from tikitaka.contracts import IndexManifest
 
 from .adapters import ContractRetrieverAdapter, contract_candidate, contract_product_evidence
+from .benchmark import (
+    BenchmarkValidationError,
+    RetrievalBenchmarkCase,
+    RetrievalObservation,
+    evaluate_retrieval_route,
+    load_retrieval_benchmark_cases,
+)
 from .catalog import (
     CatalogIdentity,
     CatalogValidationError,
@@ -16,12 +23,14 @@ from .dense import (
     DenseIndex,
     DenseLoadResult,
     DenseRouteError,
+    assert_embedder_matches_manifest,
     build_dense_artifact,
     embed_query_for_index,
     load_dense_index,
     load_dense_index_safe,
     normalize_embedding,
 )
+from .embedding import EmbeddingAdapterError, GatewayEmbedder, embedding_usage_as_dict
 from .fusion import FusedRouteHit, RRFConfig, reciprocal_rank_fusion, route_overlap
 from .hybrid import (
     HybridConfig,
@@ -57,6 +66,7 @@ from .text import (
 
 __all__ = [
     "AttributeEvidence",
+    "BenchmarkValidationError",
     "CatalogIdentity",
     "CatalogValidationError",
     "ContractRetrieverAdapter",
@@ -68,7 +78,9 @@ __all__ = [
     "DenseIndex",
     "DenseLoadResult",
     "DenseRouteError",
+    "EmbeddingAdapterError",
     "FusedRouteHit",
+    "GatewayEmbedder",
     "HybridConfig",
     "HybridDiagnostics",
     "HybridRetrievalHit",
@@ -80,7 +92,9 @@ __all__ = [
     "ProductCatalog",
     "ProductDocument",
     "RetrievalConstraint",
+    "RetrievalBenchmarkCase",
     "RetrievalHit",
+    "RetrievalObservation",
     "RetrievalRequest",
     "RRFConfig",
     "SparseFields",
@@ -98,7 +112,11 @@ __all__ = [
     "dense_manifest_as_dict",
     "dense_manifest_from_dict",
     "assert_dense_manifest_compatible",
+    "assert_embedder_matches_manifest",
+    "embedding_usage_as_dict",
+    "evaluate_retrieval_route",
     "load_catalog",
+    "load_retrieval_benchmark_cases",
     "load_dense_index",
     "load_dense_index_safe",
     "normalize_embedding",
