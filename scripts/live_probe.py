@@ -45,6 +45,7 @@ if str(ROOT) not in sys.path:
 from evaluator.local_evaluator import catalog_index, evaluate, load_jsonl
 from tikitaka.models.api_llm import ApiConfig
 from tikitaka.models.base import CredentialMissing, ModelError
+from tikitaka.models.env_file import DEFAULT_ENV_FILE, load_env_file
 from tikitaka.models.factory import PRIMARY_ROUTE, describe_route, gateway_from_env
 from tikitaka.orchestration.runtime import (
     DeterministicRuntimeConfig,
@@ -199,14 +200,25 @@ def main() -> None:
     parser.add_argument(
         "--yes", action="store_true", help="skip the spend confirmation prompt"
     )
+    parser.add_argument(
+        "--env-file",
+        default=DEFAULT_ENV_FILE,
+        help="local file to read the credential from (must be git-ignored)",
+    )
     args = parser.parse_args()
+
+    loaded = load_env_file(args.env_file)
+    if loaded:
+        # Names only. A credential must never reach a terminal or a log.
+        print(f"loaded {', '.join(loaded)} from {args.env_file}")
 
     route = describe_route()
     if not route["credential_present"]:
         raise SystemExit(
-            f"No credential in {route['credential_variable']}. This probe refuses "
-            "to run degraded - a deterministic run reported as an API run is "
-            "worse than no run at all."
+            f"No credential in {route['credential_variable']}. Set it in your "
+            f"shell, or put it in {args.env_file} (which is git-ignored). "
+            "This probe refuses to run degraded - a deterministic run reported "
+            "as an API run is worse than no run at all."
         )
 
     samples = load_jsonl(args.dataset)
@@ -223,7 +235,13 @@ def main() -> None:
     print()
 
     if not args.yes:
-        answer = input("This spends real money. Continue? [y/N] ").strip().lower()
+        try:
+            answer = input("This spends real money. Continue? [y/N] ").strip().lower()
+        except EOFError:
+            raise SystemExit(
+                "No terminal to confirm on. Re-run with --yes to spend without "
+                "a prompt."
+            )
         if answer not in {"y", "yes"}:
             raise SystemExit("aborted")
 
