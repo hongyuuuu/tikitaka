@@ -34,7 +34,7 @@ from typing import Callable, Mapping
 from tikitaka.contracts.domain import StateDelta, Usage
 from tikitaka.models.api_llm import PROMPT_VERSION
 from tikitaka.models.base import ModelError, ModelRoute
-from tikitaka.models.fake import HEURISTIC_ROUTE
+from tikitaka.models.fake import HEURISTIC_ROUTE, detect_exhaustion
 from tikitaka.models.usage import merge
 from tikitaka.state.schema import SCHEMA_VERSION
 
@@ -456,6 +456,7 @@ class RoutingInterpreter:
         return self.decisions[-1] if self.decisions else None
 
     def interpret(self, message: str, state: object) -> tuple[StateDelta, Usage]:
+        self._note_exhaustion(message, state)
         decision = self._decide(message, state)
         chosen = self._primary if decision.generative else self._fallback
         route_id = decision.route.route_id
@@ -478,6 +479,33 @@ class RoutingInterpreter:
         if isinstance(usage, Usage) and usage.route is None:
             usage = replace(usage, route=route_id)
         return delta, usage
+
+    @staticmethod
+    def _note_exhaustion(message: str, state: object) -> None:
+        """Record a spent question on the state before interpreting.
+
+        A `StateDelta` cannot express exhaustion — the frozen contract has no
+        field for it — so it has to be marked out of band. `state/extractor.py`
+        did this, but nothing in the running agent uses that module, so
+        `exhausted_attributes` was empty in every trace. This is the only
+        Person 1 component in the live path that sees both the message and the
+        session, so it carries the note.
+
+        Exhaustion stays distinct from no-preference: a spent question means the
+        customer had nothing further to add, not that the attribute is
+        irrelevant, and conflating them would discard a real Boundary answer.
+        """
+
+        attribute = detect_exhaustion(message or "")
+        if attribute is None:
+            return
+        note = getattr(state, "_exhausted", None)
+        if note is None or not hasattr(note, "add"):
+            return
+        try:
+            note.add(attribute)
+        except Exception:
+            pass
 
     def _decide(self, message: str, state: object) -> RoutingDecision:
         """Routing must never be the thing that fails a turn."""

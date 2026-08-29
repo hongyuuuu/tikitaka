@@ -25,7 +25,7 @@
         "no_generative_route": 7
       },
       "routing_mode": "runtime_auto",
-      "session_id": "trace_2168ef12c906",
+      "session_id": "trace_fd1f3e199ef9",
       "trace_file": "boundary.jsonl",
       "turns": 7
     },
@@ -45,7 +45,7 @@
         "no_generative_route": 6
       },
       "routing_mode": "runtime_auto",
-      "session_id": "trace_4626c16039e7",
+      "session_id": "trace_6ba1a4a7f920",
       "trace_file": "browsing.jsonl",
       "turns": 6
     },
@@ -65,7 +65,7 @@
         "no_generative_route": 8
       },
       "routing_mode": "runtime_auto",
-      "session_id": "trace_83af533cc5c0",
+      "session_id": "trace_f0d4639e23cb",
       "trace_file": "buying.jsonl",
       "turns": 8
     },
@@ -85,7 +85,7 @@
         "no_generative_route": 8
       },
       "routing_mode": "runtime_auto",
-      "session_id": "trace_1fb16cc71999",
+      "session_id": "trace_31789724955d",
       "trace_file": "intent_override.jsonl",
       "turns": 8
     }

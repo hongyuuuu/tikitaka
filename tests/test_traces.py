@@ -142,5 +142,80 @@ class TraceSafetyTests(unittest.TestCase):
         self.assertEqual(trace.completion_tokens, 12)
 
 
+class ExhaustionRecordTests(unittest.TestCase):
+    """A spent question must reach the state, not just the interpreter."""
+
+    def _interpreter(self):
+        from tikitaka.models.fake import HeuristicInterpreter
+        from tikitaka.models.selector import ModelSelector, RoutingInterpreter
+
+        local = HeuristicInterpreter()
+        return RoutingInterpreter(ModelSelector(None), local, local)
+
+    def test_a_spent_question_is_recorded_on_the_state(self) -> None:
+        # `exhausted_attributes` was empty in every captured trace: the module
+        # that noted it, state/extractor.py, is not in the running agent.
+        state = new_session("s", {})
+        self._interpreter().interpret(
+            "I don't have an additional preference for style.", state
+        )
+        self.assertIn("style", state.exhausted_attributes)
+
+    def test_it_appears_in_the_trace(self) -> None:
+        state = new_session("s", {})
+        self._interpreter().interpret(
+            "I don't have an additional preference for brand.", state
+        )
+        trace = capture(state, "I don't have an additional preference for brand.", 2)
+        self.assertIn("brand", trace.exhausted_attributes)
+
+    def test_exhaustion_stays_distinct_from_no_preference(self) -> None:
+        # Conflating them would discard a real Boundary answer.
+        state = new_session("s", {})
+        self._interpreter().interpret(
+            "I don't have an additional preference for style.", state
+        )
+        self.assertIn("style", state.exhausted_attributes)
+        self.assertNotIn("style", state.no_preference)
+
+    def test_an_ordinary_message_records_nothing(self) -> None:
+        state = new_session("s", {})
+        self._interpreter().interpret("I want leather boots.", state)
+        self.assertEqual(state.exhausted_attributes, frozenset())
+
+    def test_a_state_without_the_field_is_tolerated(self) -> None:
+        class Bare:
+            turn = 1
+            mode_confidence = 0.5
+            active_constraints = ()
+
+        interpreter = self._interpreter()
+        # Must not raise: routing is never allowed to fail a turn.
+        interpreter._note_exhaustion(
+            "I don't have an additional preference for style.", Bare()
+        )
+
+
+class NoInformationPredicateTests(unittest.TestCase):
+    def test_both_official_no_information_templates_are_recognised(self) -> None:
+        from tikitaka.models.fake import carries_no_new_constraint
+
+        self.assertTrue(
+            carries_no_new_constraint("I don't have an additional preference for style.")
+        )
+        self.assertTrue(
+            carries_no_new_constraint(
+                "I don't have a preference for color; please use your judgment."
+            )
+        )
+
+    def test_a_real_preference_is_not_mistaken_for_silence(self) -> None:
+        from tikitaka.models.fake import carries_no_new_constraint
+
+        self.assertFalse(carries_no_new_constraint("For that, what matters is: fabric."))
+        self.assertFalse(carries_no_new_constraint("I want leather boots."))
+        self.assertFalse(carries_no_new_constraint(""))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -82,6 +82,26 @@ def classify_constraint(value: str) -> str:
     return "feature"
 
 
+def carries_no_new_constraint(message: str) -> bool:
+    """True when a reply is a recognised answer that adds no search constraint.
+
+    Both official no-information templates count: the Boundary "I don't have a
+    preference for X" and the spent-question "I don't have an additional
+    preference for X".
+
+    This exists because "the heuristic produced no operations" is ambiguous on
+    its own — it means either *understood, nothing to add* or *failed to parse*.
+    A caller that treats the first as the second will inject the customer's
+    negative sentence into the retrieval query as if it were a preference.
+    """
+
+    text = message or ""
+    return (
+        _NO_ADDITIONAL_RE.search(text) is not None
+        or _NO_PREFERENCE_RE.search(text) is not None
+    )
+
+
 def detect_exhaustion(message: str) -> str | None:
     """Return the attribute the customer had nothing further to add for.
 
@@ -255,6 +275,7 @@ def _as_attribute(word: str) -> str:
 
 __all__ = [
     "HEURISTIC_ROUTE",
+    "carries_no_new_constraint",
     "FaultyInterpreter",
     "HeuristicInterpreter",
     "ScriptedInterpreter",
