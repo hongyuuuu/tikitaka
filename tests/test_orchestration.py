@@ -32,10 +32,13 @@ from tikitaka.contracts import (
 from tikitaka.orchestration.scaffold import ScaffoldReducer, ScaffoldState
 from tikitaka.orchestration.sessions import SessionRegistry
 from tikitaka.orchestration.shopping_agent import ShoppingAgent
+from tikitaka.state.reducer import StateReducer
+from tikitaka.state.session import SessionState, new_session
 
 
-CATALOG_IDS = frozenset(f"P-{index:02d}" for index in range(1, 13))
-CANDIDATES = [candidate(item, rank, 1.0 / rank) for rank, item in enumerate(CATALOG_IDS, 1)]
+CATALOG_SEQUENCE = tuple(f"P-{index:02d}" for index in range(1, 13))
+CATALOG_IDS = frozenset(CATALOG_SEQUENCE)
+CANDIDATES = [candidate(item, rank, 1.0 / rank) for rank, item in enumerate(CATALOG_SEQUENCE, 1)]
 
 
 def recommendation() -> TurnDecision:
@@ -78,6 +81,34 @@ def reset_delta() -> StateDelta:
     )
 
 
+def mode_delta(
+    mode: InferredMode,
+    operations: tuple[StateOperation, ...] = (),
+) -> StateDelta:
+    return StateDelta(
+        inferred_mode=mode,
+        mode_confidence=0.9,
+        operations=operations,
+        generality=0.5,
+        rejected_operations=0,
+        schema_version=STRUCTURED_OUTPUT_SCHEMA_VERSION,
+    )
+
+
+def no_preference_delta(attribute: Attribute) -> StateDelta:
+    operation = StateOperation(
+        operation=StateOperationKind.NO_PREFERENCE,
+        attribute=attribute,
+        old_value=None,
+        new_value=None,
+        scope=OperationScope.ATTRIBUTE,
+        polarity=None,
+        strength=None,
+        confidence=None,
+    )
+    return mode_delta(InferredMode.BROWSING, (operation,))
+
+
 def make_agent(*, interpreter=None, retriever=None, decision=None, reranker=None):
     sessions = SessionRegistry(
         lambda session_id, profile: ScaffoldState(session_id=session_id, profile_seed=profile)
@@ -90,6 +121,21 @@ def make_agent(*, interpreter=None, retriever=None, decision=None, reranker=None
         retriever=retriever or DeterministicRetriever(CANDIDATES, CATALOG_IDS),
         decision_policy=decision or ScriptedDecisionPolicy(default=recommendation()),
         reranker=reranker or DeterministicReranker([item.parent_asin for item in CANDIDATES]),
+        catalog_ids=CATALOG_IDS,
+    )
+    return agent, sessions
+
+
+def make_owner_integrated_agent(*, interpreter, decision=None):
+    sessions: SessionRegistry[SessionState] = SessionRegistry(new_session)
+    agent = ShoppingAgent(
+        sessions=sessions,
+        reducer=StateReducer(),
+        interpreter=interpreter,
+        query_builder=FakeQueryBuilder(),
+        retriever=DeterministicRetriever(CANDIDATES, CATALOG_IDS),
+        decision_policy=decision or ScriptedDecisionPolicy(default=recommendation()),
+        reranker=DeterministicReranker(CATALOG_SEQUENCE),
         catalog_ids=CATALOG_IDS,
     )
     return agent, sessions
@@ -212,6 +258,80 @@ class OrchestrationTest(unittest.TestCase):
         self.assertFalse(hasattr(state, "ground_truth"))
         self.assertFalse(hasattr(state, "scenario_type"))
         self.assertFalse(hasattr(state, "intent_card"))
+
+
+class RepresentativeTraceTest(unittest.TestCase):
+    """P2 exit-gate traces using Person 1's merged state and reducer."""
+
+    def test_buying_trace_accumulates_visible_mode_then_recommends(self) -> None:
+        message = "I need blue walking shoes for a purchase this week."
+        interpreter = ScriptedInterpreter(script={message: mode_delta(InferredMode.BUYING)})
+        agent, sessions = make_owner_integrated_agent(interpreter=interpreter)
+        agent.reset("buying", {"summary": "prefers practical products"})
+
+        response = agent.respond("buying", message, 1, 10)
+
+        self.assertEqual(sessions.get("buying").mode, InferredMode.BUYING)
+        self.assertIsNone(response["ask_attribute"])
+        self.assertEqual(len(response["recommendations"]), 10)
+
+    def test_browsing_trace_uses_visible_mode_and_one_clarification(self) -> None:
+        message = "I'm exploring ideas and not ready to buy yet."
+        interpreter = ScriptedInterpreter(script={message: mode_delta(InferredMode.BROWSING)})
+        agent, sessions = make_owner_integrated_agent(
+            interpreter=interpreter,
+            decision=ScriptedDecisionPolicy(default=clarification()),
+        )
+        agent.reset("browsing", {})
+
+        response = agent.respond("browsing", message, 1, 10)
+
+        self.assertEqual(sessions.get("browsing").mode, InferredMode.BROWSING)
+        self.assertEqual(response["ask_attribute"], "material")
+        self.assertEqual(response["recommendations"], [])
+
+    def test_intent_override_trace_increments_version_and_reopens_products(self) -> None:
+        interpreter = ScriptedInterpreter(
+            script={
+                "I want walking shoes.": mode_delta(InferredMode.BUYING),
+                "Actually, start over with a daypack.": reset_delta(),
+            }
+        )
+        agent, sessions = make_owner_integrated_agent(interpreter=interpreter)
+        agent.reset("override", {})
+        first = agent.respond("override", "I want walking shoes.", 1, 10)
+        first_ids = {item["parent_asin"] for item in first["recommendations"]}
+
+        second = agent.respond("override", "Actually, start over with a daypack.", 2, 10)
+        second_ids = {item["parent_asin"] for item in second["recommendations"]}
+        state = sessions.get("override")
+
+        self.assertEqual(state.intent_version, 2)
+        self.assertEqual(state.shown_product_ids, frozenset(second_ids))
+        self.assertEqual(first_ids, second_ids)
+
+    def test_boundary_trace_records_no_preference_and_does_not_repeat_question(self) -> None:
+        interpreter = ScriptedInterpreter(
+            script={
+                "I'm still exploring.": mode_delta(InferredMode.BROWSING),
+                "I have no material preference.": no_preference_delta(Attribute.MATERIAL),
+            }
+        )
+        policy = ScriptedDecisionPolicy(
+            decisions={1: clarification(), 2: recommendation()},
+            default=recommendation(),
+        )
+        agent, sessions = make_owner_integrated_agent(interpreter=interpreter, decision=policy)
+        agent.reset("boundary", {})
+
+        first = agent.respond("boundary", "I'm still exploring.", 1, 10)
+        second = agent.respond("boundary", "I have no material preference.", 2, 10)
+        state = sessions.get("boundary")
+
+        self.assertEqual(first["ask_attribute"], "material")
+        self.assertIn(Attribute.MATERIAL, state.no_preference)
+        self.assertIsNone(second["ask_attribute"])
+        self.assertGreater(len(second["recommendations"]), 0)
 
 
 if __name__ == "__main__":
