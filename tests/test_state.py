@@ -231,6 +231,7 @@ class ReducerTests(unittest.TestCase):
 
     def test_reducer_is_order_stable_for_a_multi_operation_delta(self) -> None:
         self.reducer.apply(self.state, delta(add("color", "blue")), 1)
+        version = self.state.intent_version
         override = delta(
             add("budget", "under $60"),
             operation(
@@ -244,8 +245,34 @@ class ReducerTests(unittest.TestCase):
             ),
         )
         self.reducer.apply(self.state, override, 2)
+        self.assertEqual(self.state.intent_version, version + 1)
         self.assertEqual(values(self.state, "color"), {"green"})
         self.assertEqual(values(self.state, "budget"), {60.0})
+
+    def test_category_change_and_attribute_replace_advance_only_once(self) -> None:
+        self.reducer.apply(
+            self.state,
+            delta(add("category", "boots"), add("material", "leather")),
+            1,
+        )
+        version = self.state.intent_version
+        self.reducer.apply(
+            self.state,
+            delta(
+                add("category", "sandals"),
+                operation(
+                    "replace",
+                    attribute="material",
+                    old_value="leather",
+                    new_value="canvas",
+                    polarity="include",
+                    strength="hard",
+                    confidence=0.9,
+                ),
+            ),
+            2,
+        )
+        self.assertEqual(self.state.intent_version, version + 1)
 
     def test_sessions_do_not_share_state(self) -> None:
         first = new_session("a", PROFILE)
