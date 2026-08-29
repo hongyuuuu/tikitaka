@@ -61,6 +61,10 @@ def main() -> int:
     parser.add_argument("--batch-size", type=int, default=128)
     arguments = parser.parse_args()
 
+    output_directory = arguments.output.resolve()
+    if output_directory.is_relative_to(PROJECT_ROOT):
+        parser.error("dense artifacts must be written outside the source repository")
+
     started = perf_counter()
     catalog = load_catalog(arguments.catalog, expected_count=arguments.expected_count)
     loaded = perf_counter()
@@ -70,7 +74,7 @@ def main() -> int:
     manifest = build_dense_artifact(
         catalog,
         embedder,
-        arguments.output,
+        output_directory,
         embedding_provider=provider,
         embedding_model=model,
         batch_size=arguments.batch_size,
@@ -85,7 +89,7 @@ def main() -> int:
                     "catalog_load": round((loaded - started) * 1_000, 3),
                     "artifact_build_or_verify": round((finished - loaded) * 1_000, 3),
                 },
-                "output_directory": str(arguments.output.resolve()),
+                "output_directory": str(output_directory),
                 "embedding_usage": (
                     embedding_usage_as_dict(usage) if isinstance(usage, Usage) else None
                 ),

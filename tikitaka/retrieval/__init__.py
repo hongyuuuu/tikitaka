@@ -46,6 +46,15 @@ from .manifests import (
     dense_manifest_as_dict,
     dense_manifest_from_dict,
 )
+from .openai_embeddings import (
+    DEFAULT_EMBEDDING_MODEL,
+    DEFAULT_EMBEDDING_URL,
+    EMBEDDING_CREDENTIAL_VARIABLE,
+    OpenAIEmbeddingConfig,
+    OpenAIEmbeddingModel,
+    openai_embedder_from_env,
+    openai_embedding_route,
+)
 from .request import RetrievalConstraint, RetrievalRequest, request_from_search_plan
 from .retriever import RetrievalHit, SparseStructuredRetriever
 from .sparse import SparseHit, SparseIndex, SparseIndexConfig
@@ -85,12 +94,15 @@ __all__ = [
     "ConstraintEvaluation",
     "DENSE_ARTIFACT_FORMAT",
     "DENSE_QUERY_SCHEMA_VERSION",
+    "DEFAULT_EMBEDDING_MODEL",
+    "DEFAULT_EMBEDDING_URL",
     "DenseArtifactError",
     "DenseHit",
     "DenseIndex",
     "DenseLoadResult",
     "DenseRouteError",
     "EmbeddingAdapterError",
+    "EMBEDDING_CREDENTIAL_VARIABLE",
     "EVIDENCE_TIERS",
     "FusedRouteHit",
     "GatewayEmbedder",
@@ -101,6 +113,8 @@ __all__ = [
     "HybridRetriever",
     "IndexManifest",
     "ManifestValidationError",
+    "OpenAIEmbeddingConfig",
+    "OpenAIEmbeddingModel",
     "PRODUCT_TEXT_SCHEMA_VERSION",
     "ProductCatalog",
     "ProductDocument",
@@ -140,6 +154,8 @@ __all__ = [
     "load_dense_index",
     "load_dense_index_safe",
     "normalize_embedding",
+    "openai_embedder_from_env",
+    "openai_embedding_route",
     "reciprocal_rank_fusion",
     "route_overlap",
     "contract_candidate",

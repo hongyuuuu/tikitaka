@@ -97,6 +97,13 @@ def main() -> int:
     )
     arguments = parser.parse_args()
 
+    output_path = arguments.output.resolve()
+    if (
+        arguments.evidence_tier == "public-development"
+        and output_path.is_relative_to(PROJECT_ROOT)
+    ):
+        parser.error("public M4 output must be outside the source repository")
+
     spec = load_retrieval_sweep_spec(arguments.spec)
     if spec.selection_k not in arguments.ks:
         parser.error("--ks must contain the sweep selection_k")
@@ -145,15 +152,15 @@ def main() -> int:
         ),
         dense_backend=None if dense_index is None else dense_index.backend,
     )
-    arguments.output.parent.mkdir(parents=True, exist_ok=True)
-    arguments.output.write_text(
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     print(
         json.dumps(
             {
-                "output": str(arguments.output),
+                "output": str(output_path),
                 "sweep_spec_fingerprint": spec.fingerprint,
                 "variant_count": len(reports),
                 "selection": report["selection"],

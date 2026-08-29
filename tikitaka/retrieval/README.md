@@ -145,13 +145,22 @@ fallback cannot masquerade as dense-model quality. Use
 
 ## Current dependency status
 
-Person 4's canonical contracts and Role 2's provider-neutral gateway bridge are
-integrated. Person 1 has not yet supplied the live embedding provider adapter,
-credential configuration, or initial production embedding route. Tests use a
-deliberately small deterministic semantic fixture only to prove artifact,
-compatibility, usage, fusion, fallback, and adapter behavior. Fixture results
-are not model-quality evidence and must never be reported as a production
-embedding benchmark.
+Person 4's canonical contracts and API-primary composition root are integrated.
+Role 2 now supplies a production OpenAI embedding adapter and environment-based
+factory. It defaults to `text-embedding-3-large` because accuracy is the owner
+priority and OpenAI documents it as its most capable embedding model. The
+adapter follows the official batched `POST /v1/embeddings` contract, pins model
+and optional dimensions into the route identity, attributes tokens/cost/latency,
+retries transient failures, and never serializes credentials.
+
+Tests still use a deliberately small deterministic semantic fixture to prove
+artifact compatibility, route execution, usage, fusion, and failure behavior
+without cost. Fixture results are not model-quality evidence and must never be
+reported as a production embedding benchmark. A real artifact requires the
+team's own `OPENAI_API_KEY`; credentials must remain outside the repository.
+
+- [OpenAI embeddings API reference](https://developers.openai.com/api/reference/resources/embeddings/methods/create)
+- [OpenAI `text-embedding-3-large` model page](https://developers.openai.com/api/docs/models/text-embedding-3-large)
 
 ## M4 configuration sweeps
 
@@ -186,24 +195,51 @@ run exercises all mechanics but deliberately returns `selected_variant_id:
 null`; synthetic embeddings can never choose the production configuration.
 Public-development evidence also requires a clean committed worktree.
 
-Until the live embedding route is merged, the five sparse variants can run
-through the complete official simulator:
+Build the production catalog artifact outside the repository. The optional
+dimension override is part of the route fingerprint, so a query client cannot
+accidentally use vectors built with different dimensions:
 
 ```bash
-python3 scripts/sweep_sparse_runtime.py \
+export OPENAI_API_KEY="..."
+python3 scripts/build_dense_index.py \
+  --catalog data/catalog.jsonl \
+  --expected-count 50000 \
+  --output /path/outside-the-repository/openai-large-index \
+  --embedder-factory tikitaka.retrieval.openai_embeddings:openai_embedder_from_env \
+  --batch-size 128
+```
+
+Then run all nine variants through the official simulator:
+
+```bash
+python3 scripts/sweep_retrieval_runtime.py \
   --spec configs/retrieval_m4_sweep.json \
   --catalog data/catalog.jsonl \
   --dataset data/public_set.jsonl \
-  --output-directory /path/outside-the-repository/m4-sparse-runtime
+  --artifact /path/outside-the-repository/openai-large-index \
+  --embedder-factory tikitaka.retrieval.openai_embeddings:openai_embedder_from_env \
+  --evidence-tier public-development \
+  --output-directory /path/outside-the-repository/m4-runtime
 ```
 
 That command uses Person 4's stable stratified split and experiment report
 contracts, records aggregate and per-scenario Hit Rate@10, MRR, MTTC,
 Efficiency, TechnicalScore, question counts, latency, and configuration
 fingerprints. Tuning proposes one configuration and the untouched held-out split
-only accepts it or falls back to the baseline. Dense, hybrid, and automatic
-runtime variants remain explicitly deferred in its summary rather than being
-silently evaluated as sparse fallbacks.
+only accepts it or falls back to the baseline. Every dense-capable call records
+its executed route and failure codes; any sparse fallback aborts the evidence
+run. Embedding token usage, estimated cost, manifest identity, vector dimension,
+and exact-search backend are included in the summary.
+
+Omit both `--artifact` and `--embedder-factory` to run the five sparse variants
+only. The summary explicitly marks the four dense-capable variants as deferred;
+this compatibility mode is useful for offline work but is not complete M4
+production evidence. The older `scripts/sweep_sparse_runtime.py` entry point is
+retained as an alias for existing team commands.
+
+Use `--evidence-tier fixture` for a deterministic full-route mechanics run.
+That tier always returns `selected_variant_id: null`, even on the public labels,
+and obvious fixture identities are rejected outright in `public-development`.
 
 The sweep records the dense backend (`numpy-exact` or `python-exact`) with the
 index manifest. ANN is intentionally not another default variant: the frozen
