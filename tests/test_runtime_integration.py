@@ -297,6 +297,24 @@ class NoInformationReplyTest(unittest.TestCase):
             [str(item.attribute) for item in state.active_constraints], ["other"]
         )
 
+    def test_composite_no_information_reply_preserves_visible_requirement(
+        self,
+    ) -> None:
+        messages = (
+            "I don't have an additional preference for style, but it must be waterproof.",
+            "I need waterproof boots; I don't have an additional preference for style.",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                state = self._state_after(message)
+                self.assertEqual(
+                    [str(item.attribute) for item in state.active_constraints], ["other"]
+                )
+                self.assertEqual(
+                    state.active_constraints[0].normalized_value,
+                    message.lower(),
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

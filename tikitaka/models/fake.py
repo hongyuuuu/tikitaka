@@ -96,10 +96,18 @@ def carries_no_new_constraint(message: str) -> bool:
     """
 
     text = message or ""
-    return (
-        _NO_ADDITIONAL_RE.search(text) is not None
-        or _NO_PREFERENCE_RE.search(text) is not None
-    )
+    for pattern in (_NO_ADDITIONAL_RE, _NO_PREFERENCE_RE):
+        match = pattern.search(text)
+        if match is None:
+            continue
+        # Suppress only a standalone no-information answer. A private
+        # simulator may combine it with a real requirement before or after the
+        # recognised phrase; in that case the wrapper must preserve the whole
+        # visible message rather than silently discard the requirement.
+        outside = text[: match.start()] + text[match.end() :]
+        if not outside.strip(" \t\r\n.,!?;:-"):
+            return True
+    return False
 
 
 def detect_exhaustion(message: str) -> str | None:
