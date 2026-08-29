@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from threading import RLock
 from typing import Generic, Protocol, Sequence, TypeVar
 
 from tikitaka.contracts import (
@@ -65,11 +66,39 @@ class ShoppingAgent(Generic[StateT]):
         self._reranker = reranker
         self._catalog_ids = frozenset(catalog_ids)
         self._candidate_limit = candidate_limit
+        # Injected components may own non-thread-safe model clients or SQLite
+        # connections. Keep each turn atomic across their shared pipeline.
+        self._pipeline_lock = RLock()
 
     def reset(self, session_id: str, user_profile: dict) -> None:
-        self.sessions.reset(session_id, user_profile)
+        with self._pipeline_lock:
+            self.sessions.reset(session_id, user_profile)
+
+    def close(self) -> None:
+        """Release optional resources owned by injected runtime components."""
+
+        with self._pipeline_lock:
+            close = getattr(self._retriever, "close", None)
+            if callable(close):
+                close()
+
+    def __enter__(self) -> "ShoppingAgent[StateT]":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.close()
 
     def respond(
+        self,
+        session_id: str,
+        user_message: str,
+        turn: int,
+        top_k: int,
+    ) -> dict:
+        with self._pipeline_lock:
+            return self._respond_locked(session_id, user_message, turn, top_k)
+
+    def _respond_locked(
         self,
         session_id: str,
         user_message: str,

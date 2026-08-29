@@ -51,6 +51,21 @@ class StateReducer:
             state.mode_confidence = delta.mode_confidence
         state.generality = delta.generality
 
+        # A schema-level REPLACE represents an explicit customer correction.
+        # Advance once so products shown for the superseded intent are eligible
+        # again, without clearing unrelated constraints. Category changes own
+        # their dependency-aware version transition below.
+        has_non_category_replace = any(
+            operation.operation == "replace" and operation.attribute != "category"
+            for operation in delta.operations
+        )
+        has_category_change = any(
+            _changes_category(state, operation)
+            for operation in delta.operations
+        )
+        if has_non_category_replace and not has_category_change:
+            self._new_intent_version(state)
+
         for operation in sorted(delta.operations, key=_sort_key):
             self._apply_operation(state, operation, turn)
         return state
@@ -288,6 +303,19 @@ class StateReducer:
 
 def _sort_key(operation: StateOperation) -> tuple[int, str]:
     return (_ORDER.get(str(operation.operation), 99), str(operation.attribute or ""))
+
+
+def _changes_category(state: SessionState, operation: StateOperation) -> bool:
+    if operation.attribute != "category" or operation.new_value is None:
+        return False
+    normalized = normalize_value("category", operation.new_value)
+    if normalized is None:
+        return False
+    existing = state.constraints_for("category")
+    return bool(existing) and all(
+        constraint.normalized_value != normalized[1]
+        for constraint in existing
+    )
 
 
 __all__ = ["StateReducer"]

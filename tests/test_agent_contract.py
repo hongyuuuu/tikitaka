@@ -38,6 +38,7 @@ class AgentContractTest(unittest.TestCase):
 
     def test_default_adapter_emits_official_shape_on_tiny_catalog(self) -> None:
         agent = Agent("tests/fixtures/tiny_catalog.jsonl")
+        self.addCleanup(agent.close)
         agent.reset("session", {
             "purchase_frequency": "monthly",
             "average_prior_rating": 4.0,

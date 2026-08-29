@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
+from threading import RLock
 from typing import Iterable
 
 from .catalog import ProductCatalog, ProductDocument
@@ -108,9 +109,10 @@ class SparseIndex:
     ) -> None:
         self.catalog = catalog
         self.config = config or SparseIndexConfig()
-        self.connection = connection or sqlite3.connect(":memory:")
+        self.connection = connection or sqlite3.connect(":memory:", check_same_thread=False)
         self._owns_connection = connection is None
         self._closed = False
+        self._lock = RLock()
         self._build()
         self.manifest = SparseIndexManifest(
             engine="sqlite-fts5-bm25-v1",
@@ -155,25 +157,26 @@ class SparseIndex:
         should_terms: tuple[str, ...] = (),
         limit: int = 200,
     ) -> list[SparseHit]:
-        self._ensure_open()
-        if limit <= 0:
-            raise ValueError("retrieval limit must be positive")
-        expression = fts5_expression(
-            text_query=text_query,
-            must_terms=must_terms,
-            should_terms=should_terms,
-            max_terms=self.config.max_query_terms,
-        )
-        if not expression:
-            return []
-        weights = ", ".join(format(value, ".12g") for value in (0.0, *self.config.field_weights))
-        rows = self.connection.execute(
-            "SELECT parent_asin, title, categories, features, details, store, description, "
-            f"bm25(products, {weights}) AS rank_score "
-            "FROM products WHERE products MATCH ? "
-            "ORDER BY rank_score ASC, parent_asin ASC LIMIT ?",
-            (expression, limit),
-        ).fetchall()
+        with self._lock:
+            self._ensure_open()
+            if limit <= 0:
+                raise ValueError("retrieval limit must be positive")
+            expression = fts5_expression(
+                text_query=text_query,
+                must_terms=must_terms,
+                should_terms=should_terms,
+                max_terms=self.config.max_query_terms,
+            )
+            if not expression:
+                return []
+            weights = ", ".join(format(value, ".12g") for value in (0.0, *self.config.field_weights))
+            rows = self.connection.execute(
+                "SELECT parent_asin, title, categories, features, details, store, description, "
+                f"bm25(products, {weights}) AS rank_score "
+                "FROM products WHERE products MATCH ? "
+                "ORDER BY rank_score ASC, parent_asin ASC LIMIT ?",
+                (expression, limit),
+            ).fetchall()
         terms = query_terms(text_query, *must_terms, *should_terms, max_terms=self.config.max_query_terms)
         hits: list[SparseHit] = []
         seen: set[str] = set()
@@ -196,9 +199,10 @@ class SparseIndex:
         return hits
 
     def close(self) -> None:
-        if not self._closed and self._owns_connection:
-            self.connection.close()
-        self._closed = True
+        with self._lock:
+            if not self._closed and self._owns_connection:
+                self.connection.close()
+            self._closed = True
 
     def __enter__(self) -> "SparseIndex":
         self._ensure_open()
