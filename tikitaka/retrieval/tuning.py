@@ -141,6 +141,10 @@ class RetrievalSweepSpec:
     selection_k: int
     max_scenario_hit_rate_drop: float
     variants: tuple[RetrievalVariant, ...]
+    max_heldout_hit_rate_drop: float = 0.0
+    max_heldout_mrr_drop: float = 0.0
+    max_heldout_technical_score_drop: float = 0.0
+    max_heldout_scenario_hit_rate_drop: float = 0.0
     schema_version: str = SWEEP_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -161,6 +165,14 @@ class RetrievalSweepSpec:
                 "max_scenario_hit_rate_drop",
             ),
         )
+        for name in (
+            "max_heldout_hit_rate_drop",
+            "max_heldout_mrr_drop",
+            "max_heldout_technical_score_drop",
+            "max_heldout_scenario_hit_rate_drop",
+        ):
+            value = _unit_interval(getattr(self, name), name)
+            object.__setattr__(self, name, value)
         object.__setattr__(self, "variants", tuple(self.variants))
         if len(self.variants) < 2:
             raise SweepValidationError("a sweep requires at least two variants")
@@ -176,6 +188,12 @@ class RetrievalSweepSpec:
             "baseline_variant_id": self.baseline_variant_id,
             "selection_k": self.selection_k,
             "max_scenario_hit_rate_drop": self.max_scenario_hit_rate_drop,
+            "max_heldout_hit_rate_drop": self.max_heldout_hit_rate_drop,
+            "max_heldout_mrr_drop": self.max_heldout_mrr_drop,
+            "max_heldout_technical_score_drop": self.max_heldout_technical_score_drop,
+            "max_heldout_scenario_hit_rate_drop": (
+                self.max_heldout_scenario_hit_rate_drop
+            ),
             "variants": [variant.to_dict() for variant in self.variants],
         }
 
@@ -255,6 +273,10 @@ def load_retrieval_sweep_spec(path: str | Path) -> RetrievalSweepSpec:
         "baseline_variant_id",
         "selection_k",
         "max_scenario_hit_rate_drop",
+        "max_heldout_hit_rate_drop",
+        "max_heldout_mrr_drop",
+        "max_heldout_technical_score_drop",
+        "max_heldout_scenario_hit_rate_drop",
         "variants",
     }
     unknown = set(payload).difference(allowed)
@@ -272,6 +294,14 @@ def load_retrieval_sweep_spec(path: str | Path) -> RetrievalSweepSpec:
             selection_k=payload["selection_k"],
             max_scenario_hit_rate_drop=payload.get(
                 "max_scenario_hit_rate_drop", 0.0
+            ),
+            max_heldout_hit_rate_drop=payload.get("max_heldout_hit_rate_drop", 0.0),
+            max_heldout_mrr_drop=payload.get("max_heldout_mrr_drop", 0.0),
+            max_heldout_technical_score_drop=payload.get(
+                "max_heldout_technical_score_drop", 0.0
+            ),
+            max_heldout_scenario_hit_rate_drop=payload.get(
+                "max_heldout_scenario_hit_rate_drop", 0.0
             ),
             variants=tuple(_variant(item) for item in variants),
         )
@@ -705,44 +735,77 @@ def select_retrieval_variant(
         raise SweepValidationError("no variant passes the scenario-collapse guard")
     ranked = sorted(eligible, key=lambda item: _selection_key(item, spec.selection_k))
     provisional = str(ranked[0]["variant_id"])
-    selected = provisional if evidence_tier == "public-development" else None
-    confirmation_variant = by_id[selected or provisional]
+    confirmation_variant = by_id[provisional]
     heldout_scenarios = _scenario_metrics(confirmation_variant, "heldout")
     baseline_heldout_scenarios = _scenario_metrics(baseline, "heldout")
-    heldout_confirmation = {
-        "variant_id": str(confirmation_variant["variant_id"]),
-        "overall_delta_from_baseline": _metric_delta(
-            baseline,
-            confirmation_variant,
-            "heldout",
-            spec.selection_k,
-        ),
-        "scenario_hit_rate_deltas": {
-            scenario: round(
-                _at_k(
-                    heldout_scenarios[scenario],
-                    "hit_rate_at_k",
-                    spec.selection_k,
-                )
-                - _at_k(
-                    baseline_heldout_scenarios[scenario],
-                    "hit_rate_at_k",
-                    spec.selection_k,
-                ),
-                12,
+    heldout_delta = _metric_delta(
+        baseline,
+        confirmation_variant,
+        "heldout",
+        spec.selection_k,
+    )
+    heldout_scenario_deltas = {
+        scenario: round(
+            _at_k(
+                heldout_scenarios[scenario],
+                "hit_rate_at_k",
+                spec.selection_k,
             )
-            for scenario in sorted(baseline_heldout_scenarios)
-        },
-        "used_for_selection": False,
+            - _at_k(
+                baseline_heldout_scenarios[scenario],
+                "hit_rate_at_k",
+                spec.selection_k,
+            ),
+            12,
+        )
+        for scenario in sorted(baseline_heldout_scenarios)
+    }
+    confirmation_checks = {
+        "overall_hit_rate": (
+            float(heldout_delta["hit_rate_at_k"])
+            >= -spec.max_heldout_hit_rate_drop
+        ),
+        "overall_mrr": (
+            float(heldout_delta["mrr_at_k"]) >= -spec.max_heldout_mrr_drop
+        ),
+        "scenario_hit_rate": all(
+            delta >= -spec.max_heldout_scenario_hit_rate_drop
+            for delta in heldout_scenario_deltas.values()
+        ),
+    }
+    confirmation_passed = all(confirmation_checks.values())
+    production_selection = (
+        provisional
+        if evidence_tier == "public-development" and confirmation_passed
+        else spec.baseline_variant_id
+        if evidence_tier == "public-development"
+        else None
+    )
+    heldout_confirmation = {
+        "candidate_variant_id": str(confirmation_variant["variant_id"]),
+        "overall_delta_from_baseline": heldout_delta,
+        "scenario_hit_rate_deltas": heldout_scenario_deltas,
+        "checks": confirmation_checks,
+        "passed": confirmation_passed,
+        "used_to_accept_or_reject_tuning_winner": (
+            evidence_tier == "public-development"
+        ),
+        "used_to_choose_an_alternative": False,
+        "used_for_tuning_ranking": False,
     }
     return {
-        "selection_basis": "tuning_only",
+        "selection_basis": "tuning_rank_then_heldout_gate",
+        "tuning_ranking_basis": "tuning_only",
         "evidence_tier": evidence_tier,
         "status": (
-            "selected" if selected is not None else "fixture_mechanics_only"
+            "fixture_mechanics_only"
+            if evidence_tier == "fixture"
+            else "heldout_confirmed"
+            if confirmation_passed
+            else "heldout_rejected_tuning_winner"
         ),
         "baseline_variant_id": spec.baseline_variant_id,
-        "selected_variant_id": selected,
+        "selected_variant_id": production_selection,
         "provisional_tuning_leader": provisional,
         "eligible_tuning_ranking": [str(item["variant_id"]) for item in ranked],
         "scenario_collapse_guards": guards,

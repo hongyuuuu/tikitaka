@@ -135,7 +135,12 @@ class RetrievalSweepExecutionTests(unittest.TestCase):
         self.assertIsNone(report["selection"]["selected_variant_id"])
         self.assertTrue(report["selection"]["provisional_tuning_leader"])
         self.assertFalse(
-            report["selection"]["heldout_confirmation"]["used_for_selection"]
+            report["selection"]["heldout_confirmation"]["used_for_tuning_ranking"]
+        )
+        self.assertFalse(
+            report["selection"]["heldout_confirmation"][
+                "used_to_accept_or_reject_tuning_winner"
+            ]
         )
         auto = next(item for item in reports if item["variant_id"] == "auto-runtime")
         self.assertEqual(auto["execution"]["executed_routes"], {"hybrid": 8})
@@ -169,13 +174,77 @@ class RetrievalSweepExecutionTests(unittest.TestCase):
             evidence_tier="public-development",
         )
 
-        self.assertEqual(selection["status"], "selected")
+        self.assertIn(
+            selection["status"],
+            {"heldout_confirmed", "heldout_rejected_tuning_winner"},
+        )
         self.assertIn(
             selection["selected_variant_id"],
             {variant.variant_id for variant in variants},
         )
-        self.assertEqual(selection["selection_basis"], "tuning_only")
-        self.assertFalse(selection["heldout_confirmation"]["used_for_selection"])
+        self.assertEqual(
+            selection["selection_basis"], "tuning_rank_then_heldout_gate"
+        )
+        self.assertEqual(selection["tuning_ranking_basis"], "tuning_only")
+        self.assertFalse(
+            selection["heldout_confirmation"]["used_for_tuning_ranking"]
+        )
+        self.assertFalse(
+            selection["heldout_confirmation"]["used_to_choose_an_alternative"]
+        )
+
+    def test_heldout_can_reject_but_cannot_replace_the_tuning_winner(self) -> None:
+        variants = self.spec.variants[:2]
+        reports = [
+            run_retrieval_variant(
+                variant,
+                self.cases,
+                self.catalog,
+                ks=(10,),
+            )
+            for variant in variants
+        ]
+        baseline, candidate = deepcopy(reports[0]), deepcopy(reports[1])
+        baseline_tuning = baseline["metrics"]["splits"]["tuning"]["overall"]
+        candidate_tuning = candidate["metrics"]["splits"]["tuning"]["overall"]
+        baseline_tuning["hit_rate_at_k"]["10"] = 0.5
+        baseline_tuning["mrr_at_k"]["10"] = 0.5
+        candidate_tuning["hit_rate_at_k"]["10"] = 0.9
+        candidate_tuning["mrr_at_k"]["10"] = 0.9
+        candidate_heldout = candidate["metrics"]["splits"]["heldout"]["overall"]
+        baseline_heldout = baseline["metrics"]["splits"]["heldout"]["overall"]
+        candidate_heldout["hit_rate_at_k"]["10"] = baseline_heldout[
+            "hit_rate_at_k"
+        ]["10"]
+        candidate_heldout["mrr_at_k"]["10"] = max(
+            0.0,
+            float(baseline_heldout["mrr_at_k"]["10"]) - 0.1,
+        )
+        reduced_spec = type(self.spec)(
+            baseline_variant_id=variants[0].variant_id,
+            selection_k=10,
+            max_scenario_hit_rate_drop=1.0,
+            variants=variants,
+        )
+
+        selection = select_retrieval_variant(
+            reduced_spec,
+            (baseline, candidate),
+            evidence_tier="public-development",
+        )
+
+        self.assertEqual(
+            selection["provisional_tuning_leader"], variants[1].variant_id
+        )
+        self.assertEqual(selection["selected_variant_id"], variants[0].variant_id)
+        self.assertEqual(selection["status"], "heldout_rejected_tuning_winner")
+        self.assertFalse(selection["heldout_confirmation"]["passed"])
+        self.assertFalse(
+            selection["heldout_confirmation"]["checks"]["overall_mrr"]
+        )
+        self.assertFalse(
+            selection["heldout_confirmation"]["used_to_choose_an_alternative"]
+        )
 
     def test_scenario_collapse_rejects_an_aggregate_tuning_leader(self) -> None:
         variants = self.spec.variants[:2]

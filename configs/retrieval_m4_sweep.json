@@ -3,6 +3,10 @@
   "baseline_variant_id": "sparse-baseline",
   "selection_k": 10,
   "max_scenario_hit_rate_drop": 0.0,
+  "max_heldout_hit_rate_drop": 0.0,
+  "max_heldout_mrr_drop": 0.0,
+  "max_heldout_technical_score_drop": 0.0,
+  "max_heldout_scenario_hit_rate_drop": 0.0,
   "variants": [
     {
       "variant_id": "sparse-baseline",

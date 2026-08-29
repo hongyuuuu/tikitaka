@@ -177,11 +177,14 @@ python3 scripts/sweep_retrieval.py \
 Selection is lexicographic in the project priority order: tuning Hit Rate@K,
 tuning MRR@K, mean hit rank, and then latency only as a final tie-breaker.
 Every variant must also pass the per-scenario Hit Rate guard relative to the
-declared baseline. Held-out results are reported only after the tuning choice
-and carry `used_for_selection: false`. A `fixture` run exercises all mechanics
-but deliberately returns `selected_variant_id: null`; synthetic embeddings can
-never choose the production configuration. Public-development evidence also
-requires a clean committed worktree.
+declared baseline. Held-out results are opened only after tuning names one
+provisional winner. They may confirm that winner or reject it back to the
+declared baseline; they never re-rank variants or choose a held-out alternative.
+The zero-drop gates for Hit Rate, MRR, TechnicalScore (in full-runtime reports),
+and per-scenario Hit Rate are explicit in the sweep specification. A `fixture`
+run exercises all mechanics but deliberately returns `selected_variant_id:
+null`; synthetic embeddings can never choose the production configuration.
+Public-development evidence also requires a clean committed worktree.
 
 Until the live embedding route is merged, the five sparse variants can run
 through the complete official simulator:
@@ -197,9 +200,10 @@ python3 scripts/sweep_sparse_runtime.py \
 That command uses Person 4's stable stratified split and experiment report
 contracts, records aggregate and per-scenario Hit Rate@10, MRR, MTTC,
 Efficiency, TechnicalScore, question counts, latency, and configuration
-fingerprints, and chooses from tuning only. Dense, hybrid, and automatic runtime
-variants remain explicitly deferred in its summary rather than being silently
-evaluated as sparse fallbacks.
+fingerprints. Tuning proposes one configuration and the untouched held-out split
+only accepts it or falls back to the baseline. Dense, hybrid, and automatic
+runtime variants remain explicitly deferred in its summary rather than being
+silently evaluated as sparse fallbacks.
 
 The sweep records the dense backend (`numpy-exact` or `python-exact`) with the
 index manifest. ANN is intentionally not another default variant: the frozen

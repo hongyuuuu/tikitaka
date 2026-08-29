@@ -208,30 +208,63 @@ def _select(
     ranked = sorted(eligible, key=_selection_key)
     winner = ranked[0]
     winner_id = _variant_id(winner)
+    heldout_delta = compare_reports(
+        baseline,
+        winner,
+        ["fusion_parameters", "profile_weight"],
+        split_name="held_out",
+    )["metric_deltas"]
+    heldout_scenario_deltas = {
+        scenario: round(
+            float(_scenarios(winner, "held_out")[scenario]["hit_rate_at_10"])
+            - float(_scenarios(baseline, "held_out")[scenario]["hit_rate_at_10"]),
+            12,
+        )
+        for scenario in sorted(_scenarios(baseline, "held_out"))
+    }
+    confirmation_checks = {
+        "overall_hit_rate": (
+            float(heldout_delta["hit_rate_at_10"])
+            >= -spec.max_heldout_hit_rate_drop
+        ),
+        "overall_mrr": (
+            float(heldout_delta["mrr"]) >= -spec.max_heldout_mrr_drop
+        ),
+        "overall_technical_score": (
+            float(heldout_delta["technical_score"])
+            >= -spec.max_heldout_technical_score_drop
+        ),
+        "scenario_hit_rate": all(
+            delta >= -spec.max_heldout_scenario_hit_rate_drop
+            for delta in heldout_scenario_deltas.values()
+        ),
+    }
+    confirmation_passed = all(confirmation_checks.values())
+    production_selection = (
+        winner_id if confirmation_passed else spec.baseline_variant_id
+    )
     return {
-        "selection_basis": "tuning_only",
-        "selected_variant_id": winner_id,
+        "selection_basis": "tuning_rank_then_heldout_gate",
+        "tuning_ranking_basis": "tuning_only",
+        "status": (
+            "heldout_confirmed"
+            if confirmation_passed
+            else "heldout_rejected_tuning_winner"
+        ),
+        "baseline_variant_id": spec.baseline_variant_id,
+        "selected_variant_id": production_selection,
+        "provisional_tuning_leader": winner_id,
         "eligible_tuning_ranking": [_variant_id(report) for report in ranked],
         "scenario_collapse_guards": guards,
-        "heldout_used_for_selection": False,
         "heldout_confirmation": {
-            "variant_id": winner_id,
-            "overall_delta_from_baseline": compare_reports(
-                baseline,
-                winner,
-                ["fusion_parameters", "profile_weight"],
-                split_name="held_out",
-            )["metric_deltas"],
-            "scenario_hit_rate_deltas": {
-                scenario: round(
-                    float(_scenarios(winner, "held_out")[scenario]["hit_rate_at_10"])
-                    - float(
-                        _scenarios(baseline, "held_out")[scenario]["hit_rate_at_10"]
-                    ),
-                    12,
-                )
-                for scenario in sorted(_scenarios(baseline, "held_out"))
-            },
+            "candidate_variant_id": winner_id,
+            "overall_delta_from_baseline": heldout_delta,
+            "scenario_hit_rate_deltas": heldout_scenario_deltas,
+            "checks": confirmation_checks,
+            "passed": confirmation_passed,
+            "used_to_accept_or_reject_tuning_winner": True,
+            "used_to_choose_an_alternative": False,
+            "used_for_tuning_ranking": False,
         },
     }
 
