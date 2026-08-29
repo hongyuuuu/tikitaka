@@ -1,0 +1,6 @@
+{"parent_asin":"A-CANVAS","title":"Canvas travel shoe","categories":["shoes"],"details":{"material":"canvas","color":"blue"},"price":59.0}
+{"parent_asin":"B-LEATHER","title":"Leather walking shoe","categories":["shoes"],"details":{"material":"leather","color":"brown"},"price":79.0}
+{"parent_asin":"C-UNKNOWN","title":"Everyday walking shoe","categories":["shoes"],"details":{},"price":null}
+{"parent_asin":"D-RED","title":"Red canvas sneaker","categories":["shoes"],"details":{"material":"canvas","color":"red"},"price":49.0}
+{"parent_asin":"E-BOOT","title":"Water resistant boot","categories":["boots"],"details":{"material":"leather","color":"black"},"price":99.0}
+{"parent_asin":"F-SANDAL","title":"Travel sandal","categories":["sandals"],"details":{"material":"synthetic","color":"blue"},"price":39.0}
