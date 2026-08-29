@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-29T12:22:49+08:00",
+  "git": {
+    "base_commit": "3db9434cc12354bc15bee42f4cf36253f7a5605c",
+    "branch": "person4/p0-baseline-contract"
+  },
+  "runtime_checks": [
+    {
+      "python": "3.14.2",
+      "command": "python3 -m unittest",
+      "tests_run": 3,
+      "status": "passed"
+    },
+    {
+      "python": "3.12",
+      "command": "python3.12 -m unittest",
+      "tests_run": 3,
+      "status": "passed"
+    }
+  ],
+  "public_dataset": {
+    "path": "data/public_set.jsonl",
+    "sha256": "857259f7a438e6188ac63e18995b6ff4489bfcfc4a716a798b9a2aa0ee8f7579",
+    "rows": 200,
+    "scenario_counts": {
+      "buying": 80,
+      "browsing": 80,
+      "intent_override": 30,
+      "boundary": 10
+    }
+  },
+  "catalog": {
+    "path": "data/catalog.jsonl",
+    "expected_rows": 50000,
+    "rows": 50000,
+    "unique_parent_asins": 50000,
+    "missing_parent_asins": 0,
+    "sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
+    "source_archive": {
+      "filename": "catalog.jsonl.gz",
+      "source": "separately supplied participant download",
+      "sha256": "07fd142631fd6b03e2b4d09988c3eb7d53720e9d57010c79db48eeaada50a8f8",
+      "published_checksum_matched": true,
+      "gzip_integrity_passed": true
+    },
+    "status": "verified"
+  },
+  "tracked_artifacts": {
+    "starter/agent.py": "cd0fdade2d743aaf220b93a6cd3bfa7fb1b9b9065d2fbd174128ed2b0f1b812d",
+    "evaluator/local_evaluator.py": "79a5ea06f9a1b8c5036f30efa85dc1f36b8f6b06eb8feb8f545dfa767bc45564",
+    "docs/agent_api_contract.json": "635563741dd71c273d540722913eccdc595b4af9b47ade79f38cd42ae45c8822",
+    "docs/competition_specification.md": "3f1d91cf5109b29608155cb6b3c802dafa97422842e72f5c18cae32e959f609a",
+    "docs/evaluation_config.json": "8ee0c899ddc68d521754cf9d2f239a8bc09851fb37c5872567160c30d431aa53",
+    "docs/submission_rules.md": "2d312636ceda4576f95e45d5f56f8ac9e106023d3028081a5d59dd274f385b16",
+    "docs/baseline_results.json": "70834f738918191e4108f89ea66bc502db521bccce5ed95d6ccc73563fba5a96"
+  },
+  "published_baseline": {
+    "source": "docs/baseline_results.json",
+    "name": "weak_bm25",
+    "hit_rate_at_10": 0.125,
+    "mrr": 0.068034,
+    "mttc": 9.81,
+    "efficiency": 0.119,
+    "technical_score": 0.10671,
+    "locally_reproduced": true,
+    "local_command": "python3 -m evaluator.local_evaluator",
+    "aggregate_metric_deltas": {
+      "sample_count": 0,
+      "hit_rate_at_10": 0.0,
+      "mrr": 0.0,
+      "mttc": 0.0,
+      "efficiency": 0.0,
+      "technical_score": 0.0
+    },
+    "scenario_metrics": {
+      "buying": {
+        "sample_count": 80,
+        "hit_rate_at_10": 0.2375,
+        "mrr": 0.126508,
+        "mttc": 8.625
+      },
+      "browsing": {
+        "sample_count": 80,
+        "hit_rate_at_10": 0.025,
+        "mrr": 0.004514,
+        "mttc": 10.75
+      },
+      "intent_override": {
+        "sample_count": 30,
+        "hit_rate_at_10": 0.133333,
+        "mrr": 0.104167,
+        "mttc": 10.066667
+      },
+      "boundary": {
+        "sample_count": 10,
+        "hit_rate_at_10": 0.0,
+        "mrr": 0.0,
+        "mttc": 11.0
+      }
+    }
+  }
+}
