@@ -44,7 +44,7 @@ class HybridDenseRetrievalTest(unittest.TestCase):
                 RetrievalRequest(
                     text_query="rainproof mountain footwear for a trip",
                     route_policy="dense",
-                    embedding_route_id=self.manifest.embedding_route_id,
+                    embedding_route_id=self.manifest.route_id,
                     index_id=self.manifest.index_id,
                 ),
                 limit=5,
@@ -53,7 +53,7 @@ class HybridDenseRetrievalTest(unittest.TestCase):
                 RetrievalRequest(
                     text_query="waterproof hiking boots",
                     route_policy="hybrid",
-                    embedding_route_id=self.manifest.embedding_route_id,
+                    embedding_route_id=self.manifest.route_id,
                     index_id=self.manifest.index_id,
                 ),
                 limit=5,
@@ -91,7 +91,7 @@ class HybridDenseRetrievalTest(unittest.TestCase):
                 RetrievalRequest(
                     text_query="waterproof hiking boots",
                     route_policy="dense",
-                    embedding_route_id=self.manifest.embedding_route_id,
+                    embedding_route_id=self.manifest.route_id,
                     index_id=self.manifest.index_id,
                 ),
                 limit=5,
@@ -113,7 +113,7 @@ class HybridDenseRetrievalTest(unittest.TestCase):
             ),
             mode="buying",
             route_policy="hybrid",
-            embedding_route_id=self.manifest.embedding_route_id,
+            embedding_route_id=self.manifest.route_id,
             index_id=self.manifest.index_id,
         )
         with HybridRetriever(
@@ -149,7 +149,7 @@ class HybridDenseRetrievalTest(unittest.TestCase):
         request = RetrievalRequest(
             text_query="waterproof hiking travel shoes",
             route_policy="hybrid",
-            embedding_route_id=self.manifest.embedding_route_id,
+            embedding_route_id=self.manifest.route_id,
             index_id=self.manifest.index_id,
         )
         with HybridRetriever(
@@ -157,8 +157,8 @@ class HybridDenseRetrievalTest(unittest.TestCase):
             dense_index=self.index,
             query_embedder=self.embedder,
         ) as retriever:
-            first = retriever.search(request, 4)
-            second = retriever.search(request, 4)
+            first = retriever.search_hits(request, 4)
+            second = retriever.search_hits(request, 4)
         first_signature = [
             (hit.parent_asin, hit.sparse_rank, hit.dense_rank, hit.fused_score)
             for hit in first
@@ -178,7 +178,7 @@ class HybridDenseRetrievalTest(unittest.TestCase):
             constraints=(RetrievalConstraint("material", ("leather",)),),
             intent_version=1,
             route_policy="hybrid",
-            embedding_route_id=self.manifest.embedding_route_id,
+            embedding_route_id=self.manifest.route_id,
             index_id=self.manifest.index_id,
         )
         new_intent = RetrievalRequest(
@@ -186,7 +186,7 @@ class HybridDenseRetrievalTest(unittest.TestCase):
             constraints=(RetrievalConstraint("material", ("cotton",)),),
             intent_version=2,
             route_policy="hybrid",
-            embedding_route_id=self.manifest.embedding_route_id,
+            embedding_route_id=self.manifest.route_id,
             index_id=self.manifest.index_id,
         )
         with HybridRetriever(
@@ -194,9 +194,9 @@ class HybridDenseRetrievalTest(unittest.TestCase):
             dense_index=self.index,
             query_embedder=self.embedder,
         ) as retriever:
-            old = retriever.search(old_intent, 5)
-            changed = retriever.search(new_intent, 5)
-            repeated = retriever.search(new_intent, 5)
+            old = retriever.search_hits(old_intent, 5)
+            changed = retriever.search_hits(new_intent, 5)
+            repeated = retriever.search_hits(new_intent, 5)
 
         self.assertEqual(changed[0].parent_asin, "B_RUN")
         self.assertNotEqual(old[0].parent_asin, changed[0].parent_asin)

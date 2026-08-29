@@ -8,6 +8,9 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Mapping
 
+from tikitaka.contracts import Candidate
+
+from .adapters import contract_candidate
 from .catalog import ProductCatalog, ProductDocument
 from .request import RetrievalConstraint, RetrievalRequest, request_from_search_plan
 from .sparse import SparseHit, SparseIndex, SparseIndexConfig
@@ -75,11 +78,14 @@ class RetrievalHit:
     constraint_evaluations: tuple[ConstraintEvaluation, ...]
     sparse_rank: int
     sparse_score: float
+    dense_rank: int | None
+    dense_score: float | None
     structural_score: float
     fused_score: float
     matched_fields: tuple[str, ...]
     supporting_snippets: tuple[str, ...]
     matched_exclude_terms: tuple[str, ...]
+    route_details: Mapping[str, object]
     profile_contribution: float
 
 
@@ -246,11 +252,24 @@ class SparseStructuredRetriever:
                     constraint_evaluations=evaluations,
                     sparse_rank=sparse_hit.rank,
                     sparse_score=sparse_hit.score,
+                    dense_rank=None,
+                    dense_score=None,
                     structural_score=structural_score,
                     fused_score=fused_score,
                     matched_fields=sparse_hit.matched_fields,
                     supporting_snippets=snippets,
                     matched_exclude_terms=matched_excludes,
+                    route_details=MappingProxyType(
+                        {
+                            "sparse_rank": sparse_hit.rank,
+                            "sparse_score": sparse_hit.score,
+                            "dense_rank": None,
+                            "dense_score": None,
+                            "sparse_index_id": self.sparse.manifest.engine,
+                            "dense_index_id": None,
+                            "embedding_route_id": None,
+                        }
+                    ),
                     profile_contribution=profile_contribution,
                 )
             )
@@ -282,9 +301,15 @@ class SparseStructuredRetriever:
         )
         return RetrievalResult(hits=tuple(unique_hits), diagnostics=diagnostics)
 
-    def search(self, plan_or_request: object, limit: int) -> list[RetrievalHit]:
-        """Return the M1 internal hits; a later adapter maps them to shared Candidate."""
+    def search(self, plan_or_request: object, limit: int) -> list[Candidate]:
+        """Satisfy the canonical Retriever protocol on the no-network route."""
 
+        return [
+            contract_candidate(hit)
+            for hit in self.retrieve(plan_or_request, limit=limit).hits
+        ]
+
+    def search_hits(self, plan_or_request: object, limit: int) -> list[RetrievalHit]:
         return list(self.retrieve(plan_or_request, limit=limit).hits)
 
     def close(self) -> None:

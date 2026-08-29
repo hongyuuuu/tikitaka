@@ -14,17 +14,21 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Iterable, Sequence
 
+from tikitaka.contracts import IndexManifest
+
 from .catalog import ProductCatalog
 from .manifests import (
-    DENSE_ARTIFACT_FORMAT_VERSION,
+    DENSE_ARTIFACT_FORMAT,
     DENSE_CHECKPOINT_FILENAME,
     DENSE_IDS_FILENAME,
     DENSE_MANIFEST_FILENAME,
-    DENSE_NORMALIZATION,
+    DENSE_NORMALIZED,
     DENSE_VECTORS_FILENAME,
     DENSE_VECTOR_DTYPE,
-    DenseIndexManifest,
     ManifestValidationError,
+    assert_dense_manifest_compatible,
+    dense_manifest_as_dict,
+    dense_manifest_from_dict,
     dense_index_id,
 )
 from .text import PRODUCT_TEXT_SCHEMA_VERSION, build_dense_text
@@ -148,7 +152,7 @@ def _read_json(path: Path, *, label: str) -> object:
             return json.load(handle)
     except FileNotFoundError as error:
         raise DenseArtifactError(f"{label} not found: {path}") from error
-    except json.JSONDecodeError as error:
+    except (json.JSONDecodeError, UnicodeError) as error:
         raise DenseArtifactError(f"malformed {label}: {path}") from error
 
 
@@ -162,7 +166,7 @@ def _checkpoint_identity(
 ) -> dict[str, object]:
     return {
         "checkpoint_version": 1,
-        "artifact_format_version": DENSE_ARTIFACT_FORMAT_VERSION,
+        "artifact_format_version": DENSE_ARTIFACT_FORMAT,
         "catalog_source_sha256": catalog.identity.source_sha256,
         "catalog_row_count": len(catalog),
         "ordered_parent_asin_sha256": catalog.identity.ordered_parent_asin_sha256,
@@ -245,7 +249,7 @@ def build_dense_artifact(
     embedding_provider: str,
     embedding_model: str,
     batch_size: int = 128,
-) -> DenseIndexManifest:
+) -> IndexManifest:
     """Build a complete resumable float32 artifact via the shared Embedder shape."""
 
     if batch_size <= 0:
@@ -260,7 +264,7 @@ def build_dense_artifact(
     paths.root.mkdir(parents=True, exist_ok=True)
     if paths.manifest.exists():
         manifest = read_dense_manifest(paths.root)
-        if manifest.embedding_provider != provider or manifest.embedding_model != model:
+        if manifest.provider != provider or manifest.model != model:
             raise DenseArtifactError(
                 "existing dense artifact provider/model does not match the requested build"
             )
@@ -339,8 +343,7 @@ def build_dense_artifact(
             DENSE_VECTORS_FILENAME: _sha256(paths.vectors),
         }
     )
-    manifest = DenseIndexManifest(
-        artifact_format_version=DENSE_ARTIFACT_FORMAT_VERSION,
+    manifest = IndexManifest(
         index_id=dense_index_id(
             catalog,
             embedding_provider=provider,
@@ -348,21 +351,22 @@ def build_dense_artifact(
             embedding_route_id=route_id,
             embedding_dimension=dimension,
         ),
-        catalog_source_sha256=catalog.identity.source_sha256,
+        catalog_checksum=catalog.identity.source_sha256,
         catalog_row_count=len(catalog),
-        ordered_parent_asin_sha256=catalog.identity.ordered_parent_asin_sha256,
+        ordered_id_checksum=catalog.identity.ordered_parent_asin_sha256,
         product_text_schema_version=PRODUCT_TEXT_SCHEMA_VERSION,
-        embedding_provider=provider,
-        embedding_model=model,
-        embedding_route_id=route_id,
-        embedding_dimension=dimension,
+        provider=provider,
+        model=model,
+        route_id=route_id,
+        dimension=dimension,
         vector_dtype=DENSE_VECTOR_DTYPE,
-        normalization=DENSE_NORMALIZATION,
+        normalized=DENSE_NORMALIZED,
         document_count=len(catalog),
-        build_timestamp=datetime.now(timezone.utc).isoformat(),
+        artifact_format=DENSE_ARTIFACT_FORMAT,
+        built_at=datetime.now(timezone.utc).isoformat(),
         artifact_checksums=checksums,
     )
-    _write_json_atomic(paths.manifest, manifest.as_dict())
+    _write_json_atomic(paths.manifest, dense_manifest_as_dict(manifest))
     verified = load_dense_index(
         paths.root,
         catalog,
@@ -373,18 +377,18 @@ def build_dense_artifact(
     return verified.manifest
 
 
-def read_dense_manifest(directory: str | Path) -> DenseIndexManifest:
+def read_dense_manifest(directory: str | Path) -> IndexManifest:
     paths = DenseArtifactPaths(Path(directory))
     payload = _read_json(paths.manifest, label="dense manifest")
     try:
-        return DenseIndexManifest.from_dict(payload)
+        return dense_manifest_from_dict(payload)
     except ManifestValidationError as error:
         raise DenseArtifactError(str(error)) from error
 
 
 def _verify_artifact_checksums(
     paths: DenseArtifactPaths,
-    manifest: DenseIndexManifest,
+    manifest: IndexManifest,
 ) -> None:
     artifacts = {
         DENSE_IDS_FILENAME: paths.ids,
@@ -403,7 +407,7 @@ class DenseIndex:
     def __init__(
         self,
         catalog: ProductCatalog,
-        manifest: DenseIndexManifest,
+        manifest: IndexManifest,
         identifiers: tuple[str, ...],
         vectors: object,
         *,
@@ -421,7 +425,7 @@ class DenseIndex:
             raise ValueError("retrieval limit must be positive")
         query = normalize_embedding(
             query_vector,
-            expected_dimension=self.manifest.embedding_dimension,
+            expected_dimension=self.manifest.dimension,
         )
         if self.backend == "numpy-exact":
             try:
@@ -444,7 +448,7 @@ class DenseIndex:
                 )
                 for rank, index in enumerate(order, start=1)
             ]
-        dimension = self.manifest.embedding_dimension
+        dimension = self.manifest.dimension
         scores: list[tuple[str, float]] = []
         for index, parent_asin in enumerate(self.identifiers):
             offset = index * dimension
@@ -471,7 +475,8 @@ def load_dense_index(
     paths = DenseArtifactPaths(Path(directory))
     manifest = read_dense_manifest(paths.root)
     try:
-        manifest.assert_compatible(
+        assert_dense_manifest_compatible(
+            manifest,
             catalog,
             embedding_route_id=embedding_route_id,
             index_id=index_id,
@@ -480,19 +485,24 @@ def load_dense_index(
         raise DenseArtifactError(str(error)) from error
     _verify_artifact_checksums(paths, manifest)
     identifiers: list[str] = []
-    with paths.ids.open(encoding="utf-8") as handle:
-        for line_number, line in enumerate(handle, start=1):
-            try:
-                value = json.loads(line)
-            except json.JSONDecodeError as error:
-                raise DenseArtifactError(f"malformed dense ID at line {line_number}") from error
-            if not isinstance(value, str) or not value:
-                raise DenseArtifactError(f"invalid dense ID at line {line_number}")
-            identifiers.append(value)
+    try:
+        with paths.ids.open(encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                try:
+                    value = json.loads(line)
+                except json.JSONDecodeError as error:
+                    raise DenseArtifactError(
+                        f"malformed dense ID at line {line_number}"
+                    ) from error
+                if not isinstance(value, str) or not value:
+                    raise DenseArtifactError(f"invalid dense ID at line {line_number}")
+                identifiers.append(value)
+    except UnicodeError as error:
+        raise DenseArtifactError("dense ID artifact is not valid UTF-8") from error
     expected_ids = tuple(product.parent_asin for product in catalog)
     if tuple(identifiers) != expected_ids:
         raise DenseArtifactError("dense ID order does not match the frozen catalog")
-    expected_floats = manifest.document_count * manifest.embedding_dimension
+    expected_floats = manifest.document_count * manifest.dimension
     expected_bytes = expected_floats * 4
     if paths.vectors.stat().st_size != expected_bytes:
         raise DenseArtifactError("dense vector file size does not match its manifest")
@@ -505,7 +515,7 @@ def load_dense_index(
             paths.vectors,
             dtype="<f4",
             mode="r",
-            shape=(manifest.document_count, manifest.embedding_dimension),
+            shape=(manifest.document_count, manifest.dimension),
         )
         if verify_normalization:
             if not bool(np.isfinite(vectors).all()):
@@ -529,7 +539,7 @@ def load_dense_index(
     if len(vectors_array) != expected_floats:
         raise DenseArtifactError("dense vector file ended before the declared document count")
     if verify_normalization:
-        dimension = manifest.embedding_dimension
+        dimension = manifest.dimension
         for document_index in range(manifest.document_count):
             offset = document_index * dimension
             norm_squared = sum(
@@ -575,7 +585,7 @@ def load_dense_index_safe(
 
 def embed_query_for_index(embedder: object, index: DenseIndex, text: str) -> tuple[float, ...]:
     route_id = _route_id(embedder)
-    if route_id != index.manifest.embedding_route_id:
+    if route_id != index.manifest.route_id:
         raise DenseRouteError(
             "query embedder route does not match the loaded dense index route"
         )
@@ -586,5 +596,5 @@ def embed_query_for_index(embedder: object, index: DenseIndex, text: str) -> tup
         raise DenseRouteError("query embedding call failed") from error
     return normalize_embedding(
         raw_vector,
-        expected_dimension=index.manifest.embedding_dimension,
+        expected_dimension=index.manifest.dimension,
     )

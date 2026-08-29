@@ -1,5 +1,7 @@
 """Catalog normalization and deterministic retrieval components."""
 
+from tikitaka.contracts import IndexManifest
+
 from .adapters import ContractRetrieverAdapter, contract_candidate, contract_product_evidence
 from .catalog import (
     CatalogIdentity,
@@ -29,9 +31,11 @@ from .hybrid import (
     HybridRetriever,
 )
 from .manifests import (
-    DENSE_ARTIFACT_FORMAT_VERSION,
-    DenseIndexManifest,
+    DENSE_ARTIFACT_FORMAT,
     ManifestValidationError,
+    assert_dense_manifest_compatible,
+    dense_manifest_as_dict,
+    dense_manifest_from_dict,
 )
 from .request import RetrievalConstraint, RetrievalRequest, request_from_search_plan
 from .retriever import RetrievalHit, SparseStructuredRetriever
@@ -57,12 +61,11 @@ __all__ = [
     "CatalogValidationError",
     "ContractRetrieverAdapter",
     "ConstraintEvaluation",
-    "DENSE_ARTIFACT_FORMAT_VERSION",
+    "DENSE_ARTIFACT_FORMAT",
     "DENSE_QUERY_SCHEMA_VERSION",
     "DenseArtifactError",
     "DenseHit",
     "DenseIndex",
-    "DenseIndexManifest",
     "DenseLoadResult",
     "DenseRouteError",
     "FusedRouteHit",
@@ -71,6 +74,7 @@ __all__ = [
     "HybridRetrievalHit",
     "HybridRetrievalResult",
     "HybridRetriever",
+    "IndexManifest",
     "ManifestValidationError",
     "PRODUCT_TEXT_SCHEMA_VERSION",
     "ProductCatalog",
@@ -91,6 +95,9 @@ __all__ = [
     "build_sparse_fields",
     "extract_structured_evidence",
     "embed_query_for_index",
+    "dense_manifest_as_dict",
+    "dense_manifest_from_dict",
+    "assert_dense_manifest_compatible",
     "load_catalog",
     "load_dense_index",
     "load_dense_index_safe",

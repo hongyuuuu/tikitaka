@@ -2,47 +2,59 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from dataclasses import dataclass
 from pathlib import Path
-from types import SimpleNamespace
-from typing import Mapping
 
 from tests.retrieval_fakes import SemanticFakeEmbedder
+from tikitaka.config import RuntimeRoutingConfig
+from tikitaka.contracts import (
+    Attribute,
+    Candidate,
+    EvidenceOutcome,
+    InferredMode,
+    ProductEvidence,
+    ProfileBias,
+    RoutePolicy,
+    Retriever,
+    SearchPlan,
+)
 from tikitaka.retrieval.adapters import ContractRetrieverAdapter
 from tikitaka.retrieval.catalog import load_catalog
 from tikitaka.retrieval.dense import build_dense_artifact, load_dense_index
 from tikitaka.retrieval.hybrid import HybridRetriever
+from tikitaka.retrieval.retriever import SparseStructuredRetriever
 
 
 FIXTURE = Path(__file__).parent / "fixtures" / "catalog_small.jsonl"
 
 
-@dataclass(frozen=True)
-class FrozenEvidenceShape:
-    matched_fields: tuple[str, ...]
-    supporting_snippets: tuple[str, ...]
-    constraint_outcomes: Mapping[str, str]
-    attribute_values: Mapping[str, tuple[object, ...]]
-    evidence_reliability: Mapping[str, float]
-    unknown_fields: tuple[str, ...]
-    route_details: Mapping[str, object]
-    profile_contribution: float = 0.0
-
-
-@dataclass(frozen=True)
-class FrozenCandidateShape:
-    parent_asin: str
-    product_evidence: FrozenEvidenceShape
-    sparse_rank: int | None
-    sparse_score: float | None
-    dense_rank: int | None
-    dense_score: float | None
-    structural_score: float
-    fused_score: float
-
-
 class RetrievalContractAdapterTest(unittest.TestCase):
-    def test_adapter_constructs_exact_frozen_candidate_and_evidence_shapes(self) -> None:
+    def test_sparse_search_satisfies_canonical_retriever_protocol(self) -> None:
+        catalog = load_catalog(FIXTURE)
+        plan = SearchPlan(
+            text_query="comfortable walking shoes",
+            must_terms=(),
+            should_terms=(),
+            exclude_terms=(),
+            filters={},
+            attribute_values={Attribute.CATEGORY: ("shoes",)},
+            mode=InferredMode.BUYING,
+            intent_version=1,
+            revalidation_flags=frozenset(),
+            no_preference=frozenset(),
+            profile_bias=ProfileBias(),
+            route_policy=RoutePolicy.SPARSE,
+            embedding_route_id=None,
+            index_id=None,
+        )
+        with SparseStructuredRetriever(catalog) as retriever:
+            self.assertIsInstance(retriever, Retriever)
+            candidates = retriever.search(plan, 5)
+
+        self.assertTrue(candidates)
+        self.assertTrue(all(isinstance(item, Candidate) for item in candidates))
+        self.assertEqual(len(candidates), len({item.parent_asin for item in candidates}))
+
+    def test_hybrid_search_returns_canonical_candidate_and_evidence_contracts(self) -> None:
         catalog = load_catalog(FIXTURE)
         embedder = SemanticFakeEmbedder()
         with tempfile.TemporaryDirectory() as directory:
@@ -54,20 +66,28 @@ class RetrievalContractAdapterTest(unittest.TestCase):
                 embedding_model="semantic-keywords-v1",
             )
             index = load_dense_index(directory, catalog)
-            plan = SimpleNamespace(
+            RuntimeRoutingConfig(
+                retrieval_policy=RoutePolicy.HYBRID,
+                embedding_route_id=manifest.route_id,
+                index_id=manifest.index_id,
+            ).validate_index(manifest)
+            plan = SearchPlan(
                 text_query="waterproof hiking shoes",
                 must_terms=(),
                 should_terms=("walking",),
                 exclude_terms=(),
                 filters={"budget": {"max": 80}},
-                attribute_values={"category": ("shoes",), "budget": (80,)},
-                mode="buying",
+                attribute_values={
+                    Attribute.CATEGORY: ("shoes",),
+                    Attribute.BUDGET: (80,),
+                },
+                mode=InferredMode.BUYING,
                 intent_version=1,
                 revalidation_flags=frozenset(),
                 no_preference=frozenset(),
-                profile_bias=SimpleNamespace(terms=(), weight=0.0),
-                route_policy="hybrid",
-                embedding_route_id=manifest.embedding_route_id,
+                profile_bias=ProfileBias(),
+                route_policy=RoutePolicy.HYBRID,
+                embedding_route_id=manifest.route_id,
                 index_id=manifest.index_id,
             )
             with HybridRetriever(
@@ -75,19 +95,22 @@ class RetrievalContractAdapterTest(unittest.TestCase):
                 dense_index=index,
                 query_embedder=embedder,
             ) as retriever:
-                adapter = ContractRetrieverAdapter(
-                    retriever,
-                    candidate_factory=FrozenCandidateShape,
-                    evidence_factory=FrozenEvidenceShape,
-                )
-                candidates = adapter.search(plan, 5)
+                self.assertIsInstance(retriever, Retriever)
+                candidates = retriever.search(plan, 5)
+                wrapped = ContractRetrieverAdapter(retriever).search(plan, 5)
 
         self.assertTrue(candidates)
-        self.assertTrue(all(isinstance(item, FrozenCandidateShape) for item in candidates))
+        self.assertEqual(candidates, wrapped)
+        self.assertTrue(all(isinstance(item, Candidate) for item in candidates))
         self.assertTrue(all(item.parent_asin in catalog for item in candidates))
         evidence = candidates[0].product_evidence
-        self.assertEqual(set(evidence.constraint_outcomes), set(evidence.attribute_values))
-        self.assertIn(evidence.constraint_outcomes["budget"], {"match", "unknown"})
+        self.assertIsInstance(evidence, ProductEvidence)
+        self.assertEqual(set(evidence.constraint_outcomes), set(Attribute))
+        self.assertEqual(set(evidence.attribute_values), set(Attribute))
+        self.assertIn(
+            evidence.constraint_outcomes[Attribute.BUDGET],
+            {EvidenceOutcome.MATCH, EvidenceOutcome.UNKNOWN},
+        )
         self.assertEqual(evidence.route_details["dense_index_id"], manifest.index_id)
 
 

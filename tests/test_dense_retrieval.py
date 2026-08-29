@@ -53,7 +53,7 @@ class DenseRetrievalTest(unittest.TestCase):
             hits = index.search(vector, limit=3)
 
         self.assertEqual(manifest.document_count, 7)
-        self.assertEqual(manifest.embedding_dimension, 8)
+        self.assertEqual(manifest.dimension, 8)
         self.assertIn(index.backend, {"python-exact", "numpy-exact"})
         self.assertIn("A_HIKE", [hit.parent_asin for hit in hits[:2]])
         self.assertEqual(len({hit.parent_asin for hit in hits}), len(hits))
@@ -73,7 +73,7 @@ class DenseRetrievalTest(unittest.TestCase):
             self.assertFalse(checkpoint.exists())
 
         self.assertEqual(index.manifest.index_id, manifest.index_id)
-        self.assertEqual(stable.route_id, manifest.embedding_route_id)
+        self.assertEqual(stable.route_id, manifest.route_id)
 
     def test_route_index_and_checksum_mismatches_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -104,7 +104,7 @@ class DenseRetrievalTest(unittest.TestCase):
                 encoding="utf-8",
             )
             altered_catalog = load_catalog(altered_path, expected_count=7)
-            with self.assertRaisesRegex(DenseArtifactError, "catalog_source_sha256"):
+            with self.assertRaisesRegex(DenseArtifactError, "catalog_checksum"):
                 load_dense_index(directory, altered_catalog)
 
     def test_vector_validation_rejects_zero_nonfinite_and_wrong_dimension(self) -> None:
@@ -122,7 +122,7 @@ class DenseRetrievalTest(unittest.TestCase):
             self._build(directory)
             manifest_path = Path(directory) / "manifest.json"
             payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-            payload["embedding_dimension"] = True
+            payload["dimension"] = True
             manifest_path.write_text(json.dumps(payload), encoding="utf-8")
             with self.assertRaisesRegex(DenseArtifactError, "invalid field types"):
                 load_dense_index(directory, self.catalog)
@@ -131,7 +131,7 @@ class DenseRetrievalTest(unittest.TestCase):
             self._build(directory)
             manifest_path = Path(directory) / "manifest.json"
             payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-            payload["embedding_model"] = "tampered-model"
+            payload["model"] = "tampered-model"
             manifest_path.write_text(json.dumps(payload), encoding="utf-8")
             with self.assertRaisesRegex(DenseArtifactError, "derived_index_id"):
                 load_dense_index(directory, self.catalog)
@@ -178,6 +178,13 @@ class DenseRetrievalTest(unittest.TestCase):
             corrupt = load_dense_index_safe(directory, self.catalog)
             self.assertIsNone(corrupt.index)
             self.assertEqual(corrupt.failure_code, "dense_artifact_invalid")
+
+        with tempfile.TemporaryDirectory() as directory:
+            self._build(directory)
+            (Path(directory) / "manifest.json").write_bytes(b"\xff\xfe")
+            non_utf8 = load_dense_index_safe(directory, self.catalog)
+            self.assertIsNone(non_utf8.index)
+            self.assertEqual(non_utf8.failure_code, "dense_artifact_invalid")
 
 
 if __name__ == "__main__":

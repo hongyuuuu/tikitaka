@@ -1,43 +1,60 @@
-"""Mechanical adapters into Person 4-owned frozen contract classes."""
+"""Mechanical conversion from retrieval evidence to canonical shared contracts."""
 
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import Callable
+from typing import TYPE_CHECKING, Any
 
-from .hybrid import HybridRetrievalHit, HybridRetriever
+from tikitaka.contracts import (
+    Attribute,
+    Candidate,
+    EvidenceOutcome,
+    ProductEvidence,
+    Retriever,
+    SearchPlan,
+)
+
 from .structured import ATTRIBUTE_NAMES
 
+if TYPE_CHECKING:
+    from .hybrid import HybridRetrievalHit
+    from .retriever import RetrievalHit
+    ContractSourceHit = HybridRetrievalHit | RetrievalHit
+else:
+    ContractSourceHit = Any
 
-def _constraint_outcomes(hit: HybridRetrievalHit) -> MappingProxyType:
-    priorities = {"unknown": 0, "match": 1, "contradiction": 2}
-    outcomes = {attribute: "unknown" for attribute in ATTRIBUTE_NAMES}
+
+def _constraint_outcomes(hit: ContractSourceHit) -> MappingProxyType:
+    priorities = {
+        EvidenceOutcome.UNKNOWN: 0,
+        EvidenceOutcome.MATCH: 1,
+        EvidenceOutcome.CONTRADICTION: 2,
+    }
+    outcomes = {Attribute(attribute): EvidenceOutcome.UNKNOWN for attribute in ATTRIBUTE_NAMES}
     for evaluation in hit.constraint_evaluations:
-        current = outcomes[evaluation.attribute]
-        if priorities[evaluation.outcome] > priorities[current]:
-            outcomes[evaluation.attribute] = evaluation.outcome
+        attribute = Attribute(evaluation.attribute)
+        outcome = EvidenceOutcome(evaluation.outcome)
+        if priorities[outcome] > priorities[outcomes[attribute]]:
+            outcomes[attribute] = outcome
     return MappingProxyType(outcomes)
 
 
-def contract_product_evidence(
-    hit: HybridRetrievalHit,
-    evidence_factory: Callable[..., object],
-) -> object:
-    """Construct frozen ProductEvidence without redefining the shared class."""
+def contract_product_evidence(hit: ContractSourceHit) -> ProductEvidence:
+    """Construct Person 4's canonical ProductEvidence contract."""
 
     attribute_values = MappingProxyType(
         {
-            attribute: hit.structured_evidence.for_attribute(attribute).values
+            Attribute(attribute): hit.structured_evidence.for_attribute(attribute).values
             for attribute in ATTRIBUTE_NAMES
         }
     )
     reliability = MappingProxyType(
         {
-            attribute: hit.structured_evidence.for_attribute(attribute).reliability
+            Attribute(attribute): hit.structured_evidence.for_attribute(attribute).reliability
             for attribute in ATTRIBUTE_NAMES
         }
     )
-    return evidence_factory(
+    return ProductEvidence(
         matched_fields=hit.matched_fields,
         supporting_snippets=hit.supporting_snippets,
         constraint_outcomes=_constraint_outcomes(hit),
@@ -49,17 +66,12 @@ def contract_product_evidence(
     )
 
 
-def contract_candidate(
-    hit: HybridRetrievalHit,
-    *,
-    candidate_factory: Callable[..., object],
-    evidence_factory: Callable[..., object],
-) -> object:
-    """Construct frozen Candidate using only its accepted 0.1.0 keyword shape."""
+def contract_candidate(hit: ContractSourceHit) -> Candidate:
+    """Construct Person 4's canonical Candidate contract."""
 
-    return candidate_factory(
+    return Candidate(
         parent_asin=hit.parent_asin,
-        product_evidence=contract_product_evidence(hit, evidence_factory),
+        product_evidence=contract_product_evidence(hit),
         sparse_rank=hit.sparse_rank,
         sparse_score=hit.sparse_score,
         dense_rank=hit.dense_rank,
@@ -70,26 +82,10 @@ def contract_candidate(
 
 
 class ContractRetrieverAdapter:
-    """Satisfy the frozen Retriever protocol once canonical classes are supplied."""
+    """Compatibility wrapper; HybridRetriever now satisfies Retriever directly."""
 
-    def __init__(
-        self,
-        retriever: HybridRetriever,
-        *,
-        candidate_factory: Callable[..., object],
-        evidence_factory: Callable[..., object],
-    ) -> None:
+    def __init__(self, retriever: Retriever) -> None:
         self.retriever = retriever
-        self.candidate_factory = candidate_factory
-        self.evidence_factory = evidence_factory
 
-    def search(self, plan: object, limit: int) -> list[object]:
-        result = self.retriever.retrieve(plan, limit=limit)
-        return [
-            contract_candidate(
-                hit,
-                candidate_factory=self.candidate_factory,
-                evidence_factory=self.evidence_factory,
-            )
-            for hit in result.hits
-        ]
+    def search(self, plan: SearchPlan, limit: int) -> list[Candidate]:
+        return self.retriever.search(plan, limit)

@@ -51,7 +51,7 @@ class HybridRetrievalTest(unittest.TestCase):
                 ),
             ),
         )
-        identifiers = [hit.parent_asin for hit in self.retriever.search(request, 10)]
+        identifiers = [hit.parent_asin for hit in self.retriever.search_hits(request, 10)]
         self.assertNotIn("A_HIKE", identifiers)
         self.assertIn("E_CANVAS_BOOT", identifiers)
 
@@ -60,8 +60,8 @@ class HybridRetrievalTest(unittest.TestCase):
         zero_profile = RetrievalRequest(
             text_query="shoes", profile_terms=("blue", "travel"), profile_weight=0.0
         )
-        first = self.retriever.search(without_profile, 10)
-        second = self.retriever.search(zero_profile, 10)
+        first = self.retriever.search_hits(without_profile, 10)
+        second = self.retriever.search_hits(zero_profile, 10)
         self.assertEqual(
             [(hit.parent_asin, hit.fused_score) for hit in first],
             [(hit.parent_asin, hit.fused_score) for hit in second],
@@ -72,7 +72,7 @@ class HybridRetrievalTest(unittest.TestCase):
             text_query="",
             constraints=(RetrievalConstraint("category", ("shoes",), strength="soft"),),
         )
-        identifiers = [hit.parent_asin for hit in self.retriever.search(request, 10)]
+        identifiers = [hit.parent_asin for hit in self.retriever.search_hits(request, 10)]
         self.assertIn("A_HIKE", identifiers)
         self.assertNotIn("G_TOTE", identifiers)
 
@@ -83,7 +83,7 @@ class HybridRetrievalTest(unittest.TestCase):
             profile_terms=("leather",),
             profile_weight=1.0,
         )
-        hits = self.retriever.search(request, 10)
+        hits = self.retriever.search_hits(request, 10)
         self.assertEqual(hits[0].parent_asin, "B_RUN")
         self.assertTrue(all(hit.profile_contribution == 0.0 for hit in hits))
 

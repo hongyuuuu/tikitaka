@@ -16,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from tikitaka.retrieval.catalog import load_catalog
 from tikitaka.retrieval.dense import build_dense_artifact
+from tikitaka.retrieval.manifests import dense_manifest_as_dict
 
 
 def _load_embedder(specification: str) -> object:
@@ -56,7 +57,7 @@ def main() -> int:
     print(
         json.dumps(
             {
-                "manifest": manifest.as_dict(),
+                "manifest": dense_manifest_as_dict(manifest),
                 "timing_ms": {
                     "catalog_load": round((loaded - started) * 1_000, 3),
                     "artifact_build_or_verify": round((finished - loaded) * 1_000, 3),

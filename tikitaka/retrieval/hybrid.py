@@ -9,9 +9,13 @@ from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Mapping
 
+from tikitaka.contracts import Candidate
+
+from .adapters import contract_candidate
 from .catalog import ProductCatalog, ProductDocument
 from .dense import DenseArtifactError, DenseIndex, DenseRouteError, embed_query_for_index
 from .fusion import RRFConfig, reciprocal_rank_fusion, route_overlap
+from .manifests import assert_dense_manifest_compatible
 from .request import RetrievalConstraint, RetrievalRequest, request_from_search_plan
 from .retriever import RetrievalConfig, _constraint_score, _matched_terms
 from .sparse import SparseIndex, SparseIndexConfig
@@ -206,7 +210,7 @@ class HybridRetriever:
             raise ValueError("dense_index and query_embedder must be supplied together")
         if dense_index is not None:
             try:
-                dense_index.manifest.assert_compatible(catalog)
+                assert_dense_manifest_compatible(dense_index.manifest, catalog)
             except ValueError as error:
                 raise ValueError("dense index does not match the hybrid catalog") from error
         self.catalog = catalog
@@ -228,7 +232,7 @@ class HybridRetriever:
             return "dense_route_unavailable"
         manifest = self.dense.manifest
         if request.embedding_route_id is not None:
-            if request.embedding_route_id != manifest.embedding_route_id:
+            if request.embedding_route_id != manifest.route_id:
                 return "embedding_route_mismatch"
             if request.index_id != manifest.index_id:
                 return "dense_index_mismatch"
@@ -428,7 +432,7 @@ class HybridRetriever:
                     "dense_index_id": None if dense_manifest is None else dense_manifest.index_id,
                     "dense_backend": None if self.dense is None else self.dense.backend,
                     "embedding_route_id": (
-                        None if dense_manifest is None else dense_manifest.embedding_route_id
+                        None if dense_manifest is None else dense_manifest.route_id
                     ),
                 }
             )
@@ -506,7 +510,17 @@ class HybridRetriever:
         )
         return HybridRetrievalResult(tuple(returned), diagnostics)
 
-    def search(self, plan_or_request: object, limit: int) -> list[HybridRetrievalHit]:
+    def search(self, plan_or_request: object, limit: int) -> list[Candidate]:
+        """Satisfy Person 4's canonical Retriever protocol directly."""
+
+        return [
+            contract_candidate(hit)
+            for hit in self.retrieve(plan_or_request, limit=limit).hits
+        ]
+
+    def search_hits(self, plan_or_request: object, limit: int) -> list[HybridRetrievalHit]:
+        """Return internal evidence-rich hits for Role 2 diagnostics and tests."""
+
         return list(self.retrieve(plan_or_request, limit=limit).hits)
 
     def close(self) -> None:

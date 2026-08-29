@@ -66,7 +66,7 @@ def main() -> int:
         constraints=tuple(constraints),
         mode=arguments.mode,
         route_policy=arguments.route,
-        embedding_route_id=index.manifest.embedding_route_id,
+        embedding_route_id=index.manifest.route_id,
         index_id=index.manifest.index_id,
     )
     with HybridRetriever(catalog, dense_index=index, query_embedder=embedder) as retriever:
