@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Mapping
 
 from tikitaka.contracts import (
     Attribute,
@@ -16,6 +17,7 @@ from tikitaka.contracts import (
     StateOperationKind,
 )
 from tikitaka.decision import ResponsePolicy, ResponsePolicyConfig
+from tikitaka.models.factory import interpreter_from_env
 from tikitaka.models.fake import HeuristicInterpreter
 from tikitaka.orchestration.sessions import SessionRegistry
 from tikitaka.orchestration.shopping_agent import ShoppingAgent
@@ -140,8 +142,14 @@ class VisibleMessageInterpreter:
 def build_deterministic_agent(
     catalog_path: str | Path,
     config: DeterministicRuntimeConfig | None = None,
+    *,
+    interpreter: object | None = None,
 ) -> ShoppingAgent[SessionState]:
-    """Wire the Person 1/2/3 implementations into Person 4 orchestration."""
+    """Wire the Person 1/2/3 implementations into Person 4 orchestration.
+
+    `interpreter` overrides the deterministic route. Left as None this builds
+    the fully local agent, which is what the M5 network-free run needs.
+    """
 
     runtime = config or DeterministicRuntimeConfig()
     catalog = load_catalog(catalog_path)
@@ -157,7 +165,7 @@ def build_deterministic_agent(
     return ShoppingAgent(
         sessions=sessions,
         reducer=StateReducer(),
-        interpreter=VisibleMessageInterpreter(),
+        interpreter=VisibleMessageInterpreter(interpreter),
         query_builder=ActiveQueryBuilder(query_config),
         retriever=retriever,
         decision_policy=ResponsePolicy(config=runtime.decision),
@@ -167,8 +175,31 @@ def build_deterministic_agent(
     )
 
 
+def build_agent(
+    catalog_path: str | Path,
+    config: DeterministicRuntimeConfig | None = None,
+    *,
+    environ: Mapping[str, str] | None = None,
+    allow_degraded: bool = True,
+) -> tuple[ShoppingAgent[SessionState], str]:
+    """Build the agent on whichever generative route is actually available.
+
+    Returns the agent and the route id that was selected, so a report can never
+    claim the API route while the deterministic one did the work. A missing
+    credential degrades rather than failing, which is the M5 path; pass
+    `allow_degraded=False` for a scored run that must not silently fall back.
+    """
+
+    interpreter, route_id = interpreter_from_env(
+        environ, allow_degraded=allow_degraded
+    )
+    agent = build_deterministic_agent(catalog_path, config, interpreter=interpreter)
+    return agent, route_id
+
+
 __all__ = [
     "DeterministicRuntimeConfig",
     "VisibleMessageInterpreter",
+    "build_agent",
     "build_deterministic_agent",
 ]
