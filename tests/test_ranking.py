@@ -9,6 +9,7 @@ from tikitaka.ranking.constraints import assess_candidate
 from tikitaka.ranking.deterministic import DeterministicRanker, DeterministicRankerConfig
 from tikitaka.ranking.diversity import DiversityConfig, diversify
 from tikitaka.ranking.llm import LLMReranker, LLMRerankerConfig
+from tikitaka.contracts import Reranker, Usage
 
 
 @dataclass(frozen=True)
@@ -92,6 +93,12 @@ def candidate(
 
 
 class DeterministicRankingTests(unittest.TestCase):
+    def test_default_ranker_returns_frozen_contract_usage(self) -> None:
+        ranker = DeterministicRanker()
+        _, usage = ranker.rank(FakeState(), [candidate("A", 1.0)], 1)
+        self.assertIsInstance(ranker, Reranker)
+        self.assertIsInstance(usage, Usage)
+
     def test_synthetic_fixture_contains_unique_catalog_ids(self) -> None:
         path = Path(__file__).parent / "fixtures" / "decision_catalog.jsonl"
         rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]

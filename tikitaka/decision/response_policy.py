@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
+from tikitaka.contracts import TurnDecision
+
 from .diagnostics import ALLOWED_ATTRIBUTES
 from .generality import GeneralitySensor
 from .intent_router import VisibleModePolicy
@@ -69,7 +71,7 @@ class ResponsePolicy:
         question_value: QuestionValueEstimator | None = None,
         mode_policy: VisibleModePolicy | None = None,
         config: ResponsePolicyConfig | None = None,
-        decision_type: type = DecisionRecord,
+        decision_type: type = TurnDecision,
     ) -> None:
         self.generality_sensor = generality_sensor or GeneralitySensor()
         self.question_value = question_value or QuestionValueEstimator()

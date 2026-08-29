@@ -15,6 +15,7 @@ from tikitaka.decision.phrasing import (
 )
 from tikitaka.decision.question_value import QuestionValueEstimator, QuestionValueResult
 from tikitaka.decision.response_policy import ResponsePolicy, ResponsePolicyConfig
+from tikitaka.contracts import DecisionPolicy, TurnDecision
 
 
 def question_candidates(count: int = 14):
@@ -154,6 +155,14 @@ class BrokenQuestionValue:
 
 
 class ResponsePolicyTests(unittest.TestCase):
+    def test_default_policy_returns_frozen_contract_type(self) -> None:
+        policy = ResponsePolicy(
+            StubGenerality(0.1), StubQuestionValue("material", 0.8)
+        )
+        decision = policy.choose(FakeState(), question_candidates(), 2)
+        self.assertIsInstance(policy, DecisionPolicy)
+        self.assertIsInstance(decision, TurnDecision)
+
     def test_turn_ten_always_recommends(self) -> None:
         decision = ResponsePolicy(
             StubGenerality(1.0), StubQuestionValue("material", 1.0)

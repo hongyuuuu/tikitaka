@@ -6,6 +6,8 @@ import math
 from dataclasses import dataclass
 from typing import Sequence
 
+from tikitaka.contracts import Usage
+
 from .constraints import (
     ConstraintAssessment,
     ConstraintPolicyConfig,
@@ -15,23 +17,8 @@ from .constraints import (
 )
 
 
-@dataclass(frozen=True)
-class UsageRecord:
-    """Contract-shaped zero/provider usage record used before contracts land."""
-
-    prompt_tokens: int = 0
-    completion_tokens: int = 0
-    reasoning_tokens: int = 0
-    calls: int = 0
-    repairs: int = 0
-    latency_ms: float = 0.0
-    provider: str | None = None
-    model: str | None = None
-    reasoning_level: str | None = None
-    estimated_cost: float | None = None
-    cost_currency: str = "USD"
-    route: str | None = "deterministic"
-    cache_hit: bool = False
+# Kept as a public compatibility name for the pre-contract implementation.
+UsageRecord = Usage
 
 
 @dataclass(frozen=True)
@@ -119,7 +106,7 @@ class DeterministicRanker:
     def __init__(
         self,
         config: DeterministicRankerConfig | None = None,
-        usage_type: type = UsageRecord,
+        usage_type: type = Usage,
     ) -> None:
         self.config = config or DeterministicRankerConfig()
         self.usage_type = usage_type

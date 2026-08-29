@@ -7,6 +7,7 @@ import time
 from dataclasses import dataclass
 from typing import Mapping, Protocol, Sequence
 
+from tikitaka.contracts import Usage
 from tikitaka.ranking.constraints import known_values, normalized_value
 from tikitaka.ranking.deterministic import UsageRecord
 
@@ -102,7 +103,7 @@ class LLMClarifier:
         self,
         model: ClarificationModel,
         config: LLMClarifierConfig | None = None,
-        usage_type: type = UsageRecord,
+        usage_type: type = Usage,
     ) -> None:
         self.model = model
         self.config = config or LLMClarifierConfig()

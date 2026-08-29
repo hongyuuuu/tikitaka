@@ -9,7 +9,9 @@ from dataclasses import dataclass
 from typing import Mapping, Protocol, Sequence
 
 from .constraints import active_constraints, enum_value
-from .deterministic import DeterministicRanker, UsageRecord
+from tikitaka.contracts import Usage
+
+from .deterministic import DeterministicRanker
 
 
 @dataclass(frozen=True)
@@ -153,7 +155,7 @@ class LLMReranker:
         model: ShortlistRankingModel,
         deterministic: DeterministicRanker | None = None,
         config: LLMRerankerConfig | None = None,
-        usage_type: type = UsageRecord,
+        usage_type: type = Usage,
     ) -> None:
         self.model = model
         self.deterministic = deterministic or DeterministicRanker()
