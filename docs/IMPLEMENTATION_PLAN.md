@@ -74,18 +74,22 @@ Its numeric weight is chosen through held-out comparison against profile weight
 conversation. If the profile-enabled variant does not improve held-out results,
 the selected weight is `0`.
 
-### DG-03 — Override clearing scope
+### DG-03 — Override clearing scope — settled
 
-Explicit replacement of one attribute is clear. A broad category change may
-invalidate category-dependent material, style, size or use-case constraints,
-but may preserve category-independent budget constraints. Define and test the
-clearing policy before declaring Intent Override complete.
+Clearing is dependency-aware. A direct correction replaces only its attribute.
+An explicit restart clears all conversation-derived constraints. A major
+category or product-type change creates a new intent version, removes old
+category-derived or incompatible constraints, preserves still-applicable
+universal constraints such as budget, and marks ambiguous constraints for
+revalidation. The supplied profile remains separate from this state.
 
-### DG-04 — Model-selection behavior
+### DG-04 — Model-selection behavior — settled
 
-The model-selection segment covers generative models, embeddings and rerankers.
-Decide later whether production selection is an automatic runtime router or a
-benchmark-selected configuration. The experiment harness must support both.
+The model-selection segment automatically routes at runtime across configured
+API model options, embedding routes, and reranking strategies. Evaluation runs
+can pin all routes for reproducibility. Embedding selection is coupled to the
+matching precomputed product index; the router must never compare vectors from
+different embedding models.
 
 ## 5. Target package structure
 
@@ -260,6 +264,8 @@ agent to one provider.
 7. Implement the state reducer and active query builder.
 8. Keep the supplied profile snapshot separate from explicit conversation
    constraints so DG-02 can be tested cleanly.
+9. Implement runtime routing inputs and decisions while allowing experiment
+   configuration to pin the generative route.
 
 ### Required tests
 
@@ -269,6 +275,8 @@ agent to one provider.
 - Exclude a value such as leather or red.
 - Record no-preference and suppress future asks for that attribute.
 - Full reset versus single-attribute replacement.
+- Category change clears incompatible/dependent constraints, preserves an
+  applicable budget, and flags ambiguous constraints for revalidation.
 - Reject unknown attributes and operations.
 - Clamp invalid confidence values.
 - Recover or fail safely on malformed JSON.
@@ -305,7 +313,8 @@ reproducible.
 4. Implement a deterministic sparse/BM25 index.
 5. Implement embedding preprocessing, batching, manifest versioning and
    in-memory similarity search.
-6. Implement the embedding-model protocol and benchmark hooks.
+6. Implement the embedding-model protocol, runtime route-selection hooks, and
+   benchmark pinning. Couple every route to its matching product index.
 7. Implement structured filters/boosts for category, material, color, size,
    brand, budget, features and use cases where evidence permits.
 8. Implement Reciprocal Rank Fusion or a configurable calibrated alternative.
@@ -406,9 +415,11 @@ change honestly, and produce the final reproducible submission.
 7. Record aggregate, per-scenario, per-model, token, latency and cost evidence.
 8. Add label-leakage guards and evaluator-integrity checks.
 9. Coordinate integration fixtures and contract-version changes.
-10. Package API-primary operation, deterministic no-network contingency,
+10. Record automatic model-routing decisions and support pinned experiment
+    configurations.
+11. Package API-primary operation, deterministic no-network contingency,
     dependencies, README, demo trace and final ablations.
-11. Maintain the writable fork as `origin` and organizer repository as
+12. Maintain the writable fork as `origin` and organizer repository as
     `upstream` once the owner authorizes the remote update.
 
 ### Required tests
@@ -446,8 +457,7 @@ is unavailable.
 
 - Agree shared data classes and protocols.
 - Create tiny catalog and conversation fixtures.
-- Confirm settled DG-01 and DG-02 in shared contracts; isolate unresolved DG-03
-  and DG-04 behind policies.
+- Confirm all settled decision gates in shared contracts and tests.
 - Confirm branch/file ownership.
 - Reproduce the untouched baseline.
 
@@ -497,6 +507,7 @@ structured outputs and no leaked secrets.
 - Compare deterministic and LLM reranking.
 - Compare embedding and fusion configurations.
 - Test override-clearing alternatives.
+- Compare automatic runtime routing with pinned-route evaluation runs.
 - Report all changes on held-out and per-scenario metrics.
 
 Exit evidence: selected configuration has documented ablations and no hidden

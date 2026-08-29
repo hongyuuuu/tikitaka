@@ -64,6 +64,9 @@ plan and ask the owner before changing an already-settled rule.
 - The only generative route is `gpt-5.6-terra` through the main API with
   `xhigh` reasoning. Do not add or plan a local generative LLM.
 - Model selection covers generative LLMs, embedding models, and rerankers.
+- Model selection routes automatically at runtime, while evaluation
+  configurations may pin every route for reproducible comparisons. Never mix a
+  query embedding with a product index built by another embedding model.
 - The LLM performs intent interpretation, structured state-delta extraction,
   query rewriting, clarification planning, and shortlist semantic reranking.
 - Deterministic code validates LLM output and owns state mutation, catalog
@@ -80,6 +83,11 @@ plan and ask the owner before changing an already-settled rule.
 - Each turn chooses one action. `CLARIFY` returns an allowed `ask_attribute`
   with no recommendations; `RECOMMEND` returns ranked products with
   `ask_attribute = null`.
+- Intent overrides use dependency-aware clearing: replace only an explicitly
+  corrected attribute, fully clear conversation-derived state only for an
+  explicit restart, and on a major category change remove incompatible or
+  category-derived constraints while preserving still-applicable universal
+  constraints such as budget. Revalidate ambiguous constraints before use.
 
 ## Shared domain contracts
 

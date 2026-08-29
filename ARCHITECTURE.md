@@ -66,6 +66,12 @@ validates and applies its structured output.
 All model-dependent components sit behind provider-neutral interfaces. The
 selector covers generative LLMs, embedding models, and rerankers.
 
+The selector routes automatically at runtime. Routing may consider task type,
+state confidence, candidate uncertainty, and whether semantic reranking is
+needed. Evaluation configurations can pin every route for reproducible
+comparison. An embedding route is always coupled to its matching precomputed
+product index.
+
 ### 4.1 Generative-model route
 
 - **Generative route:** `gpt-5.6-terra` through the main API at `xhigh`
@@ -188,6 +194,23 @@ The LLM emits structured add, remove, replace, no-preference, and reset
 operations. Outdated constraints must be erased or rewritten rather than
 stacked with their replacements, and retrieval is recomputed from the resulting
 active state.
+
+Constraint clearing is dependency-aware:
+
+1. A direct attribute correction replaces only that attribute.
+2. An explicit “start over” clears all conversation-derived constraints and
+   begins a new intent version.
+3. A major category or product-type change begins a new intent version, clears
+   constraints inferred from or incompatible with the old category, and keeps
+   category-independent constraints such as budget when still applicable.
+4. Ambiguous constraints are marked for revalidation rather than silently
+   enforced or discarded. The question-value policy may clarify one when it
+   would materially change ranking.
+5. The supplied profile remains separate from conversation-derived state and is
+   not erased by an intent override.
+
+Every new intent version recomputes retrieval from active constraints and makes
+previously shown products eligible again when they fit the new intent.
 
 ## 10. Demonstration flow
 
