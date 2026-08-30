@@ -459,6 +459,17 @@ class RetrievalSweepExecutionTests(unittest.TestCase):
         self.assertEqual(tracker.failures["dense_query_failed"], 1)
         self.assertEqual(tracker.executed["sparse_fallback"], 1)
 
+        valid_subset = _RouteTracker()
+        valid_subset.attempts = 2
+        valid_subset.successful_calls = 2
+        valid_subset.executed.update({"hybrid": 1, "dense": 1})
+        execution = _validated_route_execution(
+            "hybrid-subset",
+            "hybrid",
+            (valid_subset,),
+        )
+        self.assertEqual(execution["degraded_call_count"], 0)
+
         with self.assertRaisesRegex(RuntimeError, "degraded"):
             _validated_route_execution(
                 "empty-evidence",

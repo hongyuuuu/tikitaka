@@ -96,15 +96,23 @@ class _RouteTracker:
         self.exceptions[type(error).__name__] += 1
 
     def to_dict(self, expected_route: str) -> dict[str, object]:
+        allowed_routes = (
+            {"sparse"}
+            if expected_route == "sparse"
+            else {"dense", "sparse"}
+            if expected_route == "dense"
+            else {"hybrid", "dense", "sparse"}
+        )
         degraded = sum(
             count
             for route, count in self.executed.items()
-            if route != expected_route
+            if route not in allowed_routes
         )
         return {
             "attempts": self.attempts,
             "successful_calls": self.successful_calls,
             "expected_route": expected_route,
+            "allowed_execution_routes": sorted(allowed_routes),
             "executed_routes": dict(sorted(self.executed.items())),
             "failure_codes": dict(sorted(self.failures.items())),
             "exception_types": dict(sorted(self.exceptions.items())),
