@@ -27,15 +27,19 @@ cached responses and makes prior reports incomparable.
 from __future__ import annotations
 
 import math
-import re
 from dataclasses import dataclass, replace
 from typing import Callable, Mapping
 
 from tikitaka.contracts.domain import StateDelta, Usage
 from tikitaka.models.api_llm import PROMPT_VERSION
 from tikitaka.models.base import ModelError, ModelRoute
-from tikitaka.models.fake import HEURISTIC_ROUTE, detect_exhaustion
+from tikitaka.models.fake import (
+    HEURISTIC_ROUTE,
+    detect_exhaustion,
+    looks_like_override,
+)
 from tikitaka.models.usage import merge
+from tikitaka.state.reducer import StateReducer, note_exhaustion
 from tikitaka.state.schema import SCHEMA_VERSION
 
 # Frozen for the submission. See the module docstring before editing.
@@ -53,22 +57,8 @@ PINNED = "pinned"
 
 MAX_TURNS = 10
 
-# The official simulator emits exactly one override template (evaluator/
-# local_evaluator.py:85). The alternatives are carried because the private
-# simulator is not guaranteed to phrase it identically, and a missed override
-# is the most expensive error in the run: the evaluator discards every
-# pre-override hit.
-_OVERRIDE_RE = re.compile(
-    r"\b(actually|instead|on second thought|ignore my earlier|"
-    r"changed my mind|rather|what i need is)\b",
-    re.IGNORECASE,
-)
-
-
-def looks_like_override(message: object) -> bool:
-    """Cheap pre-interpretation guess that this turn revises the intent."""
-
-    return isinstance(message, str) and _OVERRIDE_RE.search(message) is not None
+# `looks_like_override` is imported from `models.fake`, which owns the single
+# override vocabulary. It is re-exported here so existing callers keep working.
 
 
 class RouteMismatch(ModelError):
@@ -446,8 +436,10 @@ class RoutingInterpreter:
         *,
         on_decision: Callable[[RoutingDecision], None] | None = None,
         history_limit: int = MAX_TURNS,
+        reducer: object | None = None,
     ) -> None:
         self._selector = selector
+        self._reducer = reducer or StateReducer()
         self._primary = primary
         self._fallback = fallback
         self._on_decision = on_decision
@@ -487,32 +479,26 @@ class RoutingInterpreter:
             usage = replace(usage, route=route_id)
         return delta, usage
 
-    @staticmethod
-    def _note_exhaustion(message: str, state: object) -> None:
+    def _note_exhaustion(self, message: str, state: object) -> str | None:
         """Record a spent question on the state before interpreting.
 
         A `StateDelta` cannot express exhaustion — the frozen contract has no
-        field for it — so it has to be marked out of band. `state/extractor.py`
-        did this, but nothing in the running agent uses that module, so
-        `exhausted_attributes` was empty in every trace. This is the only
-        Person 1 component in the live path that sees both the message and the
-        session, so it carries the note.
+        field for it — so it is marked out of band. Both this and
+        `state/extractor.py` need to do it, and they used to do it differently:
+        the extractor went through `StateReducer.note_exhausted`, which also
+        marks the attribute asked, while this reached into `state._exhausted`
+        directly and did not. The same message therefore produced two different
+        states depending on which entry point ran.
+
+        Both now go through the reducer, which is the one place allowed to
+        mutate a session.
 
         Exhaustion stays distinct from no-preference: a spent question means the
         customer had nothing further to add, not that the attribute is
         irrelevant, and conflating them would discard a real Boundary answer.
         """
 
-        attribute = detect_exhaustion(message or "")
-        if attribute is None:
-            return
-        note = getattr(state, "_exhausted", None)
-        if note is None or not hasattr(note, "add"):
-            return
-        try:
-            note.add(attribute)
-        except Exception:
-            pass
+        return note_exhaustion(self._reducer, state, message)
 
     def _decide(self, message: str, state: object) -> RoutingDecision:
         """Routing must never be the thing that fails a turn."""

@@ -247,5 +247,62 @@ class CostDisclosureTests(unittest.TestCase):
         self.assertGreater(usage.estimated_cost, 0.0)
 
 
+class ConsolidationTests(unittest.TestCase):
+    """One implementation behind both entry points."""
+
+    def test_the_override_vocabulary_has_a_single_definition(self) -> None:
+        # Three copies existed with three different alternation sets, so the
+        # same message could be an override to one component and not another.
+        from tikitaka.models import fake, selector
+
+        self.assertIs(selector.looks_like_override, fake.looks_like_override)
+
+    def test_the_union_covers_every_previous_variant(self) -> None:
+        from tikitaka.models.fake import looks_like_override
+
+        for phrase in (
+            "Actually, ignore my earlier preference. What I need is: leather.",
+            "forget the blue one",          # only models/fake.py had this
+            "what I need is a wool coat",   # only models/selector.py had this
+            "on second thought, wool",
+            "changed my mind",
+        ):
+            self.assertTrue(looks_like_override(phrase), phrase)
+        self.assertFalse(looks_like_override("I want leather boots."))
+
+    def test_both_ingestion_paths_produce_the_same_state(self) -> None:
+        # They used to disagree: the extractor went through the reducer, which
+        # also marks the attribute asked, while the live path added to
+        # `_exhausted` directly and did not.
+        from tikitaka.models.fake import HeuristicInterpreter
+        from tikitaka.models.selector import ModelSelector, RoutingInterpreter
+        from tikitaka.state.extractor import Extractor
+
+        message = "I don't have an additional preference for brand."
+
+        live = new_session("live", {})
+        local = HeuristicInterpreter()
+        RoutingInterpreter(ModelSelector(None), local, local).interpret(message, live)
+
+        harness = new_session("harness", {})
+        Extractor(interpreter=HeuristicInterpreter()).ingest(harness, message, 1)
+
+        self.assertEqual(live.exhausted_attributes, harness.exhausted_attributes)
+        self.assertEqual(live.asked_attributes, harness.asked_attributes)
+        self.assertEqual(live.no_preference, harness.no_preference)
+
+    def test_a_spent_question_is_marked_asked_as_well_as_exhausted(self) -> None:
+        from tikitaka.models.fake import HeuristicInterpreter
+        from tikitaka.models.selector import ModelSelector, RoutingInterpreter
+
+        state = new_session("s", {})
+        local = HeuristicInterpreter()
+        RoutingInterpreter(ModelSelector(None), local, local).interpret(
+            "I don't have an additional preference for style.", state
+        )
+        self.assertIn("style", state.exhausted_attributes)
+        self.assertIn("style", state.asked_attributes)
+
+
 if __name__ == "__main__":
     unittest.main()

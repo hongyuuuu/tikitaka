@@ -12,9 +12,9 @@ from dataclasses import dataclass, field
 
 from tikitaka.contracts.domain import Usage
 from tikitaka.models.base import ModelError
-from tikitaka.models.fake import HeuristicInterpreter, detect_exhaustion
+from tikitaka.models.fake import HeuristicInterpreter
 from tikitaka.models.usage import merge
-from tikitaka.state.reducer import StateReducer
+from tikitaka.state.reducer import StateReducer, note_exhaustion
 from tikitaka.state.schema import empty_delta
 from tikitaka.state.session import SessionState
 
@@ -34,9 +34,7 @@ class Extractor:
     fallback: object = field(default_factory=HeuristicInterpreter)
 
     def ingest(self, state: SessionState, message: str, turn: int) -> IngestResult:
-        exhausted = detect_exhaustion(message or "")
-        if exhausted is not None:
-            self.reducer.note_exhausted(state, exhausted)
+        exhausted = note_exhaustion(self.reducer, state, message)
 
         used_fallback = False
         failure = ""

@@ -334,3 +334,32 @@ def _changes_category(state: SessionState, operation: StateOperation) -> bool:
 
 
 __all__ = ["StateReducer"]
+
+
+def note_exhaustion(
+    reducer: "StateReducer",
+    state: object,
+    message: str,
+) -> str | None:
+    """Mark a spent question on `state`, if the message is one. Returns it.
+
+    The single implementation shared by `state/extractor.py` and the live
+    `RoutingInterpreter`. They previously did this differently — one through
+    `note_exhausted`, which also marks the attribute asked, and one by adding to
+    `state._exhausted` directly — so the same message produced two different
+    states depending on which ran.
+
+    Defensive because the live path is handed whatever session the orchestrator
+    holds: a state that cannot record exhaustion is not a reason to fail a turn.
+    """
+
+    from tikitaka.models.fake import detect_exhaustion
+
+    attribute = detect_exhaustion(message or "")
+    if attribute is None:
+        return None
+    try:
+        reducer.note_exhausted(state, attribute)
+    except Exception:
+        return None
+    return attribute
