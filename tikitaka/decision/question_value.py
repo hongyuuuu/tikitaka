@@ -18,6 +18,13 @@ from tikitaka.ranking.deterministic import DeterministicRanker, ScoredCandidate
 from .diagnostics import ALLOWED_ATTRIBUTES
 
 
+HIGHEST_VALUE_SELECTION = "highest_value"
+CONTRACT_ORDER_SELECTION = "contract_order"
+QUESTION_SELECTION_STRATEGIES = frozenset(
+    {HIGHEST_VALUE_SELECTION, CONTRACT_ORDER_SELECTION}
+)
+
+
 @dataclass(frozen=True)
 class QuestionValueConfig:
     competitive_limit: int = 50
@@ -63,6 +70,34 @@ class QuestionValueResult:
     best_attribute: str | None
     expected_information_gain: float
     values: tuple[AttributeQuestionValue, ...]
+
+
+def _ordered_question_values(
+    values: Sequence[AttributeQuestionValue],
+    selection_strategy: str,
+) -> tuple[AttributeQuestionValue, ...]:
+    if selection_strategy not in QUESTION_SELECTION_STRATEGIES:
+        raise ValueError(
+            "selection_strategy must be one of "
+            f"{sorted(QUESTION_SELECTION_STRATEGIES)}"
+        )
+    if selection_strategy == CONTRACT_ORDER_SELECTION:
+        return tuple(
+            sorted(
+                values,
+                key=lambda item: ALLOWED_ATTRIBUTES.index(item.attribute),
+            )
+        )
+    return tuple(
+        sorted(
+            values,
+            key=lambda item: (
+                -item.expected_information_gain,
+                -item.coverage,
+                ALLOWED_ATTRIBUTES.index(item.attribute),
+            ),
+        )
+    )
 
 
 def _active_answered_attributes(state: object, confidence: float) -> set[str]:
@@ -152,9 +187,16 @@ class QuestionValueEstimator:
         self,
         ranker: DeterministicRanker | None = None,
         config: QuestionValueConfig | None = None,
+        selection_strategy: str = HIGHEST_VALUE_SELECTION,
     ) -> None:
         self.ranker = ranker or DeterministicRanker()
         self.config = config or QuestionValueConfig()
+        if selection_strategy not in QUESTION_SELECTION_STRATEGIES:
+            raise ValueError(
+                "selection_strategy must be one of "
+                f"{sorted(QUESTION_SELECTION_STRATEGIES)}"
+            )
+        self.selection_strategy = selection_strategy
 
     def estimate(
         self,
@@ -177,6 +219,7 @@ class QuestionValueEstimator:
         )
         no_preference = _string_set(getattr(state, "no_preference", ()))
         asked = _string_set(getattr(state, "asked_attributes", ()))
+        exhausted = _string_set(getattr(state, "exhausted_attributes", ()))
         revalidation = {
             enum_value(getattr(item, "attribute", ""))
             for item in (getattr(state, "revalidation_constraints", ()) or ())
@@ -185,7 +228,9 @@ class QuestionValueEstimator:
         turn_discount = 0.5 + 0.5 * ((10 - turn) / 9.0)
 
         for attribute in ALLOWED_ATTRIBUTES:
-            if attribute in no_preference or attribute in asked:
+            if attribute in no_preference or attribute in exhausted:
+                continue
+            if attribute in asked and attribute not in revalidation:
                 continue
             if attribute in answered and attribute not in revalidation:
                 continue
@@ -240,17 +285,11 @@ class QuestionValueEstimator:
                 )
             )
 
-        values.sort(
-            key=lambda item: (
-                -item.expected_information_gain,
-                -item.coverage,
-                ALLOWED_ATTRIBUTES.index(item.attribute),
-            )
-        )
-        if not values:
+        ordered = _ordered_question_values(values, self.selection_strategy)
+        if not ordered:
             return QuestionValueResult(None, 0.0, ())
         return QuestionValueResult(
-            best_attribute=values[0].attribute,
-            expected_information_gain=values[0].expected_information_gain,
-            values=tuple(values),
+            best_attribute=ordered[0].attribute,
+            expected_information_gain=ordered[0].expected_information_gain,
+            values=ordered,
         )

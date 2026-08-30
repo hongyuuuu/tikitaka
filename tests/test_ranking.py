@@ -66,6 +66,7 @@ class FakeState:
     revalidation_constraints: tuple[FakeConstraint, ...] = ()
     no_preference: frozenset[str] = frozenset()
     asked_attributes: frozenset[str] = frozenset()
+    exhausted_attributes: frozenset[str] = frozenset()
     shown_product_ids: frozenset[str] = frozenset()
     profile_seed: dict[str, object] = field(default_factory=dict)
 

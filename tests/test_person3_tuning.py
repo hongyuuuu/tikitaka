@@ -6,8 +6,12 @@ from dataclasses import replace
 from tests.test_decision import question_candidates
 from tests.test_ranking import FakeState
 from tikitaka.decision import (
+    CONTRACT_ORDER_SELECTION,
     DiagnosticsConfig,
     GeneralityConfig,
+    HIGHEST_VALUE_SELECTION,
+    PHASE5_ARM_VERSION,
+    PHASE5_CLARIFICATION_THRESHOLDS,
     QuestionValueConfig,
     ResponsePolicy,
     ResponsePolicyConfig,
@@ -57,6 +61,10 @@ class ResponsePolicyTuningTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             ResponsePolicyConfig(question_value=object())  # type: ignore[arg-type]
 
+    def test_invalid_question_selection_strategy_is_rejected_early(self) -> None:
+        with self.assertRaises(ValueError):
+            ResponsePolicyConfig(question_selection_strategy="unknown")
+
 
 class Phase4ExperimentArmTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -72,6 +80,12 @@ class Phase4ExperimentArmTests(unittest.TestCase):
         )
         self.assertEqual(len({arm.fingerprint for arm in first}), len(first))
         self.assertTrue(all(len(arm.fingerprint) == 64 for arm in first))
+
+    def test_existing_phase4_fingerprint_is_preserved(self) -> None:
+        self.assertEqual(
+            self.baseline.fingerprint,
+            "f8a1fd680366e8503f9d53969acb00a0f7b3bbebf73acc1bd0a8d84afca56d45",
+        )
 
     def test_official_proxy_normalizes_hit_and_mrr_weights(self) -> None:
         arm = self.arms["official-proxy-deterministic"]
@@ -106,6 +120,76 @@ class Phase4ExperimentArmTests(unittest.TestCase):
         self.assertEqual(arm.profile_weight, 0.10)
         self.assertEqual(arm.ranking.profile_weight, 0.0)
         self.assertEqual(arm.response.question_ranker.profile_weight, 0.0)
+
+    def test_fixed_ask_baseline_changes_only_question_selection(self) -> None:
+        fixed = self.arms["fixed-ask-baseline"]
+        conservative = self.arms["conservative-questions-deterministic"]
+        self.assertEqual(fixed.version, PHASE5_ARM_VERSION)
+        self.assertEqual(
+            fixed.response.question_selection_strategy,
+            CONTRACT_ORDER_SELECTION,
+        )
+        policy = ResponsePolicy(config=fixed.response)
+        self.assertEqual(
+            policy.question_value.selection_strategy, CONTRACT_ORDER_SELECTION
+        )
+        self.assertEqual(
+            replace(
+                fixed.response,
+                question_selection_strategy=HIGHEST_VALUE_SELECTION,
+            ),
+            conservative.response,
+        )
+        self.assertFalse(fixed.enable_llm_reranker)
+        self.assertEqual(fixed.profile_weight, 0.0)
+
+    def test_every_threshold_has_fixed_and_paired_llm_controls(self) -> None:
+        for threshold in PHASE5_CLARIFICATION_THRESHOLDS:
+            code = f"{round(threshold * 1000):03d}"
+            deterministic_name = (
+                "conservative-questions-deterministic"
+                if threshold == 0.070
+                else f"post-no-info-threshold-{code}-deterministic"
+            )
+            fixed_name = (
+                "fixed-ask-baseline"
+                if threshold == 0.070
+                else f"fixed-ask-threshold-{code}"
+            )
+            llm_name = (
+                "conservative-llm-anchored"
+                if threshold == 0.070
+                else f"post-no-info-threshold-{code}-llm-anchored"
+            )
+            deterministic = self.arms[deterministic_name]
+            fixed = self.arms[fixed_name]
+            llm = self.arms[llm_name]
+            with self.subTest(threshold=threshold):
+                self.assertEqual(
+                    deterministic.response.information_gain_threshold,
+                    threshold,
+                )
+                self.assertEqual(llm.response, deterministic.response)
+                self.assertEqual(llm.ranking, deterministic.ranking)
+                self.assertTrue(llm.enable_llm_reranker)
+                self.assertEqual(
+                    llm.changed_report_variables_from(deterministic),
+                    ("reranker_route_id",),
+                )
+                self.assertEqual(
+                    replace(
+                        fixed.response,
+                        question_selection_strategy=HIGHEST_VALUE_SELECTION,
+                    ),
+                    deterministic.response,
+                )
+                self.assertEqual(
+                    fixed.changed_report_variables_from(deterministic),
+                    ("question_policy",),
+                )
+                self.assertEqual(deterministic.profile_weight, 0.0)
+                self.assertEqual(fixed.profile_weight, 0.0)
+                self.assertEqual(llm.profile_weight, 0.0)
 
     def test_fingerprint_changes_when_any_person3_parameter_changes(self) -> None:
         changed_response = replace(

@@ -15,8 +15,12 @@ from tikitaka.decision.phrasing import (
     recommendation_message,
 )
 from tikitaka.decision.question_value import (
+    CONTRACT_ORDER_SELECTION,
+    HIGHEST_VALUE_SELECTION,
+    AttributeQuestionValue,
     QuestionValueEstimator,
     QuestionValueResult,
+    _ordered_question_values,
     _ranking_change,
 )
 from tikitaka.decision.response_policy import ResponsePolicy, ResponsePolicyConfig
@@ -108,7 +112,9 @@ class QuestionValueTests(unittest.TestCase):
         # It is deliberately present in both views to exercise the explicit
         # revalidation override in the structural contract.
         state = FakeState(
-            active_constraints=(constraint,), revalidation_constraints=(constraint,)
+            active_constraints=(constraint,),
+            revalidation_constraints=(constraint,),
+            asked_attributes=frozenset({"material"}),
         )
         result = QuestionValueEstimator().estimate(state, question_candidates(), turn=2)
         self.assertIn("material", [item.attribute for item in result.values])
@@ -122,6 +128,72 @@ class QuestionValueTests(unittest.TestCase):
         attributes = [item.attribute for item in result.values]
         self.assertNotIn("material", attributes)
         self.assertNotIn("color", attributes)
+
+    def test_exhausted_attribute_is_suppressed(self) -> None:
+        state = FakeState(exhausted_attributes=frozenset({"material"}))
+        result = QuestionValueEstimator().estimate(
+            state, question_candidates(), turn=2
+        )
+        self.assertNotIn("material", [item.attribute for item in result.values])
+
+    def test_revalidation_does_not_reopen_exhausted_attribute(self) -> None:
+        constraint = FakeConstraint(
+            "material", "canvas", "canvas", status="needs_revalidation"
+        )
+        state = FakeState(
+            active_constraints=(constraint,),
+            revalidation_constraints=(constraint,),
+            asked_attributes=frozenset({"material"}),
+            exhausted_attributes=frozenset({"material"}),
+        )
+        result = QuestionValueEstimator().estimate(
+            state, question_candidates(), turn=2
+        )
+        self.assertNotIn("material", [item.attribute for item in result.values])
+
+    def test_fixed_selection_uses_contract_order_not_largest_gain(self) -> None:
+        material = AttributeQuestionValue("material", 0.01, 1.0, 2, {})
+        color = AttributeQuestionValue("color", 0.90, 1.0, 2, {})
+        values = (color, material)
+
+        adaptive = _ordered_question_values(values, HIGHEST_VALUE_SELECTION)
+        fixed = _ordered_question_values(values, CONTRACT_ORDER_SELECTION)
+
+        self.assertEqual(adaptive[0].attribute, "color")
+        self.assertEqual(fixed[0].attribute, "material")
+
+    def test_fixed_estimator_selects_first_eligible_real_attribute(self) -> None:
+        candidates = [
+            candidate(
+                f"P{index:02d}",
+                1.0 - index * 0.035,
+                values={
+                    "category": ("shoes",),
+                    "material": ("canvas" if index < 7 else "leather",),
+                    "color": ("blue" if index % 2 == 0 else "red",),
+                },
+                sparse_rank=index + 1,
+                dense_rank=14 - index,
+            )
+            for index in range(14)
+        ]
+        adaptive = QuestionValueEstimator().estimate(
+            FakeState(mode="browsing"), candidates, turn=2
+        )
+        fixed = QuestionValueEstimator(
+            selection_strategy=CONTRACT_ORDER_SELECTION
+        ).estimate(FakeState(mode="browsing"), candidates, turn=2)
+
+        self.assertEqual(adaptive.best_attribute, "color")
+        self.assertEqual(fixed.best_attribute, "material")
+        self.assertLess(
+            fixed.expected_information_gain,
+            adaptive.expected_information_gain,
+        )
+
+    def test_unknown_question_selection_strategy_fails_closed(self) -> None:
+        with self.assertRaises(ValueError):
+            QuestionValueEstimator(selection_strategy="not-a-strategy")
 
     def test_turn_ten_has_no_question_value(self) -> None:
         result = QuestionValueEstimator().estimate(FakeState(), question_candidates(), 10)
@@ -276,6 +348,18 @@ class ResponsePolicyTests(unittest.TestCase):
         ).choose(FakeState(), question_candidates(), 2)
         self.assertIsNotNone(clarify.ask_attribute)
         self.assertIsNone(recommend.ask_attribute)
+
+    def test_fixed_order_reason_does_not_claim_maximum_information_gain(self) -> None:
+        decision = ResponsePolicy(
+            StubGenerality(0.9),
+            StubQuestionValue("material", 0.8),
+            config=ResponsePolicyConfig(
+                question_selection_strategy=CONTRACT_ORDER_SELECTION
+            ),
+        ).choose(FakeState(mode="browsing"), question_candidates(), 2)
+        self.assertEqual(decision.action, "clarify")
+        self.assertIn("pinned contract order", decision.reason)
+        self.assertNotIn("greatest expected", decision.reason)
 
 
 class ModeAndPhrasingTests(unittest.TestCase):
