@@ -12,6 +12,7 @@ from tests.retrieval_fakes import (
     create_gateway_semantic_embedder,
 )
 from scripts.sweep_sparse_runtime import (
+    RUNTIME_COMPARISON_VARIABLES,
     _RouteTracker,
     _build_agent,
     _experiment_config,
@@ -39,6 +40,18 @@ SPEC = ROOT / "configs" / "retrieval_m4_sweep.json"
 
 
 class RetrievalSweepSpecTests(unittest.TestCase):
+    def test_runtime_comparison_declares_route_and_artifact_treatments(self) -> None:
+        self.assertEqual(
+            set(RUNTIME_COMPARISON_VARIABLES),
+            {
+                "embedding_route_id",
+                "fusion_parameters",
+                "index_id",
+                "profile_weight",
+                "retrieval_policy",
+            },
+        )
+
     def test_default_spec_covers_the_required_m4_ablation_surfaces(self) -> None:
         spec = load_retrieval_sweep_spec(SPEC)
 
@@ -502,6 +515,9 @@ class RetrievalSweepExecutionTests(unittest.TestCase):
                     "experiment": {
                         "configuration": {
                             "name": f"m4-{report['variant_id']}",
+                            "retrieval_policy": "sparse",
+                            "embedding_route_id": "none",
+                            "index_id": "fixture-catalog",
                             "fusion_parameters": [],
                             "profile_weight": 0.0,
                         }

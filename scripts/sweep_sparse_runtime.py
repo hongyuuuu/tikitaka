@@ -53,6 +53,15 @@ from tikitaka.state.reducer import StateReducer
 from tikitaka.state.session import SessionState, new_session
 
 
+RUNTIME_COMPARISON_VARIABLES = (
+    "embedding_route_id",
+    "fusion_parameters",
+    "index_id",
+    "profile_weight",
+    "retrieval_policy",
+)
+
+
 def _load_embedder(specification: str) -> object:
     module_name, separator, attribute_name = specification.partition(":")
     if not separator or not module_name or not attribute_name:
@@ -408,7 +417,7 @@ def _select(
     heldout_delta = compare_reports(
         baseline,
         winner,
-        ["fusion_parameters", "profile_weight"],
+        RUNTIME_COMPARISON_VARIABLES,
         split_name="held_out",
     )["metric_deltas"]
     heldout_scenario_deltas = {
@@ -630,13 +639,13 @@ def main() -> int:
             "tuning": compare_reports(
                 baseline,
                 report,
-                ["fusion_parameters", "profile_weight"],
+                RUNTIME_COMPARISON_VARIABLES,
                 split_name="tuning",
             ),
             "held_out": compare_reports(
                 baseline,
                 report,
-                ["fusion_parameters", "profile_weight"],
+                RUNTIME_COMPARISON_VARIABLES,
                 split_name="held_out",
             ),
         }
