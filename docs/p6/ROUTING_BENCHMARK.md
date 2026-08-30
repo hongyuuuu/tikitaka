@@ -108,15 +108,30 @@ Client-side accounting said $3.87. Provider billing for the same day says
 | Our instrumentation | 0.838 M | 0.183 M | $3.87 |
 | Unrecorded | 2.248 M | 0.852 M | $14.72 |
 
-**79% of the real cost was invisible to us.** `Usage` records only completed
-calls. A request that times out client-side has already been processed and
-billed by the provider, and a transport retry after a timeout pays twice while
-recording once. Output is understated more than input — 5.65x against 3.68x —
-which is what abandoned reasoning requests look like: at `xhigh` the provider
-generates expensive output before the client gives up.
+**79% of the real cost was invisible to us**, and output is understated more
+than input — 5.65x against 3.68x.
 
-The p95 latency of 30,048 ms against a 30,000 ms timeout is the evidence. Calls
-were routinely being abandoned exactly at the limit.
+**The cause is not established, and the first explanation was wrong.** Timeout
+billing was the obvious candidate: the p95 latency of 30,048 ms against a
+30,000 ms timeout looks exactly like calls being abandoned at the limit. But
+`ApiInterpreter` does not retry a timeout — `except ModelUnavailable` does not
+catch `ModelTimeout`, which propagates to the fallback — and the 50-session run
+recorded **zero fallbacks and zero repairs across 404 clean calls**. Timeouts
+therefore did not happen on the interpreter path at all.
+
+Remaining candidates, none confirmed:
+
+- provider-side usage not surfaced in the response body we read;
+- activity on the account outside these runs sharing the same billing day;
+- a component making calls whose usage is never recorded at all.
+
+Identifying it needs a controlled run: a known number of calls, billing checked
+before and after. That is cheap and worth doing before anyone budgets from
+`Usage.estimated_cost`, which is the number every other component would reach
+for.
+
+The p95 sitting at the timeout is worth fixing on its own merits. It is not
+demonstrated to be the cause of this.
 
 ### Corrected economics
 
