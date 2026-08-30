@@ -13,7 +13,8 @@ of JSON over HTTPS.
 Request shape verified against a live `gpt-5.6-terra` response:
 
 - text arrives at `choices[0].message.content`;
-- `reasoning_effort: "xhigh"` is accepted and produces non-zero
+- `reasoning_effort: "medium"` is the selected submission default and produces
+  non-zero
   `completion_tokens_details.reasoning_tokens`;
 - those reasoning tokens are a subset of `completion_tokens`, not an addition.
 """
@@ -46,7 +47,7 @@ _TRANSIENT_STATUS = frozenset({408, 409, 425, 429, 500, 502, 503, 504})
 @dataclass(frozen=True)
 class HttpTransportConfig:
     base_url: str = DEFAULT_BASE_URL
-    reasoning_effort: str | None = "xhigh"
+    reasoning_effort: str | None = "medium"
     # Structured output via a schema parameter is off until confirmed
     # supported for this model. The adapter re-validates locally either way,
     # so an ignored schema degrades safely rather than corrupting state.

@@ -381,7 +381,7 @@ PRIMARY_ROUTE = ModelRoute(
     route_id="primary/gpt-5.6-terra",
     provider="fake",
     model="gpt-5.6-terra",
-    reasoning_level="xhigh",
+    reasoning_level="medium",
 )
 
 
@@ -396,7 +396,7 @@ class LLMRankingTests(unittest.TestCase):
         self.assertEqual(ids, ["C", "A", "B"])
         self.assertEqual(usage.calls, 1)
         self.assertEqual(usage.model, "gpt-5.6-terra")
-        self.assertEqual(model.requests[0].reasoning_level, "xhigh")
+        self.assertEqual(model.requests[0].reasoning_level, "medium")
 
     def test_hallucinations_duplicates_and_omissions_are_normalized(self) -> None:
         model = FakeModel({"parent_asins": ["B", "OUTSIDE", "B"]})

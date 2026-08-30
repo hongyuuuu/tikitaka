@@ -6,7 +6,7 @@ Person 1 owns the trusted boundary between untrusted natural-language model
 output and deterministic session state:
 
 - provider-neutral model, embedding, and usage protocols;
-- the primary `gpt-5.6-terra` API adapter at `xhigh` reasoning;
+- the primary `gpt-5.6-terra` API adapter at `medium` reasoning;
 - a deterministic fake adapter that unblocks every other workstream;
 - the strict structured-output schema for intent, mode, generality, and state
   operations;
@@ -143,7 +143,7 @@ against Person 1 before any model code exists.
   contract sync: `IntentInterpreter`, `StateDelta`, `Constraint`,
   `StateOperation`, `SearchPlan`, `Usage`, `ModelRoute`.
 - Confirm with the owner, before P4: the exact API base URL, SDK or raw HTTP
-  transport, the environment variable name for the credential, how `xhigh`
+  transport, the environment variable name for the credential, how `medium`
   reasoning is expressed in the request, and whether structured output is
   requested via a JSON schema parameter or enforced by prompt alone. None of
   this is verifiable from the repository and it must not be guessed in code.
@@ -434,7 +434,7 @@ Profile isolation for DG-02:
 
 ### Outcome
 
-`gpt-5.6-terra` at `xhigh` reasoning drives interpretation, with full usage
+`gpt-5.6-terra` at `medium` reasoning drives interpretation, with full usage
 accounting and no behavioral difference in the validated state.
 
 ### Owned implementation
@@ -566,7 +566,7 @@ announcement and updated fixtures.
 ## 13. Risks and owner questions
 
 1. **API details are unverified in-repo.** Base URL, transport, credential
-   variable name, and how `xhigh` is expressed are unknown. P4 is blocked until
+   variable name, and how `medium` is expressed are unknown. P4 is blocked until
    the owner answers. P0-P3 are not.
 2. **DG-01 makes every CLARIFY turn a guaranteed miss** for that turn, because
    a clarify carries no recommendations and the evaluator only checks the
@@ -576,7 +576,7 @@ announcement and updated fixtures.
 3. **Override sessions discard pre-override hits.** The evaluator ignores a
    correct product until the override lands on turn 3 or 4. Person 1's job is
    to make the version bump unmistakable on that turn.
-4. **The cost of `xhigh` across 200 sessions is unbudgeted.** Report
+4. **The cost of the API route across 200 sessions is unbudgeted.** Report
    per-session token cost from the first live run so the owner can cap it
    before M4 tuning consumes the budget.
 5. **Public-simulator overfitting is the sharpest risk in this workstream.**

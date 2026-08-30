@@ -82,7 +82,7 @@ def recommendation_message(count: int) -> str:
 @dataclass(frozen=True)
 class LLMClarifierConfig:
     model: str = "gpt-5.6-terra"
-    reasoning_level: str = "xhigh"
+    reasoning_level: str = "medium"
     prompt_version: str = "person3-clarify-v2"
     maximum_candidates: int = 12
     maximum_message_length: int = 240
@@ -90,8 +90,8 @@ class LLMClarifierConfig:
     def __post_init__(self) -> None:
         if self.model != "gpt-5.6-terra":
             raise ValueError("the frozen architecture permits only gpt-5.6-terra")
-        if self.reasoning_level != "xhigh":
-            raise ValueError("the frozen architecture requires xhigh reasoning")
+        if self.reasoning_level != "medium":
+            raise ValueError("the frozen architecture requires medium reasoning")
         if min(self.maximum_candidates, self.maximum_message_length) <= 0:
             raise ValueError("clarifier limits must be positive")
 
@@ -124,8 +124,8 @@ class TextModelClarificationModel:
     def __init__(self, model: TextModel, route: ModelRoute) -> None:
         if route.model != "gpt-5.6-terra":
             raise ValueError("the frozen architecture permits only gpt-5.6-terra")
-        if route.reasoning_level != "xhigh":
-            raise ValueError("the frozen architecture requires xhigh reasoning")
+        if route.reasoning_level != "medium":
+            raise ValueError("the frozen architecture requires medium reasoning")
         self.model = model
         self.route = route
 

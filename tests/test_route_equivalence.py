@@ -217,7 +217,7 @@ class FactoryTests(unittest.TestCase):
         described = describe_route({"OPENAI_API_KEY": SECRET})
         self.assertTrue(described["credential_present"])
         self.assertFalse(described["degraded"])
-        self.assertEqual(described["reasoning_level"], "xhigh")
+        self.assertEqual(described["reasoning_level"], "medium")
         self.assertNotIn(SECRET, json.dumps(described))
 
         degraded = describe_route({})

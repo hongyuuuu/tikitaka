@@ -353,7 +353,7 @@ class AblationIdentityTests(unittest.TestCase):
         ):
             self.assertTrue(str(identity[field]).strip(), field)
         self.assertEqual(identity["generative_model"], "gpt-5.6-terra")
-        self.assertEqual(identity["reasoning_level"], "xhigh")
+        self.assertEqual(identity["reasoning_level"], "medium")
         self.assertIn(identity["routing_mode"], {RUNTIME_AUTO, PINNED})
 
     def test_versions_are_frozen_at_the_published_values(self) -> None:
@@ -392,11 +392,11 @@ class AblationIdentityTests(unittest.TestCase):
 
     def test_the_reasoning_ablation_reaches_the_selected_route(self) -> None:
         selector = ModelSelector(
-            PRIMARY_ROUTE, ablation=AblationConfig(reasoning_level="medium")
+            PRIMARY_ROUTE, ablation=AblationConfig(reasoning_level="low")
         )
         decision = selector.select(replace(CONFIDENT, mode_confidence=0.0))
-        self.assertEqual(decision.route.reasoning_level, "medium")
-        self.assertEqual(PRIMARY_ROUTE.reasoning_level, "xhigh")
+        self.assertEqual(decision.route.reasoning_level, "low")
+        self.assertEqual(PRIMARY_ROUTE.reasoning_level, "medium")
 
     def test_identity_carries_no_credential_shaped_value(self) -> None:
         rendered = repr(
@@ -516,7 +516,7 @@ class RealPathTests(unittest.TestCase):
         for response in responses:
             self.assertEqual(response["usage"]["prompt_tokens"], 0)
 
-    def test_routing_reaches_the_generative_route_through_build_agent(self) -> None:
+    def test_default_runtime_routes_every_turn_to_the_generative_api(self) -> None:
         api = RecordingInterpreter()
         agent, route_id = build_agent(
             CATALOG,
@@ -527,10 +527,8 @@ class RealPathTests(unittest.TestCase):
         with agent:
             responses = self._converse(agent, "auto")
         self.assertEqual(route_id, PRIMARY_ROUTE.route_id)
-        # The override turn is the one the P5 evidence says the heuristic
-        # mangles, so it is the turn that must actually escalate.
-        self.assertIn(OVERRIDE_MESSAGE, api.calls)
-        self.assertTrue(any(item["usage"]["prompt_tokens"] > 0 for item in responses))
+        self.assertEqual(len(api.calls), len(responses))
+        self.assertTrue(all(item["usage"]["prompt_tokens"] > 0 for item in responses))
 
     def test_the_selective_policy_spares_turns_the_heuristic_handles(self) -> None:
         # Opt-in cost saving, proven end to end: fewer provider calls than

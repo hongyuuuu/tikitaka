@@ -177,14 +177,22 @@ the retriever then fails to match loses here while possibly generalising better
 to a private simulator. That is Risk 5, and the public set cannot answer it at
 any budget. Only the private run can, and that arrives with the result.
 
-This is the argument for keeping the API route built, tested, and switchable
-rather than deleting it — not for enabling it.
+This is the evidence-based argument for keeping the API route switchable. It
+does not override the owner's architecture decision about the submission
+default.
 
-## Decision
+## Benchmark recommendation and owner decision
 
-1. **Deterministic ships. The API route stays off by default.** Established by
-   the valid arm, not assumed.
-2. Keep the route and SELECTIVE maintained and reachable, as the hedge against
-   Risk 5 described above.
-3. No further live measurement is required for this decision. Credits are a
-   blocker only on optional confirmation.
+The benchmark recommends deterministic routing on public-set score and cost.
+That recommendation and all measurements above remain valid evidence.
+
+On 2026-08-31, the owner selected the API route as the submission default and
+subsequently reduced its reasoning effort from the benchmarked `xhigh` to
+`medium`, consistent with `ARCHITECTURE.md`: when credentials are configured,
+`gpt-5.6-terra` at `medium` handles every eligible model task. The deterministic
+route remains the automatic no-credential or API-failure fallback. Selective
+and deterministic routing remain available as explicitly pinned experiment
+arms, not runtime defaults.
+
+No further live measurement is required to enact this owner decision. Credits
+are a blocker only on optional confirmation.

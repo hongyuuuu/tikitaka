@@ -113,7 +113,7 @@ not an ever-growing concatenation of prior user messages.
 ### Settled project policy
 
 - The primary generative route is the main API using `gpt-5.6-terra` with
-  `xhigh` reasoning.
+  `medium` reasoning.
 - Do not add Qwen, MLX, or another local generative LLM.
 - The LLM is used for intent understanding, state-delta extraction, query
   rewriting, clarification planning, and bounded-shortlist semantic reranking.
@@ -1182,7 +1182,7 @@ Role 2 is complete only when:
 
 - We are solving Challenge 4, not building a generic shopping UI.
 - Dense embeddings are part of the planned industry-grade hybrid architecture.
-- The generative LLM is API-only: main `gpt-5.6-terra`, `xhigh`.
+- The generative LLM is API-only: main `gpt-5.6-terra`, `medium`.
 - Automatic runtime routing is planned; benchmark runs can pin routes.
 - The active state is structured because users add, retract, replace, exclude,
   remove preference, reset, and change their intent across turns.

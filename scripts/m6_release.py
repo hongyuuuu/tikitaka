@@ -211,7 +211,7 @@ def build_manifest(
         "runtime": {
             "network_required": False,
             "optional_credential": "OPENAI_API_KEY",
-            "primary_generative_route": "openai/gpt-5.6-terra/xhigh",
+            "primary_generative_route": "openai/gpt-5.6-terra/medium",
             "degraded_route": "heuristic/local",
             "local_generative_llm": False,
         },

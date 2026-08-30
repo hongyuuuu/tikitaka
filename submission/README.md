@@ -16,9 +16,11 @@ python3 -m evaluator.local_evaluator
 ## Models and network behavior
 
 `OPENAI_API_KEY` is optional. When present, the agent uses the declared
-`gpt-5.6-terra` API route for intent interpretation and shortlist reranking.
-When it is absent, startup and every session remain valid through the
-deterministic `heuristic/local` route; no local generative LLM is used.
+`gpt-5.6-terra` API route by default for every eligible intent-interpretation
+and shortlist-reranking task. Selective or deterministic routing is used only
+when explicitly pinned for an experiment. When the credential is absent, or
+an API call fails, execution remains valid through the deterministic
+`heuristic/local` fallback; no local generative LLM is used.
 
 The production dense route is `text-embedding-3-large` at 1024 dimensions.
 The generated index is not included in this source-only bundle. Without a

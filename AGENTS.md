@@ -62,7 +62,7 @@ plan and ask the owner before changing an already-settled rule.
 - A generative LLM is required by this project even though a paid API is not
   required by the official challenge.
 - The only generative route is `gpt-5.6-terra` through the main API with
-  `xhigh` reasoning. Do not add or plan a local generative LLM.
+  `medium` reasoning. Do not add or plan a local generative LLM.
 - Model selection covers generative LLMs, embedding models, and rerankers.
 - Model selection routes automatically at runtime, while evaluation
   configurations may pin every route for reproducible comparisons. Never mix a

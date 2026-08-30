@@ -74,8 +74,12 @@ product index.
 
 ### 4.1 Generative-model route
 
-- **Generative route:** `gpt-5.6-terra` through the main API at `xhigh`
+- **Generative route:** `gpt-5.6-terra` through the main API at `medium`
   reasoning.
+- **Default routing:** when the API credential is configured, the generative
+  route handles every eligible model task by default. Selective or
+  deterministic routing is permitted only as an explicitly pinned experiment.
+  If the API is unavailable, execution falls back to the deterministic route.
 - No local generative LLM is part of the design.
 - API integration and primary-path correctness come first. A deterministic
   non-LLM fallback remains planned backup behavior, but failure engineering is

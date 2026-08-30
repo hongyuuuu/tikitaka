@@ -19,7 +19,7 @@ from .deterministic import DeterministicRanker
 class LLMRerankerConfig:
     max_candidates: int = 30
     model: str = "gpt-5.6-terra"
-    reasoning_level: str = "xhigh"
+    reasoning_level: str = "medium"
     prompt_version: str = "person3-rerank-v2"
     anchor_lead_margin: float = 0.30
     skip_llm_lead_margin: float = 0.60
@@ -33,8 +33,8 @@ class LLMRerankerConfig:
             raise ValueError("maximum_anchors must be non-negative")
         if self.model != "gpt-5.6-terra":
             raise ValueError("the frozen architecture permits only gpt-5.6-terra")
-        if self.reasoning_level != "xhigh":
-            raise ValueError("the frozen architecture requires xhigh reasoning")
+        if self.reasoning_level != "medium":
+            raise ValueError("the frozen architecture requires medium reasoning")
         for name in ("anchor_lead_margin", "skip_llm_lead_margin"):
             value = getattr(self, name)
             if not 0.0 <= value <= 1.0:
@@ -78,8 +78,8 @@ class TextModelShortlistRanker:
     def __init__(self, model: TextModel, route: ModelRoute) -> None:
         if route.model != "gpt-5.6-terra":
             raise ValueError("the frozen architecture permits only gpt-5.6-terra")
-        if route.reasoning_level != "xhigh":
-            raise ValueError("the frozen architecture requires xhigh reasoning")
+        if route.reasoning_level != "medium":
+            raise ValueError("the frozen architecture requires medium reasoning")
         self.model = model
         self.route = route
 

@@ -1,4 +1,4 @@
-"""Primary API interpreter for `gpt-5.6-terra` at `xhigh` reasoning.
+"""Primary API interpreter for `gpt-5.6-terra` at `medium` reasoning.
 
 Everything provider-specific lives below the `Transport` boundary: base URL,
 auth header, request shape, and which parameter carries the reasoning level.

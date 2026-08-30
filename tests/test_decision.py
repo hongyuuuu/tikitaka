@@ -485,7 +485,7 @@ class ModeAndPhrasingTests(unittest.TestCase):
             route_id="primary/gpt-5.6-terra",
             provider="fake",
             model="gpt-5.6-terra",
-            reasoning_level="xhigh",
+            reasoning_level="medium",
         )
         text_model = TextModel()
         adapter = TextModelClarificationModel(text_model, route)

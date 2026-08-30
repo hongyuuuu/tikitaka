@@ -75,7 +75,7 @@ def for_route(
     `completion_tokens` is the billed output total. `reasoning_tokens` is an
     informational *subset* of it, not an addition: the provider reports it
     under `completion_tokens_details`, verified against a live response. Adding
-    the two would double-count every reasoning token, which at `xhigh` would
+    the two would double-count every reasoning token, which on the API route would
     inflate the reported cost badly.
 
     A cache hit adds no call, tokens, latency, or cost to the current run.

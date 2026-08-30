@@ -25,7 +25,7 @@ class RuntimeRoutingConfig:
 
     generative_provider: str = "openai"
     generative_model: str = "gpt-5.6-terra"
-    reasoning_level: str = "xhigh"
+    reasoning_level: str = "medium"
     retrieval_policy: RoutePolicy = RoutePolicy.AUTO
     embedding_route_id: str | None = None
     index_id: str | None = None

@@ -16,7 +16,7 @@ implementation uses a catalog-pinned local float32 index, exact cosine search,
 and reciprocal-rank fusion, but the production 1024-dimensional artifact is not
 part of this source-only bundle.
 
-The selected generative route is `gpt-5.6-terra` with `xhigh` reasoning through
+The selected generative route is `gpt-5.6-terra` with `medium` reasoning through
 the main API. It interprets intent and reranks only a bounded shortlist. Its
 outputs are treated as untrusted and validated before state or output changes.
 

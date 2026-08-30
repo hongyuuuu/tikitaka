@@ -20,7 +20,7 @@ ROUTE = ModelRoute(
     route_id="primary/gpt-5.6-terra",
     provider="openai",
     model="gpt-5.6-terra",
-    reasoning_level="xhigh",
+    reasoning_level="medium",
 )
 SECRET = "sk-not-a-real-key-0123456789"
 
@@ -84,7 +84,7 @@ class RequestShapeTests(unittest.TestCase):
         request = opener.requests[0]
         body = json.loads(request.data.decode("utf-8"))
         self.assertEqual(body["model"], "gpt-5.6-terra")
-        self.assertEqual(body["reasoning_effort"], "xhigh")
+        self.assertEqual(body["reasoning_effort"], "medium")
         self.assertEqual(body["messages"][0]["content"], "interpret this")
         self.assertEqual(request.get_method(), "POST")
 

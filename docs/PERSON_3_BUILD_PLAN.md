@@ -32,7 +32,7 @@ must not copy these details:
   statements.
 - Do not add alternative generative models or a local generative model. The
   selected generative route is `gpt-5.6-terra` through the main API with
-  `xhigh` reasoning; deterministic ranking is the network-free fallback.
+  `medium` reasoning; deterministic ranking is the network-free fallback.
 - Do not infer or consume evaluator scenario labels. Buying/Browsing behavior
   uses only the validated visible-session state.
 
@@ -234,7 +234,7 @@ Validate structured output as untrusted input:
 - record provider, model, reasoning level, prompt/schema version, tokens,
   latency, estimated cost, and route.
 
-The only generative route is `gpt-5.6-terra` through the main API at `xhigh`.
+The only generative route is `gpt-5.6-terra` through the main API at `medium`.
 
 Exit gate: malformed, duplicate, hallucinated, partial, and timed-out outputs
 all produce valid deterministic rankings; valid LLM output can only reorder the

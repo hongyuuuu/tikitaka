@@ -254,7 +254,7 @@ agent to one provider.
 
 1. Implement model protocols, usage metadata and provider-neutral errors.
 2. Implement the primary `gpt-5.6-terra` API adapter with environment-only
-   credentials and `xhigh` reasoning configuration.
+   credentials and `medium` reasoning configuration.
 3. Implement a fake adapter for deterministic tests before live API work.
 4. Define strict structured output for intent mode, confidence, generality and
    state operations.

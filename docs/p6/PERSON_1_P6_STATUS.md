@@ -138,7 +138,7 @@ the same regex will drift. Proposing his module import mine.
 |---|---|
 | `PROMPT_VERSION` | `intent-interpreter/1` |
 | `SCHEMA_VERSION` | `0.1.0` |
-| Primary route | `primary/gpt-5.6-terra`, reasoning `xhigh` |
+| Primary route | `primary/gpt-5.6-terra`, reasoning `medium` (owner update 2026-08-31) |
 | Fallback route | `heuristic/local` |
 
 `ModelSelector.identity()` returns these plus the ablation state, keyed to match

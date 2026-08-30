@@ -37,7 +37,7 @@ ROUTE = ModelRoute(
     route_id="primary/gpt-5.6-terra",
     provider="openai",
     model="gpt-5.6-terra",
-    reasoning_level="xhigh",
+    reasoning_level="medium",
 )
 SECRET = "sk-not-a-real-key-0123456789"
 
@@ -103,7 +103,7 @@ class HappyPathTests(unittest.TestCase):
         self.assertEqual(usage.completion_tokens, 60)
         self.assertEqual(usage.reasoning_tokens, 40)
         self.assertEqual(usage.model, "gpt-5.6-terra")
-        self.assertEqual(usage.reasoning_level, "xhigh")
+        self.assertEqual(usage.reasoning_level, "medium")
         self.assertGreaterEqual(usage.latency_ms, 0.0)
 
     def test_structured_text_model_supports_non_state_schemas(self) -> None:

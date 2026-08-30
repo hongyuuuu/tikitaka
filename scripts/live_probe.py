@@ -7,7 +7,7 @@ script prints. At ten sessions the 95% confidence interval on hit rate is about
 ±0.19, so a probe cannot tell you whether the API route beats the heuristic. It
 can tell you four things that nothing else can:
 
-- how many completion tokens `xhigh` reasoning actually burns, which is the one
+- how many completion tokens the configured reasoning effort actually burns,
   unknown every cost projection pivots on;
 - whether the API path survives a whole session rather than a single call;
 - real latency, repair counts, and failure modes;

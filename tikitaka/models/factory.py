@@ -33,7 +33,7 @@ PRIMARY_ROUTE = ModelRoute(
     route_id="primary/gpt-5.6-terra",
     provider="openai",
     model="gpt-5.6-terra",
-    reasoning_level="xhigh",
+    reasoning_level="medium",
 )
 
 

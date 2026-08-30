@@ -350,7 +350,7 @@ after every merge.
    DG-01, no repeated low-value questions, final-turn behavior, constraints,
    deduplication, and intent-version eligibility.
 4. **Person 1 live route:** enable `gpt-5.6-terra` through the main API with
-   `xhigh` reasoning behind configuration. Verify environment-only credentials,
+   `medium` reasoning behind configuration. Verify environment-only credentials,
    structured-output validation, usage telemetry, and deterministic fallback.
 
 ### Handoff checklist for every owner
@@ -457,7 +457,7 @@ its API dependency, and remains valid without network access.
 - [ ] Catalog checksum and 50,000 unique IDs are verified.
 - [ ] Agent inputs contain only official fields.
 - [ ] All responses are schema-valid and catalog-valid.
-- [ ] Primary `gpt-5.6-terra` route uses `xhigh` reasoning.
+- [ ] Primary `gpt-5.6-terra` route uses `medium` reasoning.
 - [ ] Credentials are environment-only and absent from source and reports.
 - [ ] Deterministic no-network execution produces valid results.
 - [ ] Tuning and held-out metrics are reported separately.
