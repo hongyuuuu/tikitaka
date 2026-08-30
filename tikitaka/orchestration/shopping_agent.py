@@ -246,6 +246,7 @@ class ShoppingAgent(Generic[StateT]):
         candidates: Sequence[Candidate],
         top_k: int,
     ) -> list[str]:
+        limit = min(top_k, MAX_RECOMMENDATIONS)
         shortlist = {candidate.parent_asin for candidate in candidates}
         result: list[str] = []
         seen: set[str] = set()
@@ -260,14 +261,14 @@ class ShoppingAgent(Generic[StateT]):
                 continue
             seen.add(parent_asin)
             result.append(parent_asin)
-            if len(result) >= min(top_k, MAX_RECOMMENDATIONS):
+            if len(result) >= limit:
                 break
         for candidate in candidates:
+            if len(result) >= limit:
+                break
             if candidate.parent_asin not in seen:
                 seen.add(candidate.parent_asin)
                 result.append(candidate.parent_asin)
-            if len(result) >= min(top_k, MAX_RECOMMENDATIONS):
-                break
         return result
 
     def _official_usage(self, session_id: str, offset: int) -> tuple[int, int]:

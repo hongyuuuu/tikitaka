@@ -194,6 +194,17 @@ class OrchestrationTest(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
         self.assertTrue(set(ids) <= CATALOG_IDS)
 
+    def test_full_reranker_result_does_not_gain_an_eleventh_fallback_item(self) -> None:
+        preferred = [item.parent_asin for item in CANDIDATES[2:12]]
+        agent, _ = make_agent(reranker=DeterministicReranker(preferred))
+        agent.reset("session", {})
+
+        response = agent.respond("session", "query", 1, 10)
+        ids = [item["parent_asin"] for item in response["recommendations"]]
+
+        self.assertEqual(ids, preferred)
+        self.assertEqual(len(ids), 10)
+
     def test_malformed_and_raising_components_produce_valid_fallbacks(self) -> None:
         cases = (
             {"interpreter": MalformedInterpreter()},
