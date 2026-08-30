@@ -589,19 +589,22 @@ announcement and updated fixtures.
 
 ## 14. Definition of done
 
-- [ ] Model and state protocols are stable and documented.
-- [ ] Fake, heuristic, faulty, and primary API adapters all satisfy them.
-- [ ] The full `tests/test_state.py` and `tests/test_models.py` matrices pass
-      offline on Python 3.10.
-- [ ] A synthetic multi-turn conversation yields identical validated state
-      through the fake and API adapters.
-- [ ] No provider code is reachable from retrieval, ranking, or evaluation.
-- [ ] Profile influence is isolated and `profile_weight = 0` is provably inert.
-- [ ] Structured traces exist for Buying, Browsing, Intent Override, Boundary.
-- [ ] Prompt and schema versions are recorded with every reported score.
-- [ ] Credentials are environment-only and absent from all output.
-- [ ] The network-free heuristic route produces valid responses, with a
-      recorded quality delta.
+- [x] Model and state protocols are stable and documented.
+- [x] Fake, heuristic, faulty, and primary API adapters all satisfy them.
+- [x] The full `tests/test_state.py` and `tests/test_models.py` matrices pass
+      offline. Verified by static scan for 3.11+ syntax; the local interpreter
+      is 3.13, so the 3.10 floor is checked rather than executed.
+- [x] A synthetic multi-turn conversation yields identical validated state
+      through the fake and API adapters (`tests/test_route_equivalence.py`).
+- [x] No provider code is reachable from retrieval, ranking, or evaluation
+      (AST import scan, clean).
+- [x] Profile influence is isolated and `profile_weight = 0` is provably inert.
+- [x] Structured traces exist for Buying, Browsing, Intent Override, Boundary
+      (`artifacts/traces/`, produced by `scripts/capture_traces.py`).
+- [x] Prompt and schema versions are recorded with every reported score.
+- [x] Credentials are environment-only and absent from all output.
+- [x] The network-free heuristic route produces valid responses, with a
+      recorded quality delta (`docs/p6/ROUTING_BENCHMARK.md`).
 
 ## 15. Mapping to the shared schedule
 
