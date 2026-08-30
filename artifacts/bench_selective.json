@@ -1,0 +1,243 @@
+{
+  "cost": {
+    "completion_cost_per_1k": 0.012,
+    "currency": "USD",
+    "per_session": 0.003149,
+    "projected_private_800": 2.5193,
+    "projected_public_200": 0.6298,
+    "prompt_cost_per_1k": 0.002,
+    "total": 0.157454
+  },
+  "invalidation_reason": "account ran out of credits mid-run: 60 of 63 generative escalations returned HTTP 429 and fell back, so the quality figures are the deterministic route with three LLM calls, not a measurement of selective routing",
+  "metrics_api": {
+    "efficiency": 0.496,
+    "hit_rate_at_10": 0.86,
+    "mrr": 0.551381,
+    "mttc": 6.04,
+    "recommended_technical_score": 0.694614,
+    "reported_token_usage": {
+      "completion_tokens": 7209,
+      "prompt_tokens": 35473,
+      "total_tokens": 42682
+    },
+    "sample_count": 50,
+    "scenario_metrics": {
+      "boundary": {
+        "hit_rate_at_10": 0.666667,
+        "mrr": 0.666667,
+        "mttc": 8.0,
+        "sample_count": 3
+      },
+      "browsing": {
+        "hit_rate_at_10": 0.95,
+        "mrr": 0.583333,
+        "mttc": 5.55,
+        "sample_count": 20
+      },
+      "buying": {
+        "hit_rate_at_10": 0.894737,
+        "mrr": 0.593985,
+        "mttc": 5.578947,
+        "sample_count": 19
+      },
+      "intent_override": {
+        "hit_rate_at_10": 0.625,
+        "mrr": 0.327083,
+        "mttc": 7.625,
+        "sample_count": 8
+      }
+    },
+    "session_hits": {
+      "public_0003": false,
+      "public_0004": false,
+      "public_0007": true,
+      "public_0012": true,
+      "public_0018": true,
+      "public_0020": false,
+      "public_0021": true,
+      "public_0022": true,
+      "public_0027": true,
+      "public_0034": true,
+      "public_0039": true,
+      "public_0040": true,
+      "public_0047": true,
+      "public_0051": true,
+      "public_0055": true,
+      "public_0067": true,
+      "public_0071": true,
+      "public_0073": true,
+      "public_0082": false,
+      "public_0087": true,
+      "public_0089": true,
+      "public_0091": true,
+      "public_0104": true,
+      "public_0107": true,
+      "public_0112": true,
+      "public_0114": true,
+      "public_0115": true,
+      "public_0118": true,
+      "public_0119": true,
+      "public_0121": true,
+      "public_0122": true,
+      "public_0123": true,
+      "public_0126": false,
+      "public_0128": true,
+      "public_0132": true,
+      "public_0133": true,
+      "public_0135": true,
+      "public_0141": true,
+      "public_0144": true,
+      "public_0148": true,
+      "public_0155": true,
+      "public_0157": true,
+      "public_0165": true,
+      "public_0167": true,
+      "public_0174": true,
+      "public_0180": false,
+      "public_0181": true,
+      "public_0186": false,
+      "public_0193": true,
+      "public_0195": true
+    }
+  },
+  "metrics_deterministic": {
+    "efficiency": 0.5,
+    "hit_rate_at_10": 0.88,
+    "mrr": 0.561381,
+    "mttc": 6.0,
+    "recommended_technical_score": 0.708414,
+    "reported_token_usage": {
+      "completion_tokens": 0,
+      "prompt_tokens": 0,
+      "total_tokens": 0
+    },
+    "sample_count": 50,
+    "scenario_metrics": {
+      "boundary": {
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.833333,
+        "mttc": 7.333333,
+        "sample_count": 3
+      },
+      "browsing": {
+        "hit_rate_at_10": 0.95,
+        "mrr": 0.583333,
+        "mttc": 5.55,
+        "sample_count": 20
+      },
+      "buying": {
+        "hit_rate_at_10": 0.894737,
+        "mrr": 0.593985,
+        "mttc": 5.578947,
+        "sample_count": 19
+      },
+      "intent_override": {
+        "hit_rate_at_10": 0.625,
+        "mrr": 0.327083,
+        "mttc": 7.625,
+        "sample_count": 8
+      }
+    },
+    "session_hits": {
+      "public_0003": false,
+      "public_0004": false,
+      "public_0007": true,
+      "public_0012": true,
+      "public_0018": true,
+      "public_0020": false,
+      "public_0021": true,
+      "public_0022": true,
+      "public_0027": true,
+      "public_0034": true,
+      "public_0039": true,
+      "public_0040": true,
+      "public_0047": true,
+      "public_0051": true,
+      "public_0055": true,
+      "public_0067": true,
+      "public_0071": true,
+      "public_0073": true,
+      "public_0082": false,
+      "public_0087": true,
+      "public_0089": true,
+      "public_0091": true,
+      "public_0104": true,
+      "public_0107": true,
+      "public_0112": true,
+      "public_0114": true,
+      "public_0115": true,
+      "public_0118": true,
+      "public_0119": true,
+      "public_0121": true,
+      "public_0122": true,
+      "public_0123": true,
+      "public_0126": false,
+      "public_0128": true,
+      "public_0132": true,
+      "public_0133": true,
+      "public_0135": true,
+      "public_0141": true,
+      "public_0144": true,
+      "public_0148": true,
+      "public_0155": true,
+      "public_0157": true,
+      "public_0165": true,
+      "public_0167": true,
+      "public_0174": true,
+      "public_0180": true,
+      "public_0181": true,
+      "public_0186": false,
+      "public_0193": true,
+      "public_0195": true
+    }
+  },
+  "per_call": {
+    "completion_tokens": 64.4,
+    "prompt_tokens": 316.7,
+    "reasoning_tokens": 54.0
+  },
+  "preflight": {
+    "completion_tokens": 68,
+    "estimated_cost": 0.002216,
+    "latency_ms": 2490.0,
+    "prompt_tokens": 700,
+    "reasoning_tokens": 0,
+    "route_id": "primary/gpt-5.6-terra"
+  },
+  "route": {
+    "credential_present": true,
+    "credential_variable": "OPENAI_API_KEY",
+    "degraded": false,
+    "model": "gpt-5.6-terra",
+    "provider": "openai",
+    "reasoning_level": "xhigh",
+    "route_id": "primary/gpt-5.6-terra"
+  },
+  "routing": "selective",
+  "scenario_breakdown": {
+    "boundary": 3,
+    "browsing": 20,
+    "buying": 19,
+    "intent_override": 8
+  },
+  "seed": 2026,
+  "sessions": 50,
+  "usage": {
+    "calls": 112,
+    "calls_by_component": {
+      "interpreter": 3,
+      "reranker": 109
+    },
+    "completion_tokens": 7209,
+    "estimated_cost": 0.15745399999999998,
+    "fallback_turns": 60,
+    "latency_ms_mean": 5056.4,
+    "latency_ms_p95": 30078.2,
+    "prompt_tokens": 35473,
+    "reasoning_tokens": 6045,
+    "repairs": 0,
+    "sessions": 50
+  },
+  "valid_route_measurement": false,
+  "wall_seconds": 723.5
+}

@@ -1,0 +1,137 @@
+{
+  "cost": {
+    "completion_cost_per_1k": 0.012,
+    "currency": "USD",
+    "per_session": 0.055368,
+    "projected_private_800": 44.2944,
+    "projected_public_200": 11.0736,
+    "prompt_cost_per_1k": 0.002,
+    "total": 2.768398
+  },
+  "metrics_api": {
+    "efficiency": 0.454,
+    "hit_rate_at_10": 0.7,
+    "mrr": 0.517714,
+    "mttc": 6.46,
+    "recommended_technical_score": 0.596114,
+    "reported_token_usage": {
+      "completion_tokens": 124057,
+      "prompt_tokens": 639857,
+      "total_tokens": 763914
+    },
+    "sample_count": 50,
+    "scenario_metrics": {
+      "boundary": {
+        "hit_rate_at_10": 0.666667,
+        "mrr": 0.380952,
+        "mttc": 8.333333,
+        "sample_count": 3
+      },
+      "browsing": {
+        "hit_rate_at_10": 0.85,
+        "mrr": 0.605,
+        "mttc": 5.4,
+        "sample_count": 20
+      },
+      "buying": {
+        "hit_rate_at_10": 0.631579,
+        "mrr": 0.454887,
+        "mttc": 7.052632,
+        "sample_count": 19
+      },
+      "intent_override": {
+        "hit_rate_at_10": 0.5,
+        "mrr": 0.5,
+        "mttc": 7.0,
+        "sample_count": 8
+      }
+    }
+  },
+  "metrics_deterministic": {
+    "efficiency": 0.5,
+    "hit_rate_at_10": 0.88,
+    "mrr": 0.561381,
+    "mttc": 6.0,
+    "recommended_technical_score": 0.708414,
+    "reported_token_usage": {
+      "completion_tokens": 0,
+      "prompt_tokens": 0,
+      "total_tokens": 0
+    },
+    "sample_count": 50,
+    "scenario_metrics": {
+      "boundary": {
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.833333,
+        "mttc": 7.333333,
+        "sample_count": 3
+      },
+      "browsing": {
+        "hit_rate_at_10": 0.95,
+        "mrr": 0.583333,
+        "mttc": 5.55,
+        "sample_count": 20
+      },
+      "buying": {
+        "hit_rate_at_10": 0.894737,
+        "mrr": 0.593985,
+        "mttc": 5.578947,
+        "sample_count": 19
+      },
+      "intent_override": {
+        "hit_rate_at_10": 0.625,
+        "mrr": 0.327083,
+        "mttc": 7.625,
+        "sample_count": 8
+      }
+    }
+  },
+  "per_call": {
+    "completion_tokens": 307.1,
+    "prompt_tokens": 1583.8,
+    "reasoning_tokens": 226.8
+  },
+  "preflight": {
+    "completion_tokens": 68,
+    "estimated_cost": 0.002216,
+    "latency_ms": 3766.7,
+    "prompt_tokens": 700,
+    "reasoning_tokens": 0,
+    "route_id": "primary/gpt-5.6-terra"
+  },
+  "route": {
+    "credential_present": true,
+    "credential_variable": "OPENAI_API_KEY",
+    "degraded": false,
+    "model": "gpt-5.6-terra",
+    "provider": "openai",
+    "reasoning_level": "xhigh",
+    "route_id": "primary/gpt-5.6-terra"
+  },
+  "routing": "always",
+  "scenario_breakdown": {
+    "boundary": 3,
+    "browsing": 20,
+    "buying": 19,
+    "intent_override": 8
+  },
+  "seed": 2026,
+  "sessions": 50,
+  "usage": {
+    "calls": 404,
+    "calls_by_component": {
+      "interpreter": 308,
+      "reranker": 96
+    },
+    "completion_tokens": 124057,
+    "estimated_cost": 2.768398000000001,
+    "fallback_turns": 0,
+    "latency_ms_mean": 6607.8,
+    "latency_ms_p95": 30048.9,
+    "prompt_tokens": 639857,
+    "reasoning_tokens": 91615,
+    "repairs": 0,
+    "sessions": 50
+  },
+  "wall_seconds": 2685.3
+}

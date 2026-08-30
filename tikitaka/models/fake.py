@@ -56,11 +56,28 @@ _NO_PREFERENCE_RE = re.compile(
     r"i don't have a preference for (\w+); please use your judgment", re.I
 )
 _EXPLORING_RE = re.compile(r"still exploring", re.I)
+#: The single override vocabulary for the whole codebase. Three copies existed
+#: with three different alternation sets — `orchestration/runtime.py` had
+#: neither "forget" nor "what i need is", `models/selector.py` had no "forget"
+#: — so the same message could be an override to one component and not to
+#: another. This is their union; callers import `looks_like_override` rather
+#: than writing the pattern again.
 _OVERRIDE_RE = re.compile(
     r"\b(actually|instead|on second thought|forget|ignore my earlier|"
-    r"changed my mind|rather)\b",
+    r"changed my mind|rather|what i need is)\b",
     re.I,
 )
+
+
+def looks_like_override(message: object) -> bool:
+    """Whether a visible message revises intent stated earlier.
+
+    Cheap and pre-interpretation: it reads the words, not the state. A missed
+    override is the most expensive error in a run, because the evaluator
+    discards every hit recorded before the override lands.
+    """
+
+    return isinstance(message, str) and _OVERRIDE_RE.search(message) is not None
 
 
 def classify_constraint(value: str) -> str:
@@ -284,6 +301,7 @@ def _as_attribute(word: str) -> str:
 __all__ = [
     "HEURISTIC_ROUTE",
     "carries_no_new_constraint",
+    "looks_like_override",
     "FaultyInterpreter",
     "HeuristicInterpreter",
     "ScriptedInterpreter",
