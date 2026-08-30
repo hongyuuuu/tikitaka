@@ -40,13 +40,42 @@ response violations were all zero in the dedicated offline evidence run.
 
 ## Latency, token, and cost disclosure
 
-- Offline route: zero model calls, zero model tokens, and zero model cost.
-- API route: latency and token use vary by turn and are reported through the
-  Agent usage payload. Estimated cost is recorded by the model gateway.
-- Production embeddings: actual build time, index size, query time, and cost
-  remain pending until the real `text-embedding-3-large`/1024 artifact is built.
-- Fixture hybrid timings are mechanics evidence only and are not reported as
-  production performance.
+**Offline route.** Zero model calls, zero model tokens, zero model cost. This
+is the route the reproduced result above was scored on.
+
+**API route.** Measured over a 10-session live probe against
+`gpt-5.6-terra` at `xhigh`, 90 calls, list price $2.00/1M input and
+$12.00/1M output:
+
+| Measure | Value |
+|---|---:|
+| Prompt tokens per call | 1,422 |
+| Completion tokens per call | 327 |
+| — of which reasoning | 255 (78%) |
+| Latency, mean | 7.2 s |
+| Latency, p95 | 30.0 s |
+| Cost per session | $0.0609 |
+| Projected, 200 public sessions | $12.17 |
+| Projected, 800 private sessions | $48.69 |
+
+Three qualifications, none of them cosmetic:
+
+- The p95 latency of 30.0 s sits at the configured 30 s request timeout. Turns
+  at that tail degrade to the deterministic route rather than failing, but the
+  headroom is nil.
+- Cached input is billed at $0.20/1M, a tenth of standard, and the prompt
+  prefix is large and stable. No field records cache hits, so these figures
+  assume none and are therefore an upper bound.
+- Ten sessions fixes cost, tokens and latency; it does not establish quality.
+  The interval on Hit Rate@10 at that sample size is about ±0.31.
+
+**Production embeddings.** Route pinned to `text-embedding-3-large` at 1024
+dimensions. Estimated one-off build volume is 14.5M input tokens across ~196
+requests for the 50,000-document catalog. Actual build time, index size and
+query latency remain pending until the artifact is built.
+
+**Fixture hybrid timings** are mechanics evidence only and are not reported as
+production performance.
 
 ## Limitations
 
