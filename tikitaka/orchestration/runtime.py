@@ -19,7 +19,11 @@ from tikitaka.contracts import (
 )
 from tikitaka.decision import ResponsePolicy, ResponsePolicyConfig
 from tikitaka.models.factory import GatewaySelection, gateway_from_env
-from tikitaka.models.fake import HeuristicInterpreter, carries_no_new_constraint
+from tikitaka.models.fake import (
+    HeuristicInterpreter,
+    carries_no_new_constraint,
+    looks_like_override,
+)
 from tikitaka.models.selector import ModelSelector, RoutingInterpreter
 from tikitaka.models.usage import merge
 from tikitaka.orchestration.sessions import SessionRegistry
@@ -38,10 +42,10 @@ from tikitaka.state.reducer import StateReducer
 from tikitaka.state.session import SessionState, new_session
 
 
-_VISIBLE_OVERRIDE_RE = re.compile(
-    r"\b(actually|instead|on second thought|ignore my earlier|changed my mind|rather)\b",
-    re.IGNORECASE,
-)
+#: The override vocabulary now lives once, in `models/fake.py`, and is read
+#: here through `looks_like_override`. This module's own copy omitted both
+#: "forget" and "what i need is", so a message could be an override to the
+#: router and not to this adapter.
 _VISIBLE_OVERRIDE_VALUE_RE = re.compile(
     r"what i need is:\s*(.+?)\.?$",
     re.IGNORECASE,
@@ -125,7 +129,7 @@ class VisibleMessageInterpreter:
         state: object,
         delta: StateDelta,
     ) -> StateDelta:
-        if _VISIBLE_OVERRIDE_RE.search(message) is None:
+        if not looks_like_override(message):
             return delta
         constraints_for = getattr(state, "constraints_for", None)
         if not callable(constraints_for):
