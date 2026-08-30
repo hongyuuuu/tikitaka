@@ -38,3 +38,7 @@ checksums, and mismatches fail closed.
 
 See `manifest.json` for the exact code revision, file hashes, frozen retrieval
 identities, and package policy used to build this archive.
+
+The current `medium` API configuration has not been measured live. Cost and
+latency figures in `REPORT.md` are labeled historical `xhigh` evidence and must
+not be interpreted as measurements of the current default.

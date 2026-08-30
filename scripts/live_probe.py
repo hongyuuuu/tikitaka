@@ -93,7 +93,16 @@ class UsageRecordingAgent:
             "calls": 0, "repairs": 0, "estimated_cost": 0.0,
         }
         latencies: list[float] = []
-        per_component: dict[str, int] = defaultdict(int)
+        per_component: dict[str, dict[str, float | int]] = defaultdict(
+            lambda: {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "reasoning_tokens": 0,
+                "calls": 0,
+                "repairs": 0,
+                "estimated_cost": 0.0,
+            }
+        )
         fallback_turns = 0
         for session_id in self._session_ids:
             for event in self._agent.sessions.usage_events(session_id):
@@ -104,7 +113,13 @@ class UsageRecordingAgent:
                 totals["calls"] += usage.calls
                 totals["repairs"] += usage.repairs
                 totals["estimated_cost"] += usage.estimated_cost or 0.0
-                per_component[event.component] += usage.calls
+                component = per_component[event.component]
+                component["prompt_tokens"] += usage.prompt_tokens
+                component["completion_tokens"] += usage.completion_tokens
+                component["reasoning_tokens"] += usage.reasoning_tokens
+                component["calls"] += usage.calls
+                component["repairs"] += usage.repairs
+                component["estimated_cost"] += usage.estimated_cost or 0.0
                 if usage.latency_ms:
                     latencies.append(usage.latency_ms)
                 if usage.route and str(usage.route).endswith(":fallback"):
@@ -112,7 +127,14 @@ class UsageRecordingAgent:
         return {
             **totals,
             "sessions": len(self._session_ids),
-            "calls_by_component": dict(per_component),
+            "calls_by_component": {
+                component: int(values["calls"])
+                for component, values in sorted(per_component.items())
+            },
+            "usage_by_component": {
+                component: values
+                for component, values in sorted(per_component.items())
+            },
             "fallback_turns": fallback_turns,
             "latency_ms_mean": round(statistics.fmean(latencies), 1) if latencies else 0.0,
             "latency_ms_p95": (

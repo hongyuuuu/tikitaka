@@ -43,6 +43,29 @@ python3 -m evaluator.local_evaluator
 Edit `starter/agent.py` to implement your system. Do not edit the evaluator or public labels when reporting your local score.
 The command writes per-session results and aggregate metrics to `results.json`.
 
+## Current implementation
+
+`starter.Agent` now delegates to the stateful TikiTaka orchestration pipeline.
+With `OPENAI_API_KEY` configured, the default generative route is
+`gpt-5.6-terra` with `medium` reasoning. With no credential or after an API
+failure, the agent remains contract-valid through the deterministic local
+fallback. The committed production-quality evidence remains sparse/structured
+until Person 2 supplies the catalog-pinned 1024-dimensional dense artifact.
+
+The full local test suite and clean, network-denied package audit are:
+
+```bash
+python3 -m unittest
+python3 scripts/build_submission.py --output /tmp/tikitaka-submission.zip
+python3 scripts/verify_m6_submission.py \
+  --archive /tmp/tikitaka-submission.zip \
+  --output /tmp/tikitaka-m6-release-audit.json
+```
+
+The release verifier removes the API credential and denies socket/DNS access,
+so these commands make no paid model calls. API and production-embedding jobs
+are separate, explicit, potentially billable commands.
+
 The included weak BM25 starter scores Hit Rate@10 `0.125`, MRR `0.068034`, and
 MTTC `9.81` on the released public set. See `docs/baseline_results.json`.
 

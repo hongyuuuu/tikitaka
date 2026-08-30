@@ -110,6 +110,16 @@ class UsageHarvestTests(unittest.TestCase):
         # The reranker also records an event, at zero calls, so attribution
         # is asserted per component rather than by exact dict equality.
         self.assertEqual(harvest["calls_by_component"]["interpreter"], 2)
+        self.assertEqual(
+            harvest["usage_by_component"]["interpreter"]["prompt_tokens"], 800
+        )
+        self.assertEqual(
+            harvest["usage_by_component"]["interpreter"]["completion_tokens"], 300
+        )
+        self.assertEqual(
+            sum(item["prompt_tokens"] for item in harvest["usage_by_component"].values()),
+            harvest["prompt_tokens"],
+        )
 
     def test_a_degraded_run_harvests_zero_tokens(self) -> None:
         # This is the condition the probe treats as fatal. If it were ever to

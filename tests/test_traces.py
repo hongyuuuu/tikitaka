@@ -11,8 +11,11 @@ Nothing in this module touches the network or a credential.
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
 import unittest
 
+from scripts.capture_traces import SCENARIOS, capture_environment
 from tikitaka.contracts.domain import Usage
 from tikitaka.state.reducer import StateReducer
 from tikitaka.state.schema import make_delta, operation
@@ -114,6 +117,18 @@ class RoutingRecordTests(unittest.TestCase):
 
 
 class TraceSafetyTests(unittest.TestCase):
+    def test_capture_is_offline_even_when_the_shell_has_a_credential(self) -> None:
+        previous = os.environ.get("OPENAI_API_KEY")
+        os.environ["OPENAI_API_KEY"] = "sk-not-a-real-key-0123456789"
+        try:
+            self.assertEqual(capture_environment(False), {})
+            self.assertIsNone(capture_environment(True))
+        finally:
+            if previous is None:
+                os.environ.pop("OPENAI_API_KEY", None)
+            else:
+                os.environ["OPENAI_API_KEY"] = previous
+
     def test_no_evaluator_label_can_appear_in_a_trace(self) -> None:
         rendered = json.dumps(
             capture(_state_with_constraints(), "leather", 1).to_dict(), sort_keys=True
@@ -140,6 +155,36 @@ class TraceSafetyTests(unittest.TestCase):
         )
         self.assertEqual(trace.prompt_tokens, 31)
         self.assertEqual(trace.completion_tokens, 12)
+
+
+class CommittedDemoTraceTests(unittest.TestCase):
+    def test_all_four_label_free_offline_demo_traces_are_present(self) -> None:
+        root = Path(__file__).resolve().parents[1] / "artifacts" / "traces"
+        manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(manifest["scenarios"]), set(SCENARIOS))
+        self.assertFalse(manifest["route"]["credential_present"])
+        self.assertEqual(manifest["route"]["route_id"], "heuristic/local")
+        for scenario in SCENARIOS:
+            record = manifest["scenarios"][scenario]
+            path = root / record["trace_file"]
+            rows = [
+                json.loads(line)
+                for line in path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual(len(rows), record["turns"])
+            self.assertGreater(len(rows), 0)
+            self.assertLessEqual(len(rows), 10)
+            self.assertIsInstance(record["hit"], bool)
+            self.assertEqual(record["hit"], record["first_hit_turn"] is not None)
+            self.assertTrue(all(row["route_id"] == "heuristic/local" for row in rows))
+            self.assertTrue(all(row["calls"] == 0 for row in rows))
+            rendered = json.dumps(rows, sort_keys=True)
+            for key in FORBIDDEN_KEYS:
+                self.assertNotIn(f'"{key}"', rendered)
+        self.assertEqual(
+            manifest["scenarios"]["intent_override"]["final_intent_version"], 2
+        )
 
 
 class ExhaustionRecordTests(unittest.TestCase):

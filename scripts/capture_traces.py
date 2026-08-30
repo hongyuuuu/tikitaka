@@ -15,16 +15,17 @@ evaluator label — the target product, the scenario type, the intent card, the
 behavior block — may appear in one, and the script fails rather than writes if
 any does.
 
-Runs network-free by default. With no credential the deterministic route is
-used, so this costs nothing and needs no key.
+Runs network-free by default even when the shell contains a credential. API
+capture requires the explicit ``--allow-api`` flag, so regenerating demo
+evidence cannot spend money accidentally.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
-import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,6 +49,17 @@ from tikitaka.models.factory import describe_route, selector_from_env
 from tikitaka.state.trace import FORBIDDEN_KEYS, capture, summarize, write_jsonl
 
 SCENARIOS = ("buying", "browsing", "intent_override", "boundary")
+
+
+def capture_environment(allow_api: bool) -> dict[str, str] | None:
+    """Return the environment view used by model selection.
+
+    ``None`` means the real environment and is permitted only after the caller
+    explicitly opts into a potentially billable capture. An empty mapping
+    forces the deterministic route regardless of a credential in the shell.
+    """
+
+    return None if allow_api else {}
 
 
 class RecordingSelector(ModelSelector):
@@ -96,7 +108,11 @@ def capture_session(
 ) -> tuple[list, dict]:
     """Drive one session and return its traces plus a label-free summary."""
 
-    session_id = f"trace_{uuid.uuid4().hex[:12]}"
+    # Stable and opaque: trace artifacts must be byte-reproducible, while the
+    # evaluator-only sample id itself must not be written into participant
+    # state or the artifact.
+    sample_identity = str(sample.get("sample_id", ""))
+    session_id = "trace_" + hashlib.sha256(sample_identity.encode()).hexdigest()[:12]
     agent.reset(session_id, sample["user_profile"])
     target = str(sample["ground_truth"]["parent_asin"])
     intent_card, behavior = materialize_hidden_fields(sample, products)
@@ -178,15 +194,22 @@ def main() -> None:
     parser.add_argument("--catalog", default="data/catalog.jsonl")
     parser.add_argument("--dataset", default="data/public_set.jsonl")
     parser.add_argument("--output-dir", default="artifacts/traces")
+    parser.add_argument(
+        "--allow-api",
+        action="store_true",
+        help="Allow configured API credentials to be used; may incur charges.",
+    )
     args = parser.parse_args()
 
     samples = load_jsonl(args.dataset)
     catalog_ids, categories, products = catalog_index(args.catalog)
     output_dir = Path(args.output_dir)
 
-    base = selector_from_env()
+    selected_environ = capture_environment(args.allow_api)
+    base = selector_from_env(selected_environ)
     manifest: dict = {
-        "route": describe_route(),
+        "capture_mode": "api_allowed" if args.allow_api else "offline_forced",
+        "route": describe_route(selected_environ),
         "scenarios": {},
     }
 
@@ -200,7 +223,7 @@ def main() -> None:
         agent, route_id = build_agent(
             args.catalog,
             RuntimeConfig(selector=selector),
-            environ={} if base.degraded else None,
+            environ=selected_environ,
         )
         with agent:
             traces, session_summary = capture_session(

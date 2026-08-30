@@ -1,4 +1,5 @@
 {
+  "capture_mode": "offline_forced",
   "route": {
     "credential_present": false,
     "credential_variable": "OPENAI_API_KEY",
@@ -10,24 +11,24 @@
   },
   "scenarios": {
     "boundary": {
-      "best_rank": 10,
+      "best_rank": 8,
       "calls": 0,
       "completion_tokens": 0,
       "estimated_cost": 0.0,
-      "fallback_turns": 7,
+      "fallback_turns": 6,
       "final_intent_version": 1,
-      "first_hit_turn": 7,
+      "first_hit_turn": 6,
       "hit": true,
       "prompt_tokens": 0,
       "reasoning_tokens": 0,
       "repairs": 0,
       "route_reasons": {
-        "no_generative_route": 7
+        "no_generative_route": 6
       },
       "routing_mode": "runtime_auto",
-      "session_id": "trace_fd1f3e199ef9",
+      "session_id": "trace_a3021e078a28",
       "trace_file": "boundary.jsonl",
-      "turns": 7
+      "turns": 6
     },
     "browsing": {
       "best_rank": 1,
@@ -45,49 +46,49 @@
         "no_generative_route": 6
       },
       "routing_mode": "runtime_auto",
-      "session_id": "trace_6ba1a4a7f920",
+      "session_id": "trace_c1ef76b6bd86",
       "trace_file": "browsing.jsonl",
       "turns": 6
     },
     "buying": {
-      "best_rank": 6,
+      "best_rank": 8,
       "calls": 0,
       "completion_tokens": 0,
       "estimated_cost": 0.0,
-      "fallback_turns": 8,
+      "fallback_turns": 7,
       "final_intent_version": 1,
-      "first_hit_turn": 8,
+      "first_hit_turn": 7,
       "hit": true,
       "prompt_tokens": 0,
       "reasoning_tokens": 0,
       "repairs": 0,
       "route_reasons": {
-        "no_generative_route": 8
+        "no_generative_route": 7
       },
       "routing_mode": "runtime_auto",
-      "session_id": "trace_f0d4639e23cb",
+      "session_id": "trace_3d3b84f2e162",
       "trace_file": "buying.jsonl",
-      "turns": 8
+      "turns": 7
     },
     "intent_override": {
-      "best_rank": 7,
+      "best_rank": null,
       "calls": 0,
       "completion_tokens": 0,
       "estimated_cost": 0.0,
-      "fallback_turns": 8,
+      "fallback_turns": 10,
       "final_intent_version": 2,
-      "first_hit_turn": 8,
-      "hit": true,
+      "first_hit_turn": null,
+      "hit": false,
       "prompt_tokens": 0,
       "reasoning_tokens": 0,
       "repairs": 0,
       "route_reasons": {
-        "no_generative_route": 8
+        "no_generative_route": 10
       },
       "routing_mode": "runtime_auto",
-      "session_id": "trace_31789724955d",
+      "session_id": "trace_0acbd4628fad",
       "trace_file": "intent_override.jsonl",
-      "turns": 8
+      "turns": 10
     }
   }
 }

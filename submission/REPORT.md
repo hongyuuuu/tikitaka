@@ -43,9 +43,11 @@ response violations were all zero in the dedicated offline evidence run.
 **Offline route.** Zero model calls, zero model tokens, zero model cost. This
 is the route the reproduced result above was scored on.
 
-**API route.** Measured against provider billing, not derived from client-side
-token counts. The distinction matters: our own accounting understated the bill
-by 4.8x, for the reason given below.
+**Historical API route (`xhigh`).** The table below describes the earlier
+`gpt-5.6-terra` `xhigh` run, not the current `medium` submission default. It was
+measured against provider billing rather than derived from client-side token
+counts. The distinction matters: our own accounting understated the bill by
+4.8x, for the reason given below.
 
 | Measure | Value |
 |---|---:|
@@ -58,6 +60,12 @@ by 4.8x, for the reason given below.
 | Latency, mean | 6.6 s |
 | Latency, p95 | 30.0 s |
 
+The current `medium` default has not been run live and therefore has no claimed
+quality, latency, token, or cost measurement. Official model documentation
+lists `medium` as the default reasoning effort, but that does not establish a
+workload-specific savings factor. The historical projections above must not be
+relabeled as `medium` estimates.
+
 **Client-side token counts understate the bill and must not be used alone.**
 The agent's `Usage` recorded 0.838 M input and 0.183 M output for the same work
 the provider billed at 3.086 M and 1.035 M — **79% of the real cost was
@@ -69,8 +77,12 @@ and it does not fit: `ApiInterpreter` does not retry a timeout, and the
 50-session run recorded zero fallbacks and zero repairs across 404 clean calls.
 Remaining candidates, none confirmed: provider-side usage not surfaced in the
 response body, activity on the account outside these runs on the same billing
-day, or a component making calls whose usage is never recorded. Until it is
-identified, the billed figures above are the ones to trust and the derived ones
+day, or a component making calls whose usage is never recorded. Fake-only
+reconciliation tests now prove local aggregation across interpreter, repair,
+and reranker events and report per-component token totals. They cannot resolve
+the historical discrepancy because no isolated provider snapshot exists for
+that run. Until a controlled same-window snapshot is available, the billed
+historical figures above are the ones to trust and client-derived figures
 should not be used for budgeting.
 
 The p95 latency of 30.0 s sits exactly at the configured 30 s request timeout,
@@ -96,5 +108,7 @@ production performance.
 - Without credentials, semantic interpretation and LLM reranking degrade to a
   deterministic heuristic route.
 - Without a compatible production index, retrieval remains sparse/structured.
+- The `medium` API default has no live score or cost claim; all API measurements
+  in this report are explicitly historical `xhigh` evidence.
 - Public-set metrics are development evidence and do not predict private-set
   performance.
