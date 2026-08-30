@@ -124,6 +124,44 @@ class OpenAIEmbeddingTransportTests(unittest.TestCase):
         self.assertEqual(body["dimensions"], 1)
         self.assertEqual(route.route_id, "openai/text-embedding-3-large/dimensions-1")
 
+    def test_a_provider_ignoring_dimensions_fails_closed(self) -> None:
+        # `dimensions` is a request parameter, not a guarantee. Without this
+        # check the wrong width is accepted, build_dense_index learns the width
+        # from the first batch, and the manifest, checksums and identity
+        # assertions all agree with each other on an index three times the
+        # agreed size.
+        config = OpenAIEmbeddingConfig(dimensions=1024)
+        route = openai_embedding_route(config)
+        opener = RecordingOpener(response([0.5] * 3072))
+        model = OpenAIEmbeddingModel(SECRET, config, opener=opener)
+
+        with self.assertRaises(MalformedModelOutput) as caught:
+            model.embed(("first",), route)
+
+        message = str(caught.exception)
+        self.assertIn("1024", message)
+        self.assertIn("3072", message)
+
+    def test_the_requested_width_is_accepted(self) -> None:
+        config = OpenAIEmbeddingConfig(dimensions=1024)
+        route = openai_embedding_route(config)
+        opener = RecordingOpener(response([0.5] * 1024))
+        model = OpenAIEmbeddingModel(SECRET, config, opener=opener)
+
+        vectors, _usage = model.embed(("first",), route)
+
+        self.assertEqual(len(vectors[0]), 1024)
+
+    def test_an_unset_dimension_accepts_the_native_width(self) -> None:
+        # Only an explicit request is enforced; the default width is whatever
+        # the model natively returns.
+        opener = RecordingOpener(response([0.5] * 3072))
+        model = OpenAIEmbeddingModel(SECRET, self.config, opener=opener)
+
+        vectors, _usage = model.embed(("first",), self.route)
+
+        self.assertEqual(len(vectors[0]), 3072)
+
     def test_transient_status_retries_with_bounded_backoff(self) -> None:
         pauses: list[float] = []
         opener = RecordingOpener(http_error(429), response([1.0]))

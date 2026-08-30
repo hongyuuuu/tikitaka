@@ -346,7 +346,33 @@ class OpenAIEmbeddingModel:
                 "embedding provider returned invalid usage",
                 self._route,
             )
-        return [indexed[index] for index in range(len(indexed))], prompt_tokens
+        vectors = [indexed[index] for index in range(len(indexed))]
+        self._assert_dimensions(vectors)
+        return vectors, prompt_tokens
+
+    def _assert_dimensions(self, vectors: Sequence[Sequence[float]]) -> None:
+        """Refuse vectors that are not the width the request asked for.
+
+        `dimensions` is a request parameter, not a guarantee: a provider may
+        ignore it and return the model's native width. Nothing downstream
+        notices. `build_dense_index` learns the width from the first batch, so
+        it would record whatever arrived, and the manifest, the checksums and
+        every identity assertion would then agree with each other — a
+        internally consistent index of the wrong shape, three times the agreed
+        size, discoverable only by looking at the file.
+        """
+
+        expected = self._config.dimensions
+        if expected is None:
+            return
+        for vector in vectors:
+            if len(vector) != expected:
+                raise MalformedModelOutput(
+                    f"embedding provider returned {len(vector)}-dimensional "
+                    f"vectors for a request of {expected}; the dimensions "
+                    "parameter was ignored or is unsupported for this model",
+                    self._route,
+                )
 
 
 def _environment_int(
