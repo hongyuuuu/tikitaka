@@ -34,6 +34,17 @@ from .embedding import GatewayEmbedder
 
 DEFAULT_EMBEDDING_URL = "https://api.openai.com/v1/embeddings"
 DEFAULT_EMBEDDING_MODEL = "text-embedding-3-large"
+
+#: Person 2's production decision, 2026-08-30: accuracy first, at a width that
+#: keeps the float32 index near 195 MB and therefore shippable inside a
+#: submission bundle. The model's native 3072 would be 586 MB.
+#:
+#: This is a default rather than a caller's responsibility because the failure
+#: is silent: leaving it unset sends no `dimensions` parameter at all, the
+#: provider returns its native width, and the build produces a valid index of
+#: the wrong size that every downstream identity check accepts. Override with
+#: TIKITAKA_EMBEDDING_DIMENSIONS for the 512 packaging ablation.
+PRODUCTION_EMBEDDING_DIMENSIONS = 1024
 EMBEDDING_CREDENTIAL_VARIABLE = "OPENAI_API_KEY"
 MAX_INPUTS_PER_REQUEST = 2_048
 _TRANSIENT_STATUS = frozenset({408, 409, 425, 429, 500, 502, 503, 504})
@@ -78,7 +89,7 @@ class OpenAIEmbeddingConfig:
     """Immutable request and attribution settings for one embedding route."""
 
     model: str = DEFAULT_EMBEDDING_MODEL
-    dimensions: int | None = None
+    dimensions: int | None = PRODUCTION_EMBEDDING_DIMENSIONS
     base_url: str = DEFAULT_EMBEDDING_URL
     timeout_s: float = 60.0
     max_attempts: int = 3
@@ -462,6 +473,7 @@ __all__ = [
     "DEFAULT_EMBEDDING_URL",
     "EMBEDDING_CREDENTIAL_VARIABLE",
     "MAX_INPUTS_PER_REQUEST",
+    "PRODUCTION_EMBEDDING_DIMENSIONS",
     "OpenAIEmbeddingConfig",
     "OpenAIEmbeddingModel",
     "openai_embedder_from_env",

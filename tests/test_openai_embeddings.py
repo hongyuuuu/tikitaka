@@ -18,6 +18,7 @@ from tikitaka.retrieval.openai_embeddings import (
     MAX_INPUTS_PER_REQUEST,
     OpenAIEmbeddingConfig,
     OpenAIEmbeddingModel,
+    PRODUCTION_EMBEDDING_DIMENSIONS,
     openai_embedder_from_env,
     openai_embedding_route,
 )
@@ -84,7 +85,11 @@ def http_error(status: int) -> urllib.error.HTTPError:
 
 class OpenAIEmbeddingTransportTests(unittest.TestCase):
     def setUp(self) -> None:
+        # `dimensions=None` keeps these transport tests decoupled from vector
+        # width: they exercise ordering, retry, usage and identity, and would
+        # otherwise have to carry 1024-wide fixtures to say nothing about width.
         self.config = OpenAIEmbeddingConfig(
+            dimensions=None,
             timeout_s=7.0,
             max_attempts=2,
             backoff_base_s=0.01,
@@ -123,6 +128,30 @@ class OpenAIEmbeddingTransportTests(unittest.TestCase):
         body = json.loads(opener.requests[0].data.decode("utf-8"))
         self.assertEqual(body["dimensions"], 1)
         self.assertEqual(route.route_id, "openai/text-embedding-3-large/dimensions-1")
+
+    def test_the_production_default_is_the_agreed_width(self) -> None:
+        # The decision has to live in the code, not only in the conversation:
+        # an unset width sends no `dimensions` at all and silently builds a
+        # 586 MB index that every downstream identity check accepts.
+        config = OpenAIEmbeddingConfig()
+        self.assertEqual(config.dimensions, PRODUCTION_EMBEDDING_DIMENSIONS)
+        self.assertEqual(config.dimensions, 1024)
+        self.assertIn("dimensions-1024", config.route_id)
+
+    def test_the_default_build_sends_the_agreed_width(self) -> None:
+        opener = RecordingOpener(response([0.5] * 1024))
+        model = OpenAIEmbeddingModel(SECRET, OpenAIEmbeddingConfig(), opener=opener)
+
+        model.embed(("first",), openai_embedding_route(OpenAIEmbeddingConfig()))
+
+        body = json.loads(opener.requests[0].data.decode("utf-8"))
+        self.assertEqual(body["dimensions"], 1024)
+
+    def test_the_512_packaging_ablation_is_still_reachable(self) -> None:
+        embedder = openai_embedder_from_env(
+            {"OPENAI_API_KEY": SECRET, "TIKITAKA_EMBEDDING_DIMENSIONS": "512"}
+        )
+        self.assertIn("dimensions-512", embedder.route_id)
 
     def test_a_provider_ignoring_dimensions_fails_closed(self) -> None:
         # `dimensions` is a request parameter, not a guarantee. Without this
