@@ -9,7 +9,7 @@
     "oversized_tracked_files": [],
     "public_labels_in_bundle": false,
     "secret_material_in_bundle": false,
-    "tracked_file_count": 187
+    "tracked_file_count": 202
   },
   "clean_reproduction": {
     "catalog_sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
@@ -23,10 +23,10 @@
       "heuristic/local"
     ],
     "source_repository_on_import_path": false,
-    "wall_time_ms": 24832.056
+    "wall_time_ms": 36324.126
   },
   "code_dirty": false,
-  "code_revision": "92938963e57773b1375fdfb11735b9acd3f630e9",
+  "code_revision": "a454022a14590ab50d9c127cc413ee6391bf9163",
   "metrics": {
     "efficiency": 0.522,
     "hit_rate_at_10": 0.885,
@@ -67,11 +67,11 @@
     }
   },
   "package": {
-    "bytes": 155729,
+    "bytes": 158794,
     "file_count": 68,
     "manifest_schema": "m6-submission-manifest-v1",
-    "sha256": "f64626bbe4f2b511a51297678effd8f5b2e4c524cdb565faea04769977e09adb",
-    "uncompressed_bytes": 514851
+    "sha256": "2a327d4b2dafe020e2239055d1d5b7743abc276543c12e905cf4fed7a3c65b1b",
+    "uncompressed_bytes": 525091
   },
   "production_dense_measurements": {
     "fields": [
