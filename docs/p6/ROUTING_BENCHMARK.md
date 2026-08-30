@@ -96,15 +96,38 @@ falls to 15.7%.
 
 A test now asserts the threshold sits strictly between the two observed values.
 
-## Spend
+## Spend, and a 4.8x error in how we measured it
 
-| Run | Cost | Valid |
-|---|---:|---|
-| 10-session probe (pre-fix) | $0.34 | yes — found the prompt/schema defect |
-| 10-session probe (post-fix) | $0.61 | yes |
-| 50-session always-generative | $2.77 | yes |
-| 50-session selective | $0.16 | **no** — credits exhausted |
-| **Total** | **$3.87** | |
+Client-side accounting said $3.87. Provider billing for the same day says
+**$18.59** — 3.086M input and 1.035M output tokens against the 0.838M and
+0.183M we recorded.
+
+| | input | output | cost |
+|---|---:|---:|---:|
+| Provider billing | 3.086 M | 1.035 M | **$18.59** |
+| Our instrumentation | 0.838 M | 0.183 M | $3.87 |
+| Unrecorded | 2.248 M | 0.852 M | $14.72 |
+
+**79% of the real cost was invisible to us.** `Usage` records only completed
+calls. A request that times out client-side has already been processed and
+billed by the provider, and a transport retry after a timeout pays twice while
+recording once. Output is understated more than input — 5.65x against 3.68x —
+which is what abandoned reasoning requests look like: at `xhigh` the provider
+generates expensive output before the client gives up.
+
+The p95 latency of 30,048 ms against a 30,000 ms timeout is the evidence. Calls
+were routinely being abandoned exactly at the limit.
+
+### Corrected economics
+
+| | previously reported | actual |
+|---|---:|---:|
+| always-generative, per session | $0.0554 | **$0.266** |
+| public 200 sessions | $11.07 | **$53.14** |
+| private 800 sessions | $44.29 | **$212.57** |
+
+This strengthens the decision rather than complicating it: always-generative
+loses 0.11 TechnicalScore at five times the cost first reported.
 
 ## Is the selective arm worth re-running?
 
