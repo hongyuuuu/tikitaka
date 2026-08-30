@@ -1,6 +1,6 @@
 # Person 2 — M5 Network-Degraded Retrieval Status
 
-Evidence revision: `30c9f980aa1a112e10296ed7920a7597bc6fc3a3`
+Evidence revision: `dea59af1862dc8a6ef8403e6d3f86563eede2622`
 
 Status: the network-free runtime and artifact-failure gates are met. The
 numerical quality delta versus the primary hybrid route remains pending because

@@ -1,7 +1,7 @@
 {
   "catalog_checksum": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
   "code_dirty": false,
-  "code_revision": "30c9f980aa1a112e10296ed7920a7597bc6fc3a3",
+  "code_revision": "dea59af1862dc8a6ef8403e6d3f86563eede2622",
   "dataset_checksum": "857259f7a438e6188ac63e18995b6ff4489bfcfc4a716a798b9a2aa0ee8f7579",
   "dense_artifact_failure_checks": {
     "corrupt_artifact": "dense_artifact_invalid",
