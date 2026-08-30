@@ -139,5 +139,59 @@ class UsageHarvestTests(unittest.TestCase):
         self.assertEqual(self._run(agent)["fallback_turns"], 2)
 
 
+class PartialDegradationTests(unittest.TestCase):
+    """The dangerous degradation is partial, not total."""
+
+    def test_a_mostly_failing_route_is_detectable_from_the_harvest(self) -> None:
+        # Zero tokens is easy to catch. A route that fails most turns still
+        # produces tokens, still completes, and still prints a plausible hit
+        # rate that actually belongs to the fallback. Observed for real: the
+        # account ran out of credits and 60 of 63 escalations returned 429.
+        class Failing:
+            def interpret(self, message, state):
+                raise RuntimeError("HTTP 429: no credits remaining")
+
+        agent, _ = build_agent(
+            CATALOG,
+            RuntimeConfig(enable_llm_reranker=False),
+            environ={},
+            model_selection=GatewaySelection(
+                interpreter=Failing(),
+                text_model=None,
+                route=PRIMARY_ROUTE,
+                degraded=False,
+            ),
+        )
+        recorder = UsageRecordingAgent(agent)
+        with recorder:
+            recorder.reset("p", {})
+            for turn in (1, 2, 3):
+                recorder.respond("p", "I want shoes.", turn, 10)
+            harvest = recorder.harvest()
+
+        attempted = harvest["calls"] + harvest["fallback_turns"]
+        self.assertEqual(harvest["fallback_turns"], 3)
+        self.assertGreater(harvest["fallback_turns"] / attempted, 0.2)
+
+    def test_a_healthy_route_reports_no_degradation(self) -> None:
+        agent, _ = build_agent(
+            CATALOG,
+            RuntimeConfig(enable_llm_reranker=False),
+            environ={},
+            model_selection=GatewaySelection(
+                interpreter=PricedInterpreter(),
+                text_model=None,
+                route=PRIMARY_ROUTE,
+                degraded=False,
+            ),
+        )
+        recorder = UsageRecordingAgent(agent)
+        with recorder:
+            recorder.reset("p", {})
+            recorder.respond("p", "I want shoes.", 1, 10)
+            harvest = recorder.harvest()
+        self.assertEqual(harvest["fallback_turns"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

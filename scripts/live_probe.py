@@ -186,8 +186,20 @@ def preflight(environ=None) -> dict:
 
 
 def score(agent, samples, catalog_ids, categories, products) -> dict:
+    """Keep per-session outcomes: aggregates cannot support a paired test.
+
+    Both arms run the same sessions, so the informative comparison is
+    per-session agreement — how often one route hits where the other misses —
+    not two independent proportions. Discarding the session list throws that
+    away and leaves only the weaker unpaired interval.
+    """
+
     result = evaluate(agent, samples, catalog_ids, categories, products)
-    return {key: value for key, value in result.items() if key != "sessions"}
+    summary = {key: value for key, value in result.items() if key != "sessions"}
+    summary["session_hits"] = {
+        str(item["sample_id"]): bool(item["hit"]) for item in result.get("sessions", [])
+    }
+    return summary
 
 
 def main() -> None:
@@ -291,6 +303,23 @@ def main() -> None:
             "these numbers as an API result."
         )
 
+    # Zero tokens is the obvious degradation. The dangerous one is partial:
+    # a route that fails most turns still produces tokens, still completes, and
+    # still prints a plausible hit rate that is really the fallback's. Observed
+    # for real when the account ran out of credits mid-run and 60 of 63
+    # escalations returned HTTP 429.
+    attempted = usage["calls"] + usage["fallback_turns"]
+    degraded_share = usage["fallback_turns"] / attempted if attempted else 0.0
+    if degraded_share > 0.2:
+        print()
+        print("=" * 68)
+        print(f"PROBE NOT VALID AS A ROUTE MEASUREMENT: "
+              f"{usage['fallback_turns']} of {attempted} attempted calls fell back")
+        print(f"({degraded_share:.0%}). The quality figures below are mostly the")
+        print("deterministic fallback, not this route. Check credit balance and")
+        print("rate limits before reporting them.")
+        print("=" * 68)
+
     baseline_metrics = None
     if not args.skip_baseline:
         print("running the same sessions on the deterministic route (free)...")
@@ -307,6 +336,8 @@ def main() -> None:
     report = {
         "route": route,
         "routing": args.routing,
+        "degraded_share": round(degraded_share, 4),
+        "valid_route_measurement": degraded_share <= 0.2,
         "sessions": len(subset),
         "scenario_breakdown": dict(sorted(breakdown.items())),
         "seed": args.seed,
