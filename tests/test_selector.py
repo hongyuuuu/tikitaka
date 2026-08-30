@@ -143,6 +143,27 @@ class DefaultRoutingTests(unittest.TestCase):
         self.assertTrue(RoutingThresholds().always_generative)
         self.assertFalse(SELECTIVE.always_generative)
 
+    def test_the_confidence_threshold_discriminates_between_observed_values(self) -> None:
+        # The heuristic emits exactly 0.00 and 0.60 across the public set. A
+        # threshold outside that range makes the comparison a constant, which
+        # is what shipped: 0.65 escalated on 100% of turns. This is the guard
+        # that would have caught it.
+        observed_low, observed_high = 0.00, 0.60
+        self.assertGreater(SELECTIVE.min_mode_confidence, observed_low)
+        self.assertLess(SELECTIVE.min_mode_confidence, observed_high)
+
+    def test_the_selective_policy_leaves_a_recognised_mode_alone(self) -> None:
+        recognised = replace(CONFIDENT, mode_confidence=0.60)
+        selector = ModelSelector(PRIMARY_ROUTE, thresholds=SELECTIVE)
+        self.assertFalse(selector.select(recognised).generative)
+
+    def test_the_selective_policy_escalates_an_unrecognised_mode(self) -> None:
+        unrecognised = replace(CONFIDENT, mode_confidence=0.00)
+        selector = ModelSelector(PRIMARY_ROUTE, thresholds=SELECTIVE)
+        decision = selector.select(unrecognised)
+        self.assertTrue(decision.generative)
+        self.assertEqual(decision.reason, "low_mode_confidence")
+
 
 class SelectiveRoutingTests(unittest.TestCase):
     """The opt-in cost-saving policy."""
