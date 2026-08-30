@@ -11,7 +11,7 @@ Owner: Person 1. Phase reference: `docs/PERSON_1_BUILD_PLAN.md` section 10.
 | Constraints per attribute capped | met |
 | Network-free run produces valid deterministic output | met |
 | No secret in traces, reports, or committed fixtures | met |
-| Degraded-path quality delta recorded | **blocked** — needs the deferred live run |
+| Degraded-path quality delta recorded | met — see `docs/p6/ROUTING_BENCHMARK.md` |
 
 ## Fault matrix
 
@@ -91,5 +91,14 @@ real key cannot reach the repository through test data.
 
 ## What remains
 
-The API-versus-heuristic quality delta, which needs the ten-session live run
-deferred to avoid cost during the build phase. Everything else in P5 is closed.
+Nothing. The API-versus-heuristic quality delta was the last open item and was
+measured on 2026-08-30 over 50 paired sessions:
+
+| | Hit@10 | TechnicalScore |
+|---|---:|---:|
+| Deterministic | 0.880 | 0.7084 |
+| API, always-generative | 0.700 | 0.5961 |
+
+The degraded path is not a degradation. It is the better route on every
+scenario measured, and the deterministic route is what ships. Full method,
+caveats and cost in `docs/p6/ROUTING_BENCHMARK.md`.
