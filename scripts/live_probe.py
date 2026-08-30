@@ -47,6 +47,7 @@ from tikitaka.models.api_llm import ApiConfig
 from tikitaka.models.base import CredentialMissing, ModelError
 from tikitaka.models.env_file import DEFAULT_ENV_FILE, load_env_file
 from tikitaka.models.factory import PRIMARY_ROUTE, describe_route, gateway_from_env
+from tikitaka.models.selector import SELECTIVE, ModelSelector
 from tikitaka.orchestration.runtime import (
     DeterministicRuntimeConfig,
     RuntimeConfig,
@@ -198,6 +199,12 @@ def main() -> None:
     parser.add_argument("--output", default="artifacts/live_probe.json")
     parser.add_argument("--skip-baseline", action="store_true")
     parser.add_argument(
+        "--routing",
+        choices=("always", "selective"),
+        default="always",
+        help="always-generative (default) or the SELECTIVE cost-saving policy",
+    )
+    parser.add_argument(
         "--yes", action="store_true", help="skip the spend confirmation prompt"
     )
     parser.add_argument(
@@ -230,6 +237,7 @@ def main() -> None:
     config = ApiConfig(route=PRIMARY_ROUTE)
     print(f"route          {route['route_id']} ({route['reasoning_level']})")
     print(f"sessions       {len(subset)}  {dict(sorted(breakdown.items()))}")
+    print(f"routing        {args.routing}")
     print(f"rates          ${config.prompt_cost_per_1k * 1000:.2f}/1M in, "
           f"${config.completion_cost_per_1k * 1000:.2f}/1M out")
     print()
@@ -262,8 +270,11 @@ def main() -> None:
 
     catalog_ids, categories, products = catalog_index(args.catalog)
 
+    selector = None
+    if args.routing == "selective":
+        selector = ModelSelector(PRIMARY_ROUTE, thresholds=SELECTIVE)
     shopping_agent, route_id = build_agent(
-        args.catalog, RuntimeConfig(allow_degraded=False)
+        args.catalog, RuntimeConfig(allow_degraded=False, selector=selector)
     )
     api_agent = UsageRecordingAgent(shopping_agent)
     print(f"running {len(subset)} live sessions on {route_id}...")
@@ -295,6 +306,7 @@ def main() -> None:
     per_session = usage["estimated_cost"] / max(len(subset), 1)
     report = {
         "route": route,
+        "routing": args.routing,
         "sessions": len(subset),
         "scenario_breakdown": dict(sorted(breakdown.items())),
         "seed": args.seed,
