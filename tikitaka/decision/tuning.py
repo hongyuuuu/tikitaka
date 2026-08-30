@@ -1,4 +1,4 @@
-"""Reproducible Person 3 experiment arms for the Phase 4 score gate.
+"""Reproducible Person 3 experiment arms for policy and score gates.
 
 This module owns configuration, not evaluation.  Person 4 can pass
 ``runtime_overrides`` into its composition root and record the stable IDs and
@@ -15,10 +15,13 @@ from typing import Mapping
 from tikitaka.ranking.deterministic import DeterministicRankerConfig
 from tikitaka.ranking.llm import LLMRerankerConfig
 
+from .question_value import CONTRACT_ORDER_SELECTION, HIGHEST_VALUE_SELECTION
 from .response_policy import ResponsePolicyConfig
 
 
 PHASE4_ARM_VERSION = "person3-phase4-v1"
+PHASE5_ARM_VERSION = "person3-phase5-v1"
+PHASE5_CLARIFICATION_THRESHOLDS = (0.050, 0.060, 0.070, 0.080, 0.090)
 
 
 @dataclass(frozen=True)
@@ -58,8 +61,19 @@ class Phase4ExperimentArm:
 
     @property
     def fingerprint(self) -> str:
+        values = asdict(self)
+        response = values.get("response")
+        if (
+            isinstance(response, dict)
+            and response.get("question_selection_strategy")
+            == HIGHEST_VALUE_SELECTION
+        ):
+            # Preserve every Phase 4 fingerprint recorded before the explicit
+            # fixed-order selector was introduced. The default strategy has
+            # identical behaviour to those historical configurations.
+            response.pop("question_selection_strategy")
         payload = json.dumps(
-            asdict(self),
+            values,
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -101,7 +115,7 @@ class Phase4ExperimentArm:
 
 
 def phase4_experiment_arms() -> tuple[Phase4ExperimentArm, ...]:
-    """Return the small, one-factor-first grid required before joint tuning."""
+    """Return the reproducible Person 3 grid consumed by the P5 harness."""
 
     ranking = DeterministicRankerConfig(profile_weight=0.0)
     adaptive = ResponsePolicyConfig(question_ranker=ranking)
@@ -116,12 +130,19 @@ def phase4_experiment_arms() -> tuple[Phase4ExperimentArm, ...]:
         adaptive,
         question_value=official_proxy_question,
     )
-    conservative = replace(
+    post_no_information = replace(
         official_proxy,
-        information_gain_threshold=0.070,
         clarification_turn_cost=0.018,
         late_turn_cost=0.100,
     )
+    threshold_responses = {
+        threshold: replace(
+            post_no_information,
+            information_gain_threshold=threshold,
+        )
+        for threshold in PHASE5_CLARIFICATION_THRESHOLDS
+    }
+    conservative = threshold_responses[0.070]
     anchored_llm = LLMRerankerConfig()
     unanchored_llm = replace(
         anchored_llm,
@@ -129,7 +150,7 @@ def phase4_experiment_arms() -> tuple[Phase4ExperimentArm, ...]:
         skip_llm_lead_margin=1.0,
     )
 
-    arms = (
+    arms: list[Phase4ExperimentArm] = [
         Phase4ExperimentArm(
             name="always-recommend-baseline",
             question_policy_id="p3/always-recommend-v1",
@@ -194,23 +215,90 @@ def phase4_experiment_arms() -> tuple[Phase4ExperimentArm, ...]:
             llm_reranker=None,
             profile_weight=0.10,
         ),
-    )
+    ]
+
+    for threshold, response in threshold_responses.items():
+        threshold_code = f"{round(threshold * 1000):03d}"
+        if threshold != 0.070:
+            arms.append(
+                Phase4ExperimentArm(
+                    name=f"post-no-info-threshold-{threshold_code}-deterministic",
+                    question_policy_id=(
+                        f"p3/post-no-info-threshold-{threshold_code}-v1"
+                    ),
+                    reranker_route_id="p3/deterministic-v2",
+                    response=response,
+                    ranking=ranking,
+                    enable_llm_reranker=False,
+                    llm_reranker=None,
+                    version=PHASE5_ARM_VERSION,
+                )
+            )
+
+        fixed_name = (
+            "fixed-ask-baseline"
+            if threshold == 0.070
+            else f"fixed-ask-threshold-{threshold_code}"
+        )
+        fixed_response = replace(
+            response,
+            question_selection_strategy=CONTRACT_ORDER_SELECTION,
+        )
+        arms.append(
+            Phase4ExperimentArm(
+                name=fixed_name,
+                question_policy_id=(
+                    f"p3/fixed-ask-contract-order-threshold-{threshold_code}-v1"
+                ),
+                reranker_route_id="p3/deterministic-v2",
+                response=fixed_response,
+                ranking=ranking,
+                enable_llm_reranker=False,
+                llm_reranker=None,
+                version=PHASE5_ARM_VERSION,
+            )
+        )
+
+        llm_name = (
+            "conservative-llm-anchored"
+            if threshold == 0.070
+            else f"post-no-info-threshold-{threshold_code}-llm-anchored"
+        )
+        arms.append(
+            Phase4ExperimentArm(
+                name=llm_name,
+                question_policy_id=(
+                    "p3/conservative-official-proxy-v1"
+                    if threshold == 0.070
+                    else f"p3/post-no-info-threshold-{threshold_code}-v1"
+                ),
+                reranker_route_id="p3/llm-anchored-v2",
+                response=response,
+                ranking=ranking,
+                enable_llm_reranker=True,
+                llm_reranker=anchored_llm,
+                version=PHASE5_ARM_VERSION,
+            )
+        )
+
     names = [arm.name for arm in arms]
     fingerprints = [arm.fingerprint for arm in arms]
     if len(names) != len(set(names)) or len(fingerprints) != len(set(fingerprints)):
-        raise AssertionError("Phase 4 experiment arms must be uniquely attributable")
-    return arms
+        raise AssertionError("Person 3 experiment arms must be uniquely attributable")
+    return tuple(arms)
 
 
 def phase4_arm(name: str) -> Phase4ExperimentArm:
     for arm in phase4_experiment_arms():
         if arm.name == name:
             return arm
-    raise KeyError(f"unknown Person 3 Phase 4 arm: {name}")
+    raise KeyError(f"unknown Person 3 experiment arm: {name}")
 
 
 __all__ = [
     "PHASE4_ARM_VERSION",
+    "PHASE5_ARM_VERSION",
+    "PHASE5_CLARIFICATION_THRESHOLDS",
     "Phase4ExperimentArm",
     "phase4_arm",
     "phase4_experiment_arms",

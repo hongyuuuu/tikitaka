@@ -14,7 +14,13 @@ from tikitaka.ranking.deterministic import (
 from .diagnostics import ALLOWED_ATTRIBUTES, DiagnosticsConfig
 from .generality import GeneralityConfig, GeneralitySensor
 from .intent_router import VisibleModePolicy
-from .question_value import QuestionValueConfig, QuestionValueEstimator
+from .question_value import (
+    CONTRACT_ORDER_SELECTION,
+    HIGHEST_VALUE_SELECTION,
+    QUESTION_SELECTION_STRATEGIES,
+    QuestionValueConfig,
+    QuestionValueEstimator,
+)
 
 
 DECISION_REASON_CODES = frozenset(
@@ -57,6 +63,7 @@ class DecisionRecord:
 @dataclass(frozen=True)
 class ResponsePolicyConfig:
     clarification_enabled: bool = True
+    question_selection_strategy: str = HIGHEST_VALUE_SELECTION
     generality_threshold: float = 0.46
     information_gain_threshold: float = 0.055
     buying_information_gain_adjustment: float = 0.020
@@ -75,6 +82,11 @@ class ResponsePolicyConfig:
     def __post_init__(self) -> None:
         if not isinstance(self.clarification_enabled, bool):
             raise TypeError("clarification_enabled must be bool")
+        if self.question_selection_strategy not in QUESTION_SELECTION_STRATEGIES:
+            raise ValueError(
+                "question_selection_strategy must be one of "
+                f"{sorted(QUESTION_SELECTION_STRATEGIES)}"
+            )
         if not 0.0 <= self.generality_threshold <= 1.0:
             raise ValueError("generality_threshold must be in [0, 1]")
         if not 0.0 <= self.information_gain_threshold <= 1.0:
@@ -115,6 +127,7 @@ class ResponsePolicy:
         self.question_value = question_value or QuestionValueEstimator(
             ranker=DeterministicRanker(config=self.config.question_ranker),
             config=self.config.question_value,
+            selection_strategy=self.config.question_selection_strategy,
         )
         self.mode_policy = mode_policy or VisibleModePolicy()
         self.decision_type = decision_type
@@ -201,12 +214,18 @@ class ResponsePolicy:
             threshold += self.config.browsing_information_gain_adjustment
         threshold = min(1.0, max(0.0, threshold))
         if question.expected_information_gain < threshold:
+            question_label = (
+                "Fixed-order clarification"
+                if self.config.question_selection_strategy
+                == CONTRACT_ORDER_SELECTION
+                else "Best clarification"
+            )
             return self._decision(
                 "recommend",
                 None,
                 "low_question_value",
                 (
-                    "Best clarification does not justify a recommendation-free turn "
+                    f"{question_label} does not justify a recommendation-free turn "
                     f"({question.expected_information_gain:.3f} < {threshold:.3f})."
                 ),
                 question.expected_information_gain,
@@ -238,13 +257,22 @@ class ResponsePolicy:
                 question.expected_information_gain,
             )
 
+        if self.config.question_selection_strategy == CONTRACT_ORDER_SELECTION:
+            question_reason = (
+                f"Asking {question.best_attribute} uses the first eligible "
+                "attribute in the pinned contract order "
+                f"({question.expected_information_gain:.3f} estimated change)."
+            )
+        else:
+            question_reason = (
+                f"Asking {question.best_attribute} has the greatest expected "
+                "rank-weighted Top-10 change "
+                f"({question.expected_information_gain:.3f})."
+            )
         return self._decision(
             "clarify",
             question.best_attribute,
             "valuable_clarification",
-            (
-                f"Asking {question.best_attribute} has the greatest expected "
-                f"rank-weighted Top-10 change ({question.expected_information_gain:.3f})."
-            ),
+            question_reason,
             question.expected_information_gain,
         )

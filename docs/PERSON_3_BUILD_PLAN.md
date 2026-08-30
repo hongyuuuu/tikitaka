@@ -308,12 +308,52 @@ Run controlled additions in this order:
 
 1. fused retrieval order, never ask;
 2. deterministic constraint-aware reranking;
-3. generality gate with fixed clarification choice;
+3. generality gate with the `fixed-ask-baseline`: choose the first eligible
+   attribute in the immutable contract order, without selecting the attribute
+   that has the highest estimated information gain;
 4. expected ranking-change attribute selection;
 5. repetition and early-turn diversity;
 6. LLM shortlist reranking;
 7. selected combined configuration;
 8. deterministic network-free configuration.
+
+### Phase 5 fixed-ask control
+
+The fixed-ask arm is a control for the value of adaptive question selection,
+not permission to ask invalid or repeated questions. It must:
+
+- reuse the same generality, turn-budget and clarify-versus-recommend utility
+  gates as the adaptive deterministic arm;
+- choose the first eligible attribute in `ALLOWED_ATTRIBUTES` order rather
+  than the attribute with the largest expected ranking change;
+- permanently skip no-preference and exhausted attributes, and skip answered
+  or already-asked attributes unless an explicit revalidation flag applies;
+- recommend when no fixed-order attribute is eligible and always recommend on
+  turn 10;
+- use deterministic reranking, profile weight `0` and no LLM calls so question
+  selection is the only changed variable; and
+- have its own stable question-policy ID, arm fingerprint, normal/boundary/
+  malformed tests and tuning plus held-out report.
+
+Person 3 owns the decision configuration, arm and unit tests. Person 4 owns
+running and reporting the arm through the existing P5 experiment harness. No
+evaluator, orchestration or shared-contract branch should be added for this
+control.
+
+After the no-information-state correction, tune only the clarification
+threshold on the tuning split using the pre-registered grid `0.05`, `0.06`,
+`0.07`, `0.08`, and `0.09`. Keep the official-proxy question-value weights,
+clarification cost and late-turn cost fixed. Each threshold must expose:
+
+- an adaptive deterministic arm;
+- a contract-order fixed-ask arm; and
+- an otherwise identical anchored-LLM reranking arm.
+
+Use the threshold-matched arms so the held-out comparison changes exactly one
+axis at a time. Profile weight remains `0`; a non-zero override is not a
+release finalist unless it first wins on tuning and then improves held-out
+evidence. Freeze the final policy by Hit Rate@10, then MRR, then MTTC, subject
+to the per-scenario collapse safeguard.
 
 Track:
 
