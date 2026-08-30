@@ -1,0 +1,65 @@
+{
+  "catalog_checksum": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
+  "code_dirty": false,
+  "code_revision": "30c9f980aa1a112e10296ed7920a7597bc6fc3a3",
+  "dataset_checksum": "857259f7a438e6188ac63e18995b6ff4489bfcfc4a716a798b9a2aa0ee8f7579",
+  "dense_artifact_failure_checks": {
+    "corrupt_artifact": "dense_artifact_invalid",
+    "missing_artifact": "dense_artifact_unavailable"
+  },
+  "execution": {
+    "agent_exception_types": {},
+    "credential_forced_absent": true,
+    "degraded": true,
+    "local_generative_llm": false,
+    "network_attempt_count": 0,
+    "network_guard": "python-audit-hook/socket-connect-dns-sendto",
+    "raw_response_count": 1133,
+    "response_violations": {},
+    "route_id": "heuristic/local"
+  },
+  "metrics": {
+    "efficiency": 0.522,
+    "hit_rate_at_10": 0.885,
+    "mrr": 0.52924,
+    "mttc": 5.78,
+    "recommended_technical_score": 0.705672,
+    "reported_token_usage": {
+      "completion_tokens": 0,
+      "prompt_tokens": 0,
+      "total_tokens": 0
+    },
+    "sample_count": 200,
+    "scenario_metrics": {
+      "boundary": {
+        "hit_rate_at_10": 0.8,
+        "mrr": 0.6125,
+        "mttc": 7.0,
+        "sample_count": 10
+      },
+      "browsing": {
+        "hit_rate_at_10": 0.9875,
+        "mrr": 0.610288,
+        "mttc": 5.625,
+        "sample_count": 80
+      },
+      "buying": {
+        "hit_rate_at_10": 0.8625,
+        "mrr": 0.482763,
+        "mttc": 5.375,
+        "sample_count": 80
+      },
+      "intent_override": {
+        "hit_rate_at_10": 0.7,
+        "mrr": 0.409299,
+        "mttc": 6.866667,
+        "sample_count": 30
+      }
+    }
+  },
+  "quality_delta_from_primary_hybrid": {
+    "reason": "A real text-embedding-3-large/1024 index and primary API run do not exist yet; fixture embeddings cannot supply a quality baseline.",
+    "status": "pending_production_hybrid_evidence"
+  },
+  "schema_version": "m5-offline-evidence-v1"
+}

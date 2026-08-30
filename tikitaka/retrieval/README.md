@@ -246,3 +246,25 @@ index manifest. ANN is intentionally not another default variant: the frozen
 50,000-product catalog already runs exact cosine in memory, and the project
 prioritizes accuracy over latency. Add an ANN candidate only if production
 full-catalog timing evidence shows exact search is a material bottleneck.
+
+## M5 network-degraded evidence
+
+Run the unchanged public evaluator with the credential forcibly absent, Python
+socket/DNS activity denied, raw Agent responses observed before evaluator
+normalization, and missing/corrupt dense artifact probes enabled:
+
+```bash
+python3 scripts/run_m5_offline.py \
+  --catalog data/catalog.jsonl \
+  --dataset data/public_set.jsonl \
+  --expected-catalog-count 50000 \
+  --expected-sample-count 200 \
+  --output /path/outside-the-repository/m5-offline.json
+```
+
+The command requires a clean committed worktree and fails if the runtime
+attempts network access, selects a route other than `heuristic/local`, hides an
+Agent exception, emits a raw contract violation, reports model tokens, or does
+not cover all four scenarios. `reports/m5-offline.json` is the frozen evidence
+run; `docs/m5/PERSON_2_M5_STATUS.md` explains its remaining production-hybrid
+comparison dependency.
