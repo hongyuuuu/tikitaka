@@ -59,17 +59,23 @@ by 4.8x, for the reason given below.
 | Latency, p95 | 30.0 s |
 
 **Client-side token counts understate the bill and must not be used alone.**
-The agent's `Usage` records only completed calls. A request that times out
-client-side has already been processed and billed by the provider, and a
-transport retry after a timeout pays twice while recording once. Across this
-work the gap was 3.086 M billed input against 0.838 M recorded, and 1.035 M
-billed output against 0.183 M recorded — **79% of the real cost was invisible to
-our instrumentation.** Output is understated more than input (5.65x against
-3.68x), which is consistent with abandoned reasoning requests: at `xhigh` the
-provider generates expensive output before the client gives up.
+The agent's `Usage` recorded 0.838 M input and 0.183 M output for the same work
+the provider billed at 3.086 M and 1.035 M — **79% of the real cost was
+invisible to our instrumentation**, and output is understated more than input
+(5.65x against 3.68x).
+
+**The cause is not established.** Timeout-and-retry was the obvious candidate
+and it does not fit: `ApiInterpreter` does not retry a timeout, and the
+50-session run recorded zero fallbacks and zero repairs across 404 clean calls.
+Remaining candidates, none confirmed: provider-side usage not surfaced in the
+response body, activity on the account outside these runs on the same billing
+day, or a component making calls whose usage is never recorded. Until it is
+identified, the billed figures above are the ones to trust and the derived ones
+should not be used for budgeting.
 
 The p95 latency of 30.0 s sits exactly at the configured 30 s request timeout,
-so calls were routinely abandoned at the limit. That is the mechanism.
+which is worth fixing on its own merits, but it is not demonstrated to be the
+cause of the accounting gap.
 
 Cached input is billed at $0.20/1M, a tenth of standard, and nothing here
 records cache hits; any caching benefit is already reflected in the billed
