@@ -43,31 +43,37 @@ response violations were all zero in the dedicated offline evidence run.
 **Offline route.** Zero model calls, zero model tokens, zero model cost. This
 is the route the reproduced result above was scored on.
 
-**API route.** Measured over a 10-session live probe against
-`gpt-5.6-terra` at `xhigh`, 90 calls, list price $2.00/1M input and
-$12.00/1M output:
+**API route.** Measured against provider billing, not derived from client-side
+token counts. The distinction matters: our own accounting understated the bill
+by 4.8x, for the reason given below.
 
 | Measure | Value |
 |---|---:|
-| Prompt tokens per call | 1,422 |
-| Completion tokens per call | 327 |
-| — of which reasoning | 255 (78%) |
-| Latency, mean | 7.2 s |
+| Billed input tokens | 3.086 M |
+| Billed output tokens | 1.035 M |
+| Billed cost, all live work | **$18.59** |
+| Cost per session, always-generative | **$0.266** |
+| Projected, 200 public sessions | **$53.14** |
+| Projected, 800 private sessions | **$212.57** |
+| Latency, mean | 6.6 s |
 | Latency, p95 | 30.0 s |
-| Cost per session | $0.0609 |
-| Projected, 200 public sessions | $12.17 |
-| Projected, 800 private sessions | $48.69 |
 
-Three qualifications, none of them cosmetic:
+**Client-side token counts understate the bill and must not be used alone.**
+The agent's `Usage` records only completed calls. A request that times out
+client-side has already been processed and billed by the provider, and a
+transport retry after a timeout pays twice while recording once. Across this
+work the gap was 3.086 M billed input against 0.838 M recorded, and 1.035 M
+billed output against 0.183 M recorded — **79% of the real cost was invisible to
+our instrumentation.** Output is understated more than input (5.65x against
+3.68x), which is consistent with abandoned reasoning requests: at `xhigh` the
+provider generates expensive output before the client gives up.
 
-- The p95 latency of 30.0 s sits at the configured 30 s request timeout. Turns
-  at that tail degrade to the deterministic route rather than failing, but the
-  headroom is nil.
-- Cached input is billed at $0.20/1M, a tenth of standard, and the prompt
-  prefix is large and stable. No field records cache hits, so these figures
-  assume none and are therefore an upper bound.
-- Ten sessions fixes cost, tokens and latency; it does not establish quality.
-  The interval on Hit Rate@10 at that sample size is about ±0.31.
+The p95 latency of 30.0 s sits exactly at the configured 30 s request timeout,
+so calls were routinely abandoned at the limit. That is the mechanism.
+
+Cached input is billed at $0.20/1M, a tenth of standard, and nothing here
+records cache hits; any caching benefit is already reflected in the billed
+figures above.
 
 **Production embeddings.** Route pinned to `text-embedding-3-large` at 1024
 dimensions. Estimated one-off build volume is 14.5M input tokens across ~196
