@@ -106,12 +106,47 @@ A test now asserts the threshold sits strictly between the two observed values.
 | 50-session selective | $0.16 | **no** — credits exhausted |
 | **Total** | **$3.87** | |
 
-## What is needed next
+## Is the selective arm worth re-running?
 
-1. **Credits.** No further live measurement is possible until the account is
-   topped up. This is a hard blocker on the selective arm.
-2. **Re-run the selective arm** once credits exist. About $0.16 at 50 sessions,
-   and it is the run that decides whether 15.7% of the calls retains
-   deterministic-level quality.
-3. **Do not enable the API route by default** on this evidence. Deterministic
-   remains the shipped path.
+Probably not, and the decision does not wait on it.
+
+The void arm still carries usable paired data: across the same 50 sessions the
+three escalations that *did* succeed produced **0 sessions won and 1 lost**
+against deterministic. Combined with the valid arm, the exposure ladder reads:
+
+| LLM exposure | Hit@10 |
+|---|---:|
+| 0% (deterministic) | 0.880 |
+| ~1% (3 calls, void arm) | 0.860 |
+| 100% (always-generative) | 0.700 |
+
+For selective at 15.7% to beat deterministic, the LLM would have to help
+specifically on the turns selective picks. It loses in all four scenarios,
+including intent_override — where selective's override trigger fires and where
+the build plan predicted the strongest gain. On a proportional reading, 15.7%
+exposure projects roughly 0.852, still below 0.880.
+
+So the $0.16 re-run would most likely confirm "slightly worse than
+deterministic, far cheaper than always-generative", which changes nothing about
+what ships. Worth running if credits are topped up for other reasons; not worth
+topping up for.
+
+## What no amount of public-set spending can settle
+
+Whether the deterministic extractor is overfit to the public simulator's
+templates. It is tuned against them, and a model that paraphrases a constraint
+the retriever then fails to match loses here while possibly generalising better
+to a private simulator. That is Risk 5, and the public set cannot answer it at
+any budget. Only the private run can, and that arrives with the result.
+
+This is the argument for keeping the API route built, tested, and switchable
+rather than deleting it — not for enabling it.
+
+## Decision
+
+1. **Deterministic ships. The API route stays off by default.** Established by
+   the valid arm, not assumed.
+2. Keep the route and SELECTIVE maintained and reachable, as the hedge against
+   Risk 5 described above.
+3. No further live measurement is required for this decision. Credits are a
+   blocker only on optional confirmation.
