@@ -1,7 +1,6 @@
 # Person 2 — M6 Submission Status
 
-Evidence revision: frozen by the first M6 implementation commit; the
-machine-readable clean-run report records its exact SHA.
+Evidence revision: `92938963e57773b1375fdfb11735b9acd3f630e9`.
 
 Status: every source-only M6 gate is implemented. Two numerical fields remain
 explicitly pending on the real `text-embedding-3-large` 1024-dimensional index:
@@ -14,7 +13,7 @@ quality delta. No fixture result is substituted for either field.
 |---|---|---|
 | Freeze text/index/config versions | met | generated package `manifest.json` records contract, schema, sparse, structured, hybrid, embedding, dimension and artifact-format identities |
 | Reproduce from documented catalog | met | builder requires the external 50,000-row catalog and records its SHA-256 without bundling it |
-| Build lightweight participant bundle | met | deterministic source-only ZIP; development audit produced 68 files and stayed far below the 10 MiB policy limit |
+| Build lightweight participant bundle | met | deterministic source-only ZIP; strict audit produced 68 files / 155,729 compressed bytes |
 | Supply entry file, dependencies, setup and report | met | `submission/agent.py`, `requirements.txt`, `README.md`, and `REPORT.md` |
 | Prove clean-machine-style execution | met | extracted temporary harness, repository absent from import path, all 200 sessions completed |
 | Prove network-free degraded behavior | met | credential removed, Python socket audit guard active, zero attempts, route `heuristic/local`, zero model tokens |
@@ -58,6 +57,8 @@ The verifier performs the following without relying on the live source tree:
 The reproduced offline metrics are Hit Rate@10 `0.885000`, MRR `0.529240`, MTTC
 `5.780000`, Efficiency `0.522000`, and TechnicalScore `0.705672` with zero model
 tokens. The final machine-readable report is `reports/m6-release-audit.json`.
+The isolated evaluator wall time was `24,832.056 ms`; this is an end-to-end
+reproduction measurement, not a production per-query latency claim.
 
 ## Retrieval traces
 

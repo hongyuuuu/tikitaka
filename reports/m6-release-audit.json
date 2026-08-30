@@ -1,0 +1,87 @@
+{
+  "artifact_policy": {
+    "archive_forbidden_contents": [],
+    "catalog_in_bundle": false,
+    "dense_index_in_bundle": false,
+    "evaluator_in_bundle": false,
+    "forbidden_tracked_files": [],
+    "max_tracked_file_bytes": 2097152,
+    "oversized_tracked_files": [],
+    "public_labels_in_bundle": false,
+    "secret_material_in_bundle": false,
+    "tracked_file_count": 187
+  },
+  "clean_reproduction": {
+    "catalog_sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
+    "credential_forced_absent": true,
+    "dataset_sha256": "857259f7a438e6188ac63e18995b6ff4489bfcfc4a716a798b9a2aa0ee8f7579",
+    "evaluator_stdout_captured": true,
+    "isolated_temporary_harness": true,
+    "network_attempt_count": 0,
+    "network_guard": "python-audit-hook/socket-connect-dns-sendto",
+    "route_ids": [
+      "heuristic/local"
+    ],
+    "source_repository_on_import_path": false,
+    "wall_time_ms": 24832.056
+  },
+  "code_dirty": false,
+  "code_revision": "92938963e57773b1375fdfb11735b9acd3f630e9",
+  "metrics": {
+    "efficiency": 0.522,
+    "hit_rate_at_10": 0.885,
+    "mrr": 0.52924,
+    "mttc": 5.78,
+    "recommended_technical_score": 0.705672,
+    "reported_token_usage": {
+      "completion_tokens": 0,
+      "prompt_tokens": 0,
+      "total_tokens": 0
+    },
+    "sample_count": 200,
+    "scenario_metrics": {
+      "boundary": {
+        "hit_rate_at_10": 0.8,
+        "mrr": 0.6125,
+        "mttc": 7.0,
+        "sample_count": 10
+      },
+      "browsing": {
+        "hit_rate_at_10": 0.9875,
+        "mrr": 0.610288,
+        "mttc": 5.625,
+        "sample_count": 80
+      },
+      "buying": {
+        "hit_rate_at_10": 0.8625,
+        "mrr": 0.482763,
+        "mttc": 5.375,
+        "sample_count": 80
+      },
+      "intent_override": {
+        "hit_rate_at_10": 0.7,
+        "mrr": 0.409299,
+        "mttc": 6.866667,
+        "sample_count": 30
+      }
+    }
+  },
+  "package": {
+    "bytes": 155729,
+    "file_count": 68,
+    "manifest_schema": "m6-submission-manifest-v1",
+    "sha256": "f64626bbe4f2b511a51297678effd8f5b2e4c524cdb565faea04769977e09adb",
+    "uncompressed_bytes": 514851
+  },
+  "production_dense_measurements": {
+    "fields": [
+      "index_bytes",
+      "build_time_ms",
+      "query_time_ms",
+      "embedding_cost",
+      "production_hybrid_quality_delta"
+    ],
+    "status": "pending_production_1024_index"
+  },
+  "schema_version": "m6-clean-reproduction-v1"
+}
