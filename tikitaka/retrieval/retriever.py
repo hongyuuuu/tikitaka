@@ -272,6 +272,7 @@ class SparseStructuredRetriever:
                             "sparse_index_id": self.sparse.manifest.engine,
                             "dense_index_id": None,
                             "embedding_route_id": None,
+                            "rating_number": product.rating_number,
                         }
                     ),
                     profile_contribution=profile_contribution,
