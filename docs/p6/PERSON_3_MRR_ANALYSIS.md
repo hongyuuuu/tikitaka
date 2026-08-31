@@ -93,14 +93,20 @@ the HR-first tuning result.
 
 ## Validation and release decision
 
-The 60-profile held-out split was not reopened. No provider API credential was
-available, so this run evaluates the required deterministic degraded path; it
-does not claim an LLM result. All new behavior has focused unit coverage,
-including malformed/low-confidence evidence and default-off compatibility.
+The frozen 60-profile held-out split was run exactly once after this arm was
+locked. It achieved HR@10 `0.950000`, MRR `0.818380`, MTTC `4.533333`, and a
+technical score of `0.849847`; 45 of 60 targets ranked first. The immutable
+result is `reports/p6-mrr-evidence-popularity-011-held-out.json`. Do not rerun
+or tune against this split.
 
-The frozen release policy is unchanged because promoting a tuning winner
-without untouched confirmation would violate the evaluation contract. Run the
-single recommended arm once on the next untouched or private profile set, using
-HR@10 as the first gate, MRR second, and MTTC third. Full reproducible metrics,
-per-scenario results, catalog checksums, and limitations are recorded in
+The held-out Boundary subset is only three sessions and has HR@10 `0.666667`,
+so the result should be presented with its per-scenario breakdown rather than
+only its aggregate. No provider API credential was available, so this is the
+required deterministic degraded path and does not claim an LLM result. All new
+behavior has focused unit coverage, including malformed/low-confidence evidence
+and default-off compatibility.
+
+The release composition root remains unchanged: Person 4 must explicitly adopt
+this validated arm before submission. Full reproducible metrics, per-scenario
+results, catalog checksums, and limitations are recorded in
 `reports/p6-person3-mrr-analysis.json`.

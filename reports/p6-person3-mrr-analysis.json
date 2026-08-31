@@ -6,7 +6,7 @@
     "runtime_access": "forbidden",
     "analysis_use": "Public labels are used only by offline evaluation and failure analysis.",
     "target_mapping_report": "reports/person3-public-target-audit.json",
-    "held_out": "not_run",
+    "held_out": "run_once_after_configuration_freeze",
     "warning": "Do not import either analysis report from Agent.reset(), Agent.respond(), or participant runtime code."
   },
   "catalog": {
@@ -201,7 +201,15 @@
   "release_decision": {
     "frozen_release_changed": false,
     "recommended_candidate": "mrr-evidence-popularity-011-deterministic",
-    "reason": "The candidate passes every tuning HR gate and materially improves MRR, but the existing held-out split remains sealed and the 800 private profiles are unavailable.",
-    "recommended_next_gate": "Run this single candidate once on new untouched profiles, selecting by HR@10 first, then MRR and MTTC."
+    "held_out_metrics": {
+      "sample_count": 60,
+      "hit_rate_at_10": 0.95,
+      "mrr": 0.81838,
+      "mttc": 4.533333,
+      "technical_score": 0.849847
+    },
+    "held_out_report": "reports/p6-mrr-evidence-popularity-011-held-out.json",
+    "reason": "The locked arm passes the one-time held-out aggregate gate, but the tiny three-session Boundary subset has HR@10 0.666667. The Person 4 release composition root must explicitly adopt the arm, and all submission claims must include the complete held-out breakdown.",
+    "recommended_next_gate": "Do not rerun the 60-session split. Confirm the same configuration on the organizer's 800 private sessions when available."
   }
 }
