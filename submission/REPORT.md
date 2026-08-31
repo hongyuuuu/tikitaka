@@ -13,8 +13,11 @@ The current official entry point retrieves a bounded shortlist from the frozen
 catalog with SQLite FTS5/BM25 plus structured metadata evidence. Candidate IDs
 are catalog-validated, duplicate-free, and limited before output. The dense
 implementation uses a catalog-pinned local float32 index, exact cosine search,
-and reciprocal-rank fusion, but the production 1024-dimensional artifact is not
-part of this source-only bundle.
+and reciprocal-rank fusion. The production 1024-dimensional artifact has been
+built and validated, but it is deliberately not the release route: the pinned
+hybrid arm lost to the sparse control on tuning. Evidence and decision are in
+`reports/p6-production-index-handoff.json`. The artifact is not part of this
+source-only bundle.
 
 The selected generative route is `gpt-5.6-terra` with `medium` reasoning through
 the main API. It interprets intent and reranks only a bounded shortlist. Its
@@ -94,9 +97,35 @@ records cache hits; any caching benefit is already reflected in the billed
 figures above.
 
 **Production embeddings.** Route pinned to `text-embedding-3-large` at 1024
-dimensions. Estimated one-off build volume is 14.5M input tokens across ~196
-requests for the 50,000-document catalog. Actual build time, index size and
-query latency remain pending until the artifact is built.
+dimensions. The index is built: 50,000 documents at 1,024 dimensions,
+12,740,612 `cl100k_base` input tokens over 391 successful batched requests at
+batch size 128, 922 s wall time including transient HTTP 429 windows and one
+recovered client timeout, for **$1.65627956** at $0.13/1M input tokens. The
+local token count matched the provider's exactly on the final 9,552-document
+segment (2,401,640 tokens). Artifact totals 205,450,751 bytes
+(204,800,000 of normalized little-endian float32 vectors); load and checksum
+validation passed. Index ID `dense-285ef587d363de24212f`, bound to catalog
+SHA-256 `da979b05…c69a67`. The figure excludes a separate six-token route probe
+and any provider-side charge for the request whose response timed out.
+
+**Pinned hybrid-versus-sparse comparison.** Both arms ran on the same 140
+tuning samples at the same revision, deterministic interpretation and
+reranking, conservative question policy, profile weight zero. Held-out was not
+opened.
+
+| Metric | Sparse | Hybrid | Hybrid − sparse |
+|---|---:|---:|---:|
+| Hit Rate@10 | 0.900000 | 0.892857 | -0.007143 |
+| MRR | 0.502738 | 0.486613 | -0.016125 |
+| MTTC | 5.657143 | 5.700000 | +0.042857 |
+| Efficiency | 0.534286 | 0.530000 | -0.004286 |
+| Technical score | 0.707679 | 0.698412 | -0.009267 |
+| Questions asked | 448 | 465 | +17 |
+
+Hybrid query embeddings cost $0.007088 over 783 calls and 54,525 tokens, with
+no failed calls and no fallback activations. Sparse retrieval is therefore the
+release route. The artifact remains valid and available for future fusion or
+text-schema tuning; it did not earn selection at this configuration.
 
 **Fixture hybrid timings** are mechanics evidence only and are not reported as
 production performance.
@@ -107,7 +136,10 @@ production performance.
   public labels, generated dense index, and credentials.
 - Without credentials, semantic interpretation and LLM reranking degrade to a
   deterministic heuristic route.
-- Without a compatible production index, retrieval remains sparse/structured.
+- The production dense index exists and validates, but sparse is the selected
+  release route on measured tuning evidence. The hybrid arm was rejected at one
+  pinned configuration; a different fusion weighting or product-text schema was
+  not tested, and held-out was not reopened to look for one.
 - The `medium` API default has no live score or cost claim; all API measurements
   in this report are explicitly historical `xhigh` evidence.
 - Public-set metrics are development evidence and do not predict private-set

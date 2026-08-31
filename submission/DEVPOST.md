@@ -99,17 +99,56 @@ Per scenario: Browsing 0.9875 HR@10, Buying 0.8625, Boundary 0.800, Intent
 Override 0.700. Network attempts, agent exceptions, and raw response contract
 violations were all zero in that run.
 
-Two disclosures we would rather make in our own words than have discovered: the
-`medium` reasoning default has **not** been measured live, so we make no live
-quality, latency, or cost claim for it — the API figures in our report are
-labelled historical `xhigh` evidence, measured against provider billing
-($18.59 for 3.086M input / 1.035M output tokens, 6.6 s mean latency). And our
-client-side token accounting understated that bill by 4.8x; we could not
-establish the cause, so we report the billed numbers and tell people not to
-budget from our instrumentation. The production 1024-dimensional dense artifact
-is likewise not built, so the scored result above is sparse/structured
-retrieval only — the dense route is implemented, tested, and manifest-pinned,
-but we are not claiming a number we did not measure.
+### Held-out confirmation
+
+We reserved 60 of the 200 public sessions, tuned on the rest, and spent our
+single allowed held-out run on the frozen finalist:
+
+| Scope | Sessions | HR@10 | MRR | MTTC | TechnicalScore |
+|---|---:|---:|---:|---:|---:|
+| Overall | 60 | 0.933333 | 0.590245 | 5.000000 | 0.763740 |
+| Browsing | 24 | 1.000000 | 0.679266 | 4.958333 | 0.824613 |
+| Buying | 24 | 0.916667 | 0.497338 | 4.708333 | 0.733368 |
+| Intent Override | 9 | 0.888889 | 0.630688 | 5.222222 | 0.749206 |
+| Boundary | 3 | 0.666667 | 0.500000 | 7.000000 | 0.563333 |
+
+Zero model calls, zero tokens, zero cost. Held-out was not reopened afterwards.
+
+### What we built and chose not to ship
+
+We built the full production dense index — 50,000 documents at 1,024
+dimensions, 12.7M tokens, 391 batched requests, 922 seconds, $1.66 — validated
+it against the catalog checksum, and then measured hybrid against sparse on 140
+tuning sessions:
+
+| Metric | Sparse | Hybrid | Delta |
+|---|---:|---:|---:|
+| Hit Rate@10 | 0.900000 | 0.892857 | −0.007143 |
+| MRR | 0.502738 | 0.486613 | −0.016125 |
+| MTTC | 5.657143 | 5.700000 | +0.042857 |
+| TechnicalScore | 0.707679 | 0.698412 | −0.009267 |
+
+Hybrid lost on every headline metric and asked 17 more questions, so **sparse
+is the release route**. The index is real, loads clean, and is ready for future
+fusion and text-schema tuning; it simply did not earn selection at this pinned
+configuration, and we were not willing to ship a component because it sounded
+impressive.
+
+The same discipline applied to the LLM. The one generative arm we actually
+measured — `gpt-5.6-terra` anchored at `xhigh` — scored Hit Rate@10 0.671
+against the deterministic arm's 0.900 on the same tuning split, with 169
+interpreter and 131 reranker fallbacks. It was rejected. The deterministic
+route is the only held-out-confirmed configuration we have.
+
+### Disclosures
+
+- The `medium` reasoning default has **not** been measured live. We make no
+  quality, latency, or cost claim for it. Every API figure in our report is
+  labelled historical `xhigh` evidence, measured against provider billing:
+  $18.59 for 3.086M input / 1.035M output tokens, 6.6 s mean latency.
+- Our client-side token accounting understated that bill by 4.8x. We could not
+  establish the cause, so we report the billed numbers and tell people not to
+  budget from our instrumentation.
 
 ---
 
@@ -143,10 +182,12 @@ but we are not claiming a number we did not measure.
   rewriting, clarification phrasing, and shortlist reranking. Optional by
   design — an absent or failing credential degrades to the deterministic route.
 - **OpenAI Embeddings API** — `text-embedding-3-large` pinned at 1024
-  dimensions for the dense product index. The integration, batching, manifest
-  binding, and query-side embedder are implemented and tested; the production
-  50,000-document index build (~14.5M input tokens across ~196 requests) is
-  costed but not yet run, so the submitted result does not depend on it.
+  dimensions. We built the production index in full: 50,000 documents × 1,024
+  dimensions, 12,740,612 `cl100k_base` tokens across 391 batched requests,
+  922 s wall time, **$1.66**, with the local token count matching the
+  provider's exactly on the final segment. Query-side embeddings for the
+  hybrid-vs-sparse comparison cost a further $0.007. The artifact is not in the
+  submitted bundle and the release route does not use it — see above.
 
 No other external API is called. Credentials come from environment variables
 only and appear in no source file, config, log, or report.
@@ -223,12 +264,13 @@ trained ourselves.
 
 ## Known limitations
 
-- The offline route lacks the semantic recall of a production dense index and
-  the interpretation quality of the API route; the scored 0.7057 is the
-  *floor*, achieved with the model switched off.
+- The hybrid arm was rejected at **one pinned configuration**. A different
+  fusion weighting or product-text schema might beat sparse; we did not test
+  one, and we did not reopen held-out to go looking.
 - The `medium` API default carries no live measurement — no score, latency,
-  token, or cost claim.
+  token, or cost claim. The only generative arm we measured lost to the
+  deterministic route.
 - Client-side token accounting is known to understate provider billing; use the
   billed historical figures for budgeting.
-- Public-set metrics are development evidence and do not predict private-set
-  performance.
+- Public-set and held-out metrics are development evidence on 200 sessions and
+  do not predict private-set performance.

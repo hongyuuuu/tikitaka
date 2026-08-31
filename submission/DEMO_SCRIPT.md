@@ -84,7 +84,9 @@ python scripts/verify_m6_submission.py --archive build/submission.zip --output b
 
 ## Shot 4 — 1:45–2:15 · The scored run
 
-**[Run the evaluator. ~30s — talk through it, or cut and caption "sped up".]**
+**[Run the evaluator. Measured at 101s on this machine — far too long to
+show in full. Cut to the summary block, or speed-ramp with a "101s, sped up"
+caption. Do not leave it running in real time.]**
 
 > That's one session. Here's all two hundred, on the organizer's own evaluator.
 >
@@ -100,16 +102,21 @@ python scripts/verify_m6_submission.py --archive build/submission.zip --output b
 > socket and DNS call with a Python audit hook.
 >
 > Same score. Zero network attempts, zero exceptions, zero contract violations.
-> Everything you just watched ran with the model switched off — the API route
-> is upside, not life support.
+> Everything you just watched ran with the model switched off.
+>
+> And that's not a fallback we're apologising for. The one generative arm we
+> actually measured scored sixty-seven percent against the deterministic
+> route's ninety on the same split. We kept the one that won.
 
 ## Shot 6 — 2:40–3:00 · Limitations and attribution
 
 **[On screen: closing card, held for the full 20 seconds]**
 
-> Two honest caveats. Our production dense index isn't built, so that score is
-> sparse and structured retrieval only. And the medium-reasoning API default
-> hasn't been measured live, so we make no cost or latency claim for it.
+> Two honest caveats. We did build the thousand-and-twenty-four dimension dense
+> index — fifty thousand products, one dollar sixty-six — then measured hybrid
+> against sparse and found it lost on every headline metric. So we shipped
+> sparse. And the medium-reasoning API default hasn't been measured live, so we
+> make no cost or latency claim for it.
 >
 > Data is Amazon Reviews 2023 from the McAuley Lab at UCSD. Thanks for
 > watching.
@@ -125,12 +132,16 @@ TikiTaka — Conversational Shopping Copilot
 TikTok TechJam 2026 · Challenge 4
 ```
 
-**Closing card** (all six lines on screen together)
+**Closing card** (hold all of it on screen together)
 
 ```
-Hit Rate@10  0.885     MRR  0.529     MTTC  5.78
-TechnicalScore  0.706  (weak BM25 baseline: 0.107)
-200 public sessions · credential removed · network blocked
+Held out (60 sessions, single run)
+Hit Rate@10  0.933     MRR  0.590     MTTC  5.00     Score  0.764
+
+Full public set (200 sessions)
+Hit Rate@10  0.885     MRR  0.529     MTTC  5.78     Score  0.706
+                              (weak BM25 baseline: 0.107)
+credential removed · network blocked · zero model calls
 
 Data: Amazon Reviews 2023 — McAuley Lab, UCSD
       amazon-reviews-2023.github.io
