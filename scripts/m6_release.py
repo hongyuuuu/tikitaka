@@ -32,6 +32,7 @@ from tikitaka.retrieval.text import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DENSE_HANDOFF_REPORT = ROOT / "reports" / "p6-production-index-handoff.json"
 SCHEMA_VERSION = "m6-submission-manifest-v1"
 MAX_PACKAGE_BYTES = 10 * 1024 * 1024
 MAX_FILE_BYTES = 2 * 1024 * 1024
@@ -364,7 +365,87 @@ def audit_submission_archive(path: str | Path) -> dict[str, object]:
     }
 
 
+def _describe_path(path: Path) -> str:
+    """Repository-relative when possible, absolute otherwise (tests, odd roots)."""
+
+    try:
+        return str(path.resolve().relative_to(ROOT)).replace("\\", "/")
+    except ValueError:
+        return str(path)
+
+
+def production_dense_measurements(
+    report_path: Path = DENSE_HANDOFF_REPORT,
+) -> dict[str, object]:
+    """Report the dense-index position from evidence rather than assertion.
+
+    This block used to hardcode ``pending_production_1024_index`` and list the
+    measurements it was waiting for. That was true when it was written and
+    silently false afterwards: the artifact was built, measured, and rejected,
+    while every audit generated since kept announcing the work as outstanding.
+
+    Reading Person 2's handoff report keeps the field honest in both
+    directions. A missing or malformed report means we genuinely have no
+    evidence, and pending is then the correct answer rather than a stale one.
+    """
+
+    pending: dict[str, object] = {
+        "status": "pending_production_1024_index",
+        "evidence": None,
+        "measurements": {
+            key: None
+            for key in (
+                "index_bytes",
+                "build_time_ms",
+                "query_time_ms",
+                "embedding_cost_usd",
+                "production_hybrid_quality_delta",
+            )
+        },
+    }
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return pending
+
+    artifact = report.get("artifact") or {}
+    build = report.get("build") or {}
+    selection = report.get("selection") or {}
+    comparison = report.get("tuning_comparison") or {}
+    query_usage = comparison.get("hybrid_query_embedding_usage") or {}
+    score = (comparison.get("overall") or {}).get("technical_score") or {}
+    if not artifact or artifact.get("load_validation") != "passed":
+        return pending
+
+    selected = bool(selection.get("production_hybrid_selected"))
+    seconds = build.get("wall_duration_seconds")
+    return {
+        "status": "built_and_selected" if selected else "built_not_selected",
+        "evidence": {
+            "report": _describe_path(report_path),
+            "report_sha256": sha256_path(report_path),
+            "source_revision": report.get("source_revision"),
+        },
+        "index_id": artifact.get("index_id"),
+        "route_id": artifact.get("route_id"),
+        "catalog_sha256": artifact.get("catalog_sha256"),
+        "selected_for_release": selected,
+        "release_retrieval_policy": selection.get("release_retrieval_policy"),
+        "measurements": {
+            "index_bytes": artifact.get("total_bytes"),
+            "build_time_ms": None if seconds is None else int(seconds * 1000),
+            "query_time_ms": query_usage.get("latency_ms"),
+            "embedding_cost_usd": build.get("unique_artifact_embedding_cost_usd"),
+            "production_hybrid_quality_delta": score.get(
+                "delta_hybrid_minus_sparse"
+            ),
+        },
+    }
+
+
 __all__ = [
+    "DENSE_HANDOFF_REPORT",
+    "production_dense_measurements",
     "ReleaseAuditError",
     "audit_submission_archive",
     "audit_tracked_repository",

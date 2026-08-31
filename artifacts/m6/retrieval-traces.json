@@ -80,8 +80,8 @@
             "100": 0
           },
           "route_timings_ms": {
-            "sparse": 20.695625,
-            "total": 41.028875
+            "sparse": 41.4276,
+            "total": 81.7139
           },
           "sparse_candidates": 200,
           "top_score_concentration": 0.30774876243452504,
@@ -419,8 +419,8 @@
             "100": 0
           },
           "route_timings_ms": {
-            "sparse": 33.759,
-            "total": 95.564333
+            "sparse": 71.365,
+            "total": 198.4237
           },
           "sparse_candidates": 200,
           "top_score_concentration": 0.31848566442771503,
@@ -750,8 +750,8 @@
             "100": 0
           },
           "route_timings_ms": {
-            "sparse": 15.646083,
-            "total": 35.7135
+            "sparse": 28.9884,
+            "total": 66.3788
           },
           "sparse_candidates": 200,
           "top_score_concentration": 0.3385229934564476,
@@ -1072,8 +1072,8 @@
             "100": 0
           },
           "route_timings_ms": {
-            "sparse": 17.082917,
-            "total": 49.111292
+            "sparse": 29.3007,
+            "total": 90.7668
           },
           "sparse_candidates": 200,
           "top_score_concentration": 0.1512867813171049,
@@ -1362,8 +1362,8 @@
             "100": 0
           },
           "route_timings_ms": {
-            "sparse": 23.698458,
-            "total": 78.113
+            "sparse": 49.5339,
+            "total": 161.4958
           },
           "sparse_candidates": 200,
           "top_score_concentration": 0.20849601895031344,
@@ -1543,619 +1543,29 @@
     "user_profile_used": false
   },
   "production_dense_evidence": {
+    "catalog_sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
     "dimensions": 1024,
-    "status": "pending_production_1024_index"
+    "evidence": {
+      "report": "reports/p6-production-index-handoff.json",
+      "report_sha256": "dd862bc20c0d2ca8b2fd7369248bf04d408051b06b0590d626484b85685ab394",
+      "source_revision": "ec07837d77ef8872a6f98b97174fc819f76e2ea3"
+    },
+    "index_id": "dense-285ef587d363de24212f",
+    "measurements": {
+      "build_time_ms": 922000,
+      "embedding_cost_usd": 1.65627956,
+      "index_bytes": 205450751,
+      "production_hybrid_quality_delta": -0.009267,
+      "query_time_ms": 268146.145073
+    },
+    "release_retrieval_policy": "sparse",
+    "route_id": "openai/text-embedding-3-large/dimensions-1024",
+    "selected_for_release": false,
+    "status": "built_not_selected"
   },
-  "schema_version": "m6-retrieval-traces-v1",
+  "schema_version": "m6-retrieval-traces-v2",
   "sparse_vs_hybrid": {
-    "hybrid": {
-      "diagnostics": {
-        "constraint_outcome_counts": {
-          "budget": {
-            "match": 64,
-            "unknown": 36
-          },
-          "category": {
-            "contradiction": 23,
-            "match": 77
-          },
-          "feature": {
-            "match": 89,
-            "unknown": 11
-          },
-          "use_case": {
-            "match": 76,
-            "unknown": 24
-          }
-        },
-        "dense_candidates": 200,
-        "effective_candidate_count": 5.850036454245873,
-        "executed_route": "hybrid",
-        "fused_candidates": 385,
-        "hard_filtered_candidates": 10,
-        "intent_version": 1,
-        "manifest_ids": {
-          "dense": "dense-3da120889717d57ebcd5",
-          "dense_backend": "python-exact",
-          "sparse": "sqlite-fts5-bm25-v1"
-        },
-        "missing_attribute_rates": {
-          "brand": 0.0,
-          "budget": 0.36,
-          "category": 0.0,
-          "color": 0.76,
-          "feature": 0.0,
-          "material": 0.11,
-          "other": 1.0,
-          "size": 0.84,
-          "style": 0.23,
-          "use_case": 0.07
-        },
-        "requested_route": "hybrid",
-        "returned_candidates": 10,
-        "route_failures": [],
-        "route_overlap": {
-          "10": 0,
-          "50": 0,
-          "100": 2
-        },
-        "route_timings_ms": {
-          "dense": 37.561583,
-          "sparse": 33.770416,
-          "total": 188.326459
-        },
-        "sparse_candidates": 200,
-        "top_score_concentration": 0.2763521072539436,
-        "top_score_margin": 0.0026679104477611987
-      },
-      "top_10": [
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.1084179104477612,
-          "parent_asin": "B0925MM7CD",
-          "price": "27.98",
-          "rank": 1,
-          "sparse_rank": 7,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: Sport Walking Sandals for Women \u2013 Comfortable Athletic Sandals with Arch Support Outdoor Beach Water Sandals for Hiking",
-            "categories: Women > Shoes > Athletic > Sport Sandals & Slides",
-            "features: Rubber sole | STYLISH & FASHION: This water athletic sandal are just very comfortable; You can wear this casual summer sandals outdoors, fashionable jacquard strap sandals are skin-friendly and comfy | COMFORTABLE WEARING EXPERIENCE: The in",
-            "Women",
-            "Shoes",
-            "Athletic"
-          ],
-          "title": "Sport Walking Sandals for Women \u2013 Comfortable Athletic Sandals with Arch Support Outdoor Beach Water Sandals for Hiking"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10575,
-          "parent_asin": "B08PNMCZF7",
-          "price": "54.99",
-          "rank": 2,
-          "sparse_rank": 20,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: CAMEL CROWN Women's Outdoor Leather Hiking Shoes Low Cut Boots Breathable Lightweight Sneaker for Walking Trekking",
-            "categories: Women > Shoes > Outdoor > Hiking & Trekking > Hiking Shoes",
-            "features: Rubber sole | BREATHABLE: Dreaming of camping with colleagues or friends in leisure days or a weekend getaway with your loved ones? Then there is no better way than the all-day comfort of hiking shoes. Water resistant leather and mesh linin",
-            "Women",
-            "Shoes",
-            "Outdoor"
-          ],
-          "title": "CAMEL CROWN Women's Outdoor Leather Hiking Shoes Low Cut Boots Breathable Lightweight Sneaker for Walking Trekking"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": 174,
-          "fused_score": 0.1053289124668435,
-          "parent_asin": "B0B7S2M599",
-          "price": "13.88",
-          "rank": 3,
-          "sparse_rank": 56,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: MDPCX Women's Garden Clogs Breathable Shoes Bathing Shoes Beach Shoes Water Shoes Footwear Slippers Walking Shoes Home Travel Shoes",
-            "categories: Women > Shoes > Mules & Clogs",
-            "features: Ethylene Vinyl Acetate sole | Ultra light and convenient The weight of this shoe is between 120-130 grams, which is very convenient for you to carry around. In addition, this garden shoe also uses high-quality materials.Soft to the touch, c",
-            "description: Features: | (1) It's specially designed for any outdoor activities or house working. | (2) Sole use of EVA resin material, flexibility, comfortable and rich toughness. | Function: | (1) Designed for any outdoor activities or house work. | (",
-            "Women",
-            "Shoes"
-          ],
-          "title": "MDPCX Women's Garden Clogs Breathable Shoes Bathing Shoes Beach Shoes Water Shoes Footwear Slippers Walking Shoes Home Travel Shoes"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10525301204819278,
-          "parent_asin": "B081SMBYXT",
-          "price": "13.99",
-          "rank": 4,
-          "sparse_rank": 23,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: QACOHU Womens Mens Water Shoes Barefoot Skin Shoes Quick-Dry Water Shoes for Dive Surf Swim Beach Yoga",
-            "categories: Women > Shoes > Athletic > Water Shoes",
-            "features: Imported | Rubber sole | Material: Good air permeability, super light elastic material, smooth fabric, like socks, soft and comfortable, let you feel great freedom and comfort | Safety: Wear-resistant and non-slip rubber sole, ergonomically",
-            "Women",
-            "Shoes",
-            "Athletic"
-          ],
-          "title": "QACOHU Womens Mens Water Shoes Barefoot Skin Shoes Quick-Dry Water Shoes for Dive Surf Swim Beach Yoga"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10464367816091955,
-          "parent_asin": "B0B6TPKVHX",
-          "price": "39.99",
-          "rank": 5,
-          "sparse_rank": 27,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: Azooken Men's Walking Shoes Jogging Tennis Footwear Fitness Road Running Fashion Sneakers",
-            "categories: Men > Shoes > Athletic > Walking",
-            "features: Rubber sole | Mesh upper,sweat-absorbing,lightweight design for added comfort and mobility. | Breathable and comfortable,Optimized internal circulation keeps the feet cool and dry. | Rubber wear-resistant sole,shock-absorbing air cushion,co",
-            "description: Azooken Men's Walking Shoes which for indoor and outdoor sports,running,travel,jogging,fitness,and so on. | Properties: | - Casual Fashion Sneakers Running Breath Athletic Sport Shoes - Cozy, breathable, non-slip. - Fit for women, men, love",
-            "Men",
-            "Shoes"
-          ],
-          "title": "Azooken Men's Walking Shoes Jogging Tennis Footwear Fitness Road Running Fashion Sneakers"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.1027843137254902,
-          "parent_asin": "B08134XNNB",
-          "price": "34.99",
-          "rank": 6,
-          "sparse_rank": 42,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: Women's Walking Shoes Sock Sneakers - Mesh Slip On Air Cushion Lady Girls Modern Jazz Dance Easy Shoes Platform Loafers",
-            "categories: Women > Shoes > Athletic > Walking",
-            "features: Mesh Fabric | Imported | MD + Air Cushion sole | This shoe's sizing is equivalent to street shoe size.Please choose a larger size than usual for easy-lace style and winter style. | Boxed toe for toe stands,super lightweight and flexible jus",
-            "Women",
-            "Shoes",
-            "Athletic"
-          ],
-          "title": "Women's Walking Shoes Sock Sneakers - Mesh Slip On Air Cushion Lady Girls Modern Jazz Dance Easy Shoes Platform Loafers"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10267961165048543,
-          "parent_asin": "B0BC82NRNB",
-          "price": "17.88",
-          "rank": 7,
-          "sparse_rank": 43,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "categories: Women > Shoes > Slippers",
-            "features: \u3010Cow Modeling Design\u3011Unique and cute animal plush slippers, bring you warmth without losing the cute temperament. | \u3010Thickened sole design\u3011The sole is thickened to be more wear-resistant and durable. | \u3010Anti-slip texture design\u3011The sole als",
-            "Women",
-            "Shoes",
-            "Slippers",
-            "\u3010Cow Modeling Design\u3011Unique and cute animal plush slippers, bring you warmth without losing the cute temperament."
-          ],
-          "title": "KALEKI Cow Slippers Cute Cartoon Animal Slippers Warm Thick Sole Slippers Autumn and Winter Home Slippers Funny Plush Cotton Slippers"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10237735849056603,
-          "parent_asin": "B097NJQ3TV",
-          "price": "21.99",
-          "rank": 8,
-          "sparse_rank": 46,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: JUNSHIDE Men's Leather Sandals Comfortable Arch Support Flip Flops Indoor and Outdoor Beach Shoes",
-            "categories: Men > Shoes > Sandals",
-            "features: Rubber sole | Firm Thong Strap:The straps are made of soft fabric and skin-friendly leather material to ensure that the toes do not bruise from long hours of walking. | High Quality Material:The upper is made of high quality leather, which ",
-            "Men",
-            "Shoes",
-            "Sandals"
-          ],
-          "title": "JUNSHIDE Men's Leather Sandals Comfortable Arch Support Flip Flops Indoor and Outdoor Beach Shoes"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10164912280701754,
-          "parent_asin": "B0BS3MVFC2",
-          "price": "42.99",
-          "rank": 9,
-          "sparse_rank": 54,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: youngshow Mary Jane Shoes Women Platform Square Toe Chunky Heel T-Strap Lolita Uniform Dress Pumps Shoes",
-            "categories: Women > Shoes > Pumps",
-            "features: Rubber sole | \u3010COMFY FIT\u3011Womens Mary Jane Ankle Strap Platform Uniform Dress Shoes. Flexible and Breathable Leather Lining, Moisture Absorption and Sweat Releasing, Bring Comfort to Every Step of Your Walk. | \u3010STYLISH DESIGN\u3011Classic T-strap",
-            "Women",
-            "Shoes",
-            "Pumps"
-          ],
-          "title": "youngshow Mary Jane Shoes Women Platform Square Toe Chunky Heel T-Strap Lolita Uniform Dress Pumps Shoes"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10156521739130435,
-          "parent_asin": "B09J22MQ55",
-          "price": "29.99",
-          "rank": 10,
-          "sparse_rank": 55,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: DADAWEN Womens Comfort Wedge Platform Walking Shoes Lightweight Non Slip Athletic Tennis Running Sneakers",
-            "categories: Women > Shoes > Athletic > Walking",
-            "features: Textile | Rubber sole | Platform measures approximately 1.02\" | Lace Up Walking Shoes: Lace up design with a small tab at the backs to help users pull them on,you can easy to get on and off very quickly,safe to walk | Lightweight and Fashio",
-            "Women",
-            "Shoes",
-            "Athletic"
-          ],
-          "title": "DADAWEN Womens Comfort Wedge Platform Walking Shoes Lightweight Non Slip Athletic Tennis Running Sneakers"
-        }
-      ]
-    },
     "production_quality_claim": false,
-    "query": "comfortable water-resistant shoes for long walks",
-    "sparse": {
-      "diagnostics": {
-        "constraint_outcome_counts": {
-          "budget": {
-            "match": 40,
-            "unknown": 60
-          },
-          "category": {
-            "contradiction": 13,
-            "match": 87
-          },
-          "feature": {
-            "match": 95,
-            "unknown": 5
-          },
-          "use_case": {
-            "match": 97,
-            "unknown": 3
-          }
-        },
-        "dense_candidates": 0,
-        "effective_candidate_count": 5.01907380996564,
-        "executed_route": "sparse",
-        "fused_candidates": 200,
-        "hard_filtered_candidates": 2,
-        "intent_version": 1,
-        "manifest_ids": {
-          "dense": "",
-          "dense_backend": "",
-          "sparse": "sqlite-fts5-bm25-v1"
-        },
-        "missing_attribute_rates": {
-          "brand": 0.0,
-          "budget": 0.6,
-          "category": 0.0,
-          "color": 0.77,
-          "feature": 0.0,
-          "material": 0.02,
-          "other": 1.0,
-          "size": 0.89,
-          "style": 0.18,
-          "use_case": 0.0
-        },
-        "requested_route": "sparse",
-        "returned_candidates": 10,
-        "route_failures": [],
-        "route_overlap": {
-          "10": 0,
-          "50": 0,
-          "100": 0
-        },
-        "route_timings_ms": {
-          "sparse": 33.759,
-          "total": 95.564333
-        },
-        "sparse_candidates": 200,
-        "top_score_concentration": 0.31848566442771503,
-        "top_score_margin": 0.0026679104477611987
-      },
-      "top_10": [
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.1084179104477612,
-          "parent_asin": "B0925MM7CD",
-          "price": "27.98",
-          "rank": 1,
-          "sparse_rank": 7,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: Sport Walking Sandals for Women \u2013 Comfortable Athletic Sandals with Arch Support Outdoor Beach Water Sandals for Hiking",
-            "categories: Women > Shoes > Athletic > Sport Sandals & Slides",
-            "features: Rubber sole | STYLISH & FASHION: This water athletic sandal are just very comfortable; You can wear this casual summer sandals outdoors, fashionable jacquard strap sandals are skin-friendly and comfy | COMFORTABLE WEARING EXPERIENCE: The in",
-            "Women",
-            "Shoes",
-            "Athletic"
-          ],
-          "title": "Sport Walking Sandals for Women \u2013 Comfortable Athletic Sandals with Arch Support Outdoor Beach Water Sandals for Hiking"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10575,
-          "parent_asin": "B08PNMCZF7",
-          "price": "54.99",
-          "rank": 2,
-          "sparse_rank": 20,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: CAMEL CROWN Women's Outdoor Leather Hiking Shoes Low Cut Boots Breathable Lightweight Sneaker for Walking Trekking",
-            "categories: Women > Shoes > Outdoor > Hiking & Trekking > Hiking Shoes",
-            "features: Rubber sole | BREATHABLE: Dreaming of camping with colleagues or friends in leisure days or a weekend getaway with your loved ones? Then there is no better way than the all-day comfort of hiking shoes. Water resistant leather and mesh linin",
-            "Women",
-            "Shoes",
-            "Outdoor"
-          ],
-          "title": "CAMEL CROWN Women's Outdoor Leather Hiking Shoes Low Cut Boots Breathable Lightweight Sneaker for Walking Trekking"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10525301204819278,
-          "parent_asin": "B081SMBYXT",
-          "price": "13.99",
-          "rank": 3,
-          "sparse_rank": 23,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: QACOHU Womens Mens Water Shoes Barefoot Skin Shoes Quick-Dry Water Shoes for Dive Surf Swim Beach Yoga",
-            "categories: Women > Shoes > Athletic > Water Shoes",
-            "features: Imported | Rubber sole | Material: Good air permeability, super light elastic material, smooth fabric, like socks, soft and comfortable, let you feel great freedom and comfort | Safety: Wear-resistant and non-slip rubber sole, ergonomically",
-            "Women",
-            "Shoes",
-            "Athletic"
-          ],
-          "title": "QACOHU Womens Mens Water Shoes Barefoot Skin Shoes Quick-Dry Water Shoes for Dive Surf Swim Beach Yoga"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10464367816091955,
-          "parent_asin": "B0B6TPKVHX",
-          "price": "39.99",
-          "rank": 4,
-          "sparse_rank": 27,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: Azooken Men's Walking Shoes Jogging Tennis Footwear Fitness Road Running Fashion Sneakers",
-            "categories: Men > Shoes > Athletic > Walking",
-            "features: Rubber sole | Mesh upper,sweat-absorbing,lightweight design for added comfort and mobility. | Breathable and comfortable,Optimized internal circulation keeps the feet cool and dry. | Rubber wear-resistant sole,shock-absorbing air cushion,co",
-            "description: Azooken Men's Walking Shoes which for indoor and outdoor sports,running,travel,jogging,fitness,and so on. | Properties: | - Casual Fashion Sneakers Running Breath Athletic Sport Shoes - Cozy, breathable, non-slip. - Fit for women, men, love",
-            "Men",
-            "Shoes"
-          ],
-          "title": "Azooken Men's Walking Shoes Jogging Tennis Footwear Fitness Road Running Fashion Sneakers"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.1027843137254902,
-          "parent_asin": "B08134XNNB",
-          "price": "34.99",
-          "rank": 5,
-          "sparse_rank": 42,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: Women's Walking Shoes Sock Sneakers - Mesh Slip On Air Cushion Lady Girls Modern Jazz Dance Easy Shoes Platform Loafers",
-            "categories: Women > Shoes > Athletic > Walking",
-            "features: Mesh Fabric | Imported | MD + Air Cushion sole | This shoe's sizing is equivalent to street shoe size.Please choose a larger size than usual for easy-lace style and winter style. | Boxed toe for toe stands,super lightweight and flexible jus",
-            "Women",
-            "Shoes",
-            "Athletic"
-          ],
-          "title": "Women's Walking Shoes Sock Sneakers - Mesh Slip On Air Cushion Lady Girls Modern Jazz Dance Easy Shoes Platform Loafers"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10267961165048543,
-          "parent_asin": "B0BC82NRNB",
-          "price": "17.88",
-          "rank": 6,
-          "sparse_rank": 43,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "categories: Women > Shoes > Slippers",
-            "features: \u3010Cow Modeling Design\u3011Unique and cute animal plush slippers, bring you warmth without losing the cute temperament. | \u3010Thickened sole design\u3011The sole is thickened to be more wear-resistant and durable. | \u3010Anti-slip texture design\u3011The sole als",
-            "Women",
-            "Shoes",
-            "Slippers",
-            "\u3010Cow Modeling Design\u3011Unique and cute animal plush slippers, bring you warmth without losing the cute temperament."
-          ],
-          "title": "KALEKI Cow Slippers Cute Cartoon Animal Slippers Warm Thick Sole Slippers Autumn and Winter Home Slippers Funny Plush Cotton Slippers"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10237735849056603,
-          "parent_asin": "B097NJQ3TV",
-          "price": "21.99",
-          "rank": 7,
-          "sparse_rank": 46,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: JUNSHIDE Men's Leather Sandals Comfortable Arch Support Flip Flops Indoor and Outdoor Beach Shoes",
-            "categories: Men > Shoes > Sandals",
-            "features: Rubber sole | Firm Thong Strap:The straps are made of soft fabric and skin-friendly leather material to ensure that the toes do not bruise from long hours of walking. | High Quality Material:The upper is made of high quality leather, which ",
-            "Men",
-            "Shoes",
-            "Sandals"
-          ],
-          "title": "JUNSHIDE Men's Leather Sandals Comfortable Arch Support Flip Flops Indoor and Outdoor Beach Shoes"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10164912280701754,
-          "parent_asin": "B0BS3MVFC2",
-          "price": "42.99",
-          "rank": 8,
-          "sparse_rank": 54,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: youngshow Mary Jane Shoes Women Platform Square Toe Chunky Heel T-Strap Lolita Uniform Dress Pumps Shoes",
-            "categories: Women > Shoes > Pumps",
-            "features: Rubber sole | \u3010COMFY FIT\u3011Womens Mary Jane Ankle Strap Platform Uniform Dress Shoes. Flexible and Breathable Leather Lining, Moisture Absorption and Sweat Releasing, Bring Comfort to Every Step of Your Walk. | \u3010STYLISH DESIGN\u3011Classic T-strap",
-            "Women",
-            "Shoes",
-            "Pumps"
-          ],
-          "title": "youngshow Mary Jane Shoes Women Platform Square Toe Chunky Heel T-Strap Lolita Uniform Dress Pumps Shoes"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10156521739130435,
-          "parent_asin": "B09J22MQ55",
-          "price": "29.99",
-          "rank": 9,
-          "sparse_rank": 55,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: DADAWEN Womens Comfort Wedge Platform Walking Shoes Lightweight Non Slip Athletic Tennis Running Sneakers",
-            "categories: Women > Shoes > Athletic > Walking",
-            "features: Textile | Rubber sole | Platform measures approximately 1.02\" | Lace Up Walking Shoes: Lace up design with a small tab at the backs to help users pull them on,you can easy to get on and off very quickly,safe to walk | Lightweight and Fashio",
-            "Women",
-            "Shoes",
-            "Athletic"
-          ],
-          "title": "DADAWEN Womens Comfort Wedge Platform Walking Shoes Lightweight Non Slip Athletic Tennis Running Sneakers"
-        },
-        {
-          "constraint_outcomes": {
-            "budget": "match",
-            "category": "match",
-            "feature": "match",
-            "use_case": "match"
-          },
-          "dense_rank": null,
-          "fused_score": 0.10148275862068966,
-          "parent_asin": "B0B7S2M599",
-          "price": "13.88",
-          "rank": 10,
-          "sparse_rank": 56,
-          "structural_score": 1.8399999999999999,
-          "supporting_snippets": [
-            "title: MDPCX Women's Garden Clogs Breathable Shoes Bathing Shoes Beach Shoes Water Shoes Footwear Slippers Walking Shoes Home Travel Shoes",
-            "categories: Women > Shoes > Mules & Clogs",
-            "features: Ethylene Vinyl Acetate sole | Ultra light and convenient The weight of this shoe is between 120-130 grams, which is very convenient for you to carry around. In addition, this garden shoe also uses high-quality materials.Soft to the touch, c",
-            "description: Features: | (1) It's specially designed for any outdoor activities or house working. | (2) Sole use of EVA resin material, flexibility, comfortable and rich toughness. | Function: | (1) Designed for any outdoor activities or house work. | (",
-            "Women",
-            "Shoes"
-          ],
-          "title": "MDPCX Women's Garden Clogs Breathable Shoes Bathing Shoes Beach Shoes Water Shoes Footwear Slippers Walking Shoes Home Travel Shoes"
-        }
-      ]
-    },
-    "status": "fixture_mechanics_only",
-    "warning": "Deterministic keyword fixture embeddings prove routing, identity, fusion and evidence plumbing only; they do not estimate production quality."
+    "status": "pending_fixture_inputs"
   }
 }

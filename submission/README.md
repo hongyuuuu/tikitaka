@@ -22,17 +22,21 @@ when explicitly pinned for an experiment. When the credential is absent, or
 an API call fails, execution remains valid through the deterministic
 `heuristic/local` fallback; no local generative LLM is used.
 
-The production dense route is `text-embedding-3-large` at 1024 dimensions.
-The generated index is not included in this source-only bundle. Without a
-compatible index, retrieval remains on the deterministic sparse/structured
-route. The index manifest binds the catalog checksum, ordered product IDs,
-text schema, provider, model, route, dimension, normalization, and artifact
-checksums, and mismatches fail closed.
+The production dense route is `text-embedding-3-large` at 1024 dimensions. The
+index has been built and validated (50,000 x 1,024, $1.66, index ID
+`dense-285ef587d363de24212f`), but it is **not** the release route: the pinned
+hybrid arm lost to sparse on 140 tuning sessions, so retrieval runs on the
+deterministic sparse/structured route by decision rather than by omission. See
+`reports/p6-production-index-handoff.json`. The generated index is not included
+in this source-only bundle. The index manifest binds the catalog checksum,
+ordered product IDs, text schema, provider, model, route, dimension,
+normalization, and artifact checksums, and mismatches fail closed.
 
 ## Known limitations
 
-- The offline route does not have the semantic recall of a production dense
-  index or the interpretation quality of the API route.
+- Sparse retrieval is the measured selection, not a degraded stand-in for the
+  dense index; the hybrid arm was tested and lost. It was rejected at one
+  pinned configuration only.
 - Live API latency, token use, and cost depend on the conversation and provider.
 - The frozen catalog is intentionally external to the participant bundle.
 

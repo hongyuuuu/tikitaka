@@ -105,8 +105,15 @@ def capture_session(
     categories: dict,
     products: dict,
     catalog_ids: set,
+    on_turn=None,
 ) -> tuple[list, dict]:
-    """Drive one session and return its traces plus a label-free summary."""
+    """Drive one session and return its traces plus a label-free summary.
+
+    ``on_turn`` receives each ``TurnTrace`` as it is produced. It exists so a
+    live renderer can show a session as it happens without a second copy of
+    this loop: the loop mirrors ``evaluator.local_evaluator.evaluate``
+    exactly, including its break on first hit, and two copies would drift.
+    """
 
     # Stable and opaque: trace artifacts must be byte-reproducible, while the
     # evaluator-only sample id itself must not be written into participant
@@ -154,6 +161,8 @@ def capture_session(
                     failure=failure,
                 )
             )
+            if on_turn is not None:
+                on_turn(traces[-1])
 
         ranked = normalize_recommendations(response.get("recommendations"), catalog_ids)
         if override_applied and target in ranked:

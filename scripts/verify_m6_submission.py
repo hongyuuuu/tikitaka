@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
 
 from scripts.m6_release import (
     ReleaseAuditError,
+    production_dense_measurements,
     audit_submission_archive,
     audit_tracked_repository,
     build_submission,
@@ -27,7 +28,7 @@ from scripts.m6_release import (
 )
 
 
-SCHEMA_VERSION = "m6-clean-reproduction-v1"
+SCHEMA_VERSION = "m6-clean-reproduction-v2"
 EXPECTED_SCENARIOS = frozenset({"buying", "browsing", "intent_override", "boundary"})
 RUNNER = r'''from __future__ import annotations
 
@@ -217,16 +218,7 @@ def verify_submission(
             "evaluator_stdout_captured": bool(stdout.strip()),
         },
         "metrics": metrics,
-        "production_dense_measurements": {
-            "status": "pending_production_1024_index",
-            "fields": [
-                "index_bytes",
-                "build_time_ms",
-                "query_time_ms",
-                "embedding_cost",
-                "production_hybrid_quality_delta",
-            ],
-        },
+        "production_dense_measurements": production_dense_measurements(),
     }
 
 

@@ -12,6 +12,7 @@ from scripts.m6_release import (
     audit_submission_archive,
     audit_tracked_repository,
     build_submission,
+    production_dense_measurements,
 )
 from scripts.capture_m6_retrieval_traces import trace_requests
 
@@ -128,6 +129,81 @@ class M6ReleaseTests(unittest.TestCase):
                 archive.writestr("manifest.json", '{"files": {}}\n')
             with self.assertRaisesRegex(ReleaseAuditError, "root file used as directory"):
                 audit_submission_archive(masquerade_archive)
+
+
+    def test_dense_measurements_track_the_handoff_evidence(self) -> None:
+        """The audit must report the index position, not a frozen assertion."""
+
+        with tempfile.TemporaryDirectory(prefix="tikitaka-dense-") as directory:
+            report_path = Path(directory) / "handoff.json"
+            report_path.write_text(
+                json.dumps(
+                    {
+                        "source_revision": "abc123",
+                        "selection": {
+                            "production_hybrid_selected": False,
+                            "release_retrieval_policy": "sparse",
+                        },
+                        "artifact": {
+                            "load_validation": "passed",
+                            "index_id": "dense-test",
+                            "route_id": "openai/test/dimensions-1024",
+                            "catalog_sha256": "cafe",
+                            "total_bytes": 4096,
+                        },
+                        "build": {
+                            "wall_duration_seconds": 12,
+                            "unique_artifact_embedding_cost_usd": 1.5,
+                        },
+                        "tuning_comparison": {
+                            "hybrid_query_embedding_usage": {"latency_ms": 25.0},
+                            "overall": {
+                                "technical_score": {
+                                    "delta_hybrid_minus_sparse": -0.01
+                                }
+                            },
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            built = production_dense_measurements(report_path)
+
+        self.assertEqual(built["status"], "built_not_selected")
+        self.assertFalse(built["selected_for_release"])
+        self.assertEqual(built["index_id"], "dense-test")
+        self.assertEqual(built["measurements"]["index_bytes"], 4096)
+        self.assertEqual(built["measurements"]["build_time_ms"], 12000)
+        self.assertEqual(built["measurements"]["embedding_cost_usd"], 1.5)
+        self.assertEqual(
+            built["measurements"]["production_hybrid_quality_delta"], -0.01
+        )
+
+    def test_dense_measurements_report_pending_without_evidence(self) -> None:
+        """Absent or unusable evidence means pending, not an invented result."""
+
+        with tempfile.TemporaryDirectory(prefix="tikitaka-dense-") as directory:
+            missing = Path(directory) / "absent.json"
+            self.assertEqual(
+                production_dense_measurements(missing)["status"],
+                "pending_production_1024_index",
+            )
+
+            malformed = Path(directory) / "malformed.json"
+            malformed.write_text("{not json", encoding="utf-8")
+            self.assertEqual(
+                production_dense_measurements(malformed)["status"],
+                "pending_production_1024_index",
+            )
+
+            unvalidated = Path(directory) / "unvalidated.json"
+            unvalidated.write_text(
+                json.dumps({"artifact": {"load_validation": "failed"}}),
+                encoding="utf-8",
+            )
+            result = production_dense_measurements(unvalidated)
+            self.assertEqual(result["status"], "pending_production_1024_index")
+            self.assertIsNone(result["measurements"]["index_bytes"])
 
 
 if __name__ == "__main__":
