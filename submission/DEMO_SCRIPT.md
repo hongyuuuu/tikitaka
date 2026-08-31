@@ -19,6 +19,16 @@ number spoken here is in `reports/m6-release-audit.json` or
 - [ ] `../tikitaka-release/` exists (`mkdir ../tikitaka-release`). The
       release tool **refuses to write the archive inside the repository**,
       so a path like `build/submission.zip` fails immediately
+- [ ] **No API credential exported in the recording shell.** Shot 4 reads
+      `os.environ` directly and would go live across all 200 sessions
+      (~$53 historical) with the metrics on screen no longer matching the
+      report. Shots 3 and 5 are guarded in code; shot 4 is not. Check with:
+
+      ```bash
+      python -c "import os; print('KEY EXPORTED:', bool(os.environ.get('OPENAI_API_KEY')))"
+      ```
+
+      `False` means every shot runs free on the deterministic route.
 - [ ] Every command run once already, so nothing is cold
 - [ ] Notifications off; Slack and Discord closed
 - [ ] Recording at 1080p, mic on a separate track
