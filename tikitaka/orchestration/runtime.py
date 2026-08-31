@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Mapping
 
@@ -17,7 +17,7 @@ from tikitaka.contracts import (
     StateOperationKind,
     Usage,
 )
-from tikitaka.decision import ResponsePolicy, ResponsePolicyConfig
+from tikitaka.decision import ResponsePolicy, ResponsePolicyConfig, phase4_arm
 from tikitaka.models.factory import GatewaySelection, gateway_from_env
 from tikitaka.models.fake import (
     HeuristicInterpreter,
@@ -53,6 +53,17 @@ _VISIBLE_OVERRIDE_VALUE_RE = re.compile(
 )
 
 
+_RELEASE_DECISION_ARM = "mrr-evidence-popularity-011-deterministic"
+
+
+def _release_response_config() -> ResponsePolicyConfig:
+    return phase4_arm(_RELEASE_DECISION_ARM).response
+
+
+def _release_ranking_config() -> DeterministicRankerConfig:
+    return phase4_arm(_RELEASE_DECISION_ARM).ranking
+
+
 @dataclass(frozen=True)
 class DeterministicRuntimeConfig:
     """Pinned local route settings used by the official degraded path."""
@@ -61,8 +72,8 @@ class DeterministicRuntimeConfig:
     profile_weight: float = 0.0
     query_builder: QueryBuilderConfig | None = None
     retrieval: RetrievalConfig | None = None
-    decision: ResponsePolicyConfig | None = None
-    ranking: DeterministicRankerConfig | None = None
+    decision: ResponsePolicyConfig | None = field(default_factory=_release_response_config)
+    ranking: DeterministicRankerConfig | None = field(default_factory=_release_ranking_config)
 
     def __post_init__(self) -> None:
         if self.candidate_limit <= 0:
