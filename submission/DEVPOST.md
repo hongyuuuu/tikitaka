@@ -162,8 +162,9 @@ route is the only held-out-confirmed configuration we have.
   the four owners, governed by a checked-in `AGENTS.md` that encodes the
   competition's non-negotiable boundaries (never modify the evaluator, never
   leak `ground_truth` or `scenario_type` into the agent, never commit secrets).
-- **Python `unittest`** — 44 test modules run as `python3 -m unittest`,
-  including fault-injection, route-equivalence, and prompt-contract suites.
+- **Python `unittest`** — 485 tests across 40 modules, run as
+  `python3 -m unittest`, including fault-injection, route-equivalence, and
+  prompt-contract suites.
 - **SQLite (FTS5)** — bundled with CPython; our BM25 index runs in-memory, so
   there is no external search service to deploy.
 - **Custom release tooling** — `scripts/build_submission.py` and
@@ -239,8 +240,9 @@ trained ourselves.
   - **Public session set:** 200 labeled development sessions
     (`data/public_set.jsonl`, SHA-256 `857259f7…8f7579`) across the fixed
     scenario mix — 40% Buying, 40% Browsing, 15% Intent Override, 5% Boundary.
-    We held out a portion of these for honest comparison and tuned thresholds
-    on the held-out split rather than on the full set.
+    We split them: 140 sessions for tuning, 60 reserved. Every threshold and
+    ablation was decided on the tuning split; the frozen finalist then got a
+    single held-out run, which was not reopened afterwards.
   - **Private sessions:** 800, retained by the organizer. Never seen by us.
   - **Anonymized `user_profile`:** the only user-side input, containing
     purchase-frequency and rating summaries plus controlled preference tags. We
@@ -259,7 +261,8 @@ trained ourselves.
 
 - **Deliberately absent from our bundle:** the catalog, the evaluator, public
   labels, the generated dense index, and any credential. The submitted archive
-  is 68 files / 155 KB of source, checked against a forbidden-contents policy on
+  is 69 files / 160 KB of agent source — 62 `tikitaka` modules, the starter
+  shim, and five root files — checked against a forbidden-contents policy on
   every build.
 
 ## Known limitations
