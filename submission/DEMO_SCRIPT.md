@@ -11,7 +11,7 @@ number spoken here is in `reports/m6-release-audit.json` or
 - [ ] `data/catalog.jsonl` downloaded from the GitHub release (shots 4 and 5
       crash without it; shot 3 does not need it)
 - [ ] Terminal font **18–20pt**, window sized so 76 columns fills the frame
-- [ ] All five commands already in shell history, in order, so each shot is
+- [ ] All three commands already in shell history, in order, so each shot is
       `↑` + Enter — never type on camera
 - [ ] **Working tree committed** — `git status --porcelain` must print
       nothing. The release build refuses to run on a dirty tree, and a
@@ -30,7 +30,7 @@ because the organizer's harness is POSIX. On Windows `python3` is a Microsoft
 Store stub and will fail. `py` works too.
 
 ```bash
-python scripts/replay_trace.py artifacts/traces/browsing.jsonl --pace 4
+python scripts/live_session.py --scenario browsing --pace 1.5
 ```
 
 ```bash
@@ -64,10 +64,12 @@ python scripts/verify_m6_submission.py --archive ../tikitaka-release/submission.
 
 ## Shot 3 — 0:45–1:45 · The session · **the important shot**
 
-**[Run the replay command. Talk over the paced output.]**
+**[Run the live session command. This is real inference against the frozen
+50,000-product catalog — each turn appears as the agent produces it, not a
+playback. Talk over it.]**
 
-> Here's a real Browsing session, replayed from the trace the agent wrote while
-> it was being scored.
+> This is a Browsing session running live against the full fifty-thousand
+> product catalog. Every turn you see appears as the agent produces it.
 >
 > Turn one: "Basketball Men, but I'm still exploring." Generality nine-tenths —
 > that's about as vague as it gets. One hard constraint, and the agent asks
@@ -82,7 +84,7 @@ python scripts/verify_m6_submission.py --archive ../tikitaka-release/submission.
 > answer lands in the state as a typed constraint with the turn it came from.
 >
 > Turn six, four constraints in, it stops asking and commits. **Target found at
-> rank one.**
+> rank one** — and zero model calls to get there.
 
 ## Shot 4 — 1:45–2:15 · The scored run
 
