@@ -1,0 +1,155 @@
+{
+  "schema_version": "p6-production-index-handoff-v1",
+  "recorded_at": "2026-08-31",
+  "source_revision": "ec07837d77ef8872a6f98b97174fc819f76e2ea3",
+  "selection": {
+    "release_retrieval_policy": "sparse",
+    "production_hybrid_selected": false,
+    "reason": "The pinned production hybrid arm lost to the sparse control on tuning technical score, MRR, Hit Rate@10, MTTC, and Efficiency.",
+    "held_out_status": "not_run"
+  },
+  "artifact": {
+    "location_on_builder_machine": "/Users/kevinyongcj/Programming/tikitaka-artifacts/tikitaka-dense-1024",
+    "committed_to_git": false,
+    "format": "dense-f32-v1",
+    "index_id": "dense-285ef587d363de24212f",
+    "provider": "openai",
+    "model": "text-embedding-3-large",
+    "route_id": "openai/text-embedding-3-large/dimensions-1024",
+    "document_count": 50000,
+    "dimension": 1024,
+    "vector_dtype": "float32-le",
+    "normalized": true,
+    "product_text_schema_version": "product_text_v1",
+    "catalog_sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
+    "ordered_id_sha256": "c3ada06571324aa1407d6dfacace45d9dfc472e481e8dd37a4097c3aa3c212bd",
+    "files": {
+      "manifest.json": {
+        "bytes": 751
+      },
+      "ids.jsonl": {
+        "bytes": 650000,
+        "sha256": "434c4af5626625892f78c3ce59303dca7faae6755ddb24118a0a87d30e198f6b"
+      },
+      "vectors.f32": {
+        "bytes": 204800000,
+        "sha256": "d7992b1442fdc7a01f61ccaf85e06ca099247dd0ad52b298c3d97f6eb0b77a1e"
+      }
+    },
+    "total_bytes": 205450751,
+    "load_validation": "passed"
+  },
+  "build": {
+    "started_at_local": "2026-08-31T11:57:15+08:00",
+    "completed_at_local": "2026-08-31T12:12:37+08:00",
+    "wall_duration_seconds": 922,
+    "batch_size": 128,
+    "successful_embedding_calls": 391,
+    "unique_prompt_tokens": 12740612,
+    "tokenizer": "cl100k_base",
+    "input_cost_usd_per_million_tokens": 0.13,
+    "unique_artifact_embedding_cost_usd": 1.65627956,
+    "token_count_validation": {
+      "final_segment_start_offset": 40448,
+      "local_tokens": 2401640,
+      "api_reported_tokens": 2401640,
+      "matched": true
+    },
+    "transport_notes": [
+      "The resumable builder crossed transient HTTP 429 throughput windows without losing completed vectors.",
+      "One client-side timeout was resumed from offset 40448 with a longer transport timeout.",
+      "The unique-artifact cost excludes a separate six-token route probe and any provider-side charge that might have occurred for the timed-out request before its response was lost."
+    ]
+  },
+  "tuning_comparison": {
+    "split": "tuning",
+    "sample_count": 140,
+    "profile_weight": 0.0,
+    "generative_policy": "deterministic",
+    "decision_arm": "conservative-questions-deterministic",
+    "sparse_experiment_fingerprint": "23e5cd65e71613c2633127b717042e6445ef8df21871fe34442c952aa77b9d1a",
+    "hybrid_experiment_fingerprint": "ce382b0bf341837f20d6ded0834ca3f2edbb22fb10176d8efaacb95cc1e4ec9f",
+    "overall": {
+      "hit_rate_at_10": {
+        "sparse": 0.9,
+        "hybrid": 0.892857,
+        "delta_hybrid_minus_sparse": -0.007143
+      },
+      "mrr": {
+        "sparse": 0.502738,
+        "hybrid": 0.486613,
+        "delta_hybrid_minus_sparse": -0.016125
+      },
+      "mttc": {
+        "sparse": 5.657143,
+        "hybrid": 5.7,
+        "delta_hybrid_minus_sparse": 0.042857
+      },
+      "efficiency": {
+        "sparse": 0.534286,
+        "hybrid": 0.53,
+        "delta_hybrid_minus_sparse": -0.004286
+      },
+      "technical_score": {
+        "sparse": 0.707679,
+        "hybrid": 0.698412,
+        "delta_hybrid_minus_sparse": -0.009267
+      }
+    },
+    "question_count": {
+      "sparse": 448,
+      "hybrid": 465,
+      "delta_hybrid_minus_sparse": 17
+    },
+    "scenario_deltas_hybrid_minus_sparse": {
+      "buying": {
+        "hit_rate_at_10": 0.017857,
+        "mrr": -0.04905,
+        "mttc": 0.053572,
+        "efficiency": -0.005357,
+        "technical_score": -0.006857
+      },
+      "browsing": {
+        "hit_rate_at_10": -0.017857,
+        "mrr": 0.003883,
+        "mttc": 0.089285,
+        "efficiency": -0.008928,
+        "technical_score": -0.00955
+      },
+      "intent_override": {
+        "hit_rate_at_10": -0.047619,
+        "mrr": 0.060507,
+        "mttc": -0.190476,
+        "efficiency": 0.019048,
+        "technical_score": -0.001848
+      },
+      "boundary": {
+        "hit_rate_at_10": 0.0,
+        "mrr": -0.142687,
+        "mttc": 0.285715,
+        "efficiency": -0.028572,
+        "technical_score": -0.048521
+      }
+    },
+    "hybrid_query_embedding_usage": {
+      "calls": 783,
+      "prompt_tokens": 54525,
+      "latency_ms": 268146.145073,
+      "mean_latency_ms_per_call": 342.460594,
+      "estimated_cost_usd": 0.007088,
+      "failures": 0,
+      "fallback_activations": 0,
+      "route": "openai/text-embedding-3-large/dimensions-1024"
+    },
+    "runner_boundary_latency_ms": {
+      "sparse": 18144.528955,
+      "hybrid": 1712334.160615
+    }
+  },
+  "security_and_artifact_policy": {
+    "credential_file": ".env",
+    "credential_file_ignored": true,
+    "credential_committed": false,
+    "vector_artifact_committed": false
+  }
+}
