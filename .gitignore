@@ -3,6 +3,8 @@ __pycache__/
 .DS_Store
 .env
 results.json
+# Throwaway submission archives and audit output.
+build/
 data/catalog.jsonl
 data/releases/
 # Organizer-only code, private evaluation data, manifests, and build reports.
