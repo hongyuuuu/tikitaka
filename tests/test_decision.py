@@ -18,6 +18,7 @@ from tikitaka.decision.question_value import (
     CONTRACT_ORDER_SELECTION,
     HIGHEST_VALUE_SELECTION,
     AttributeQuestionValue,
+    QuestionValueConfig,
     QuestionValueEstimator,
     QuestionValueResult,
     _ordered_question_values,
@@ -190,6 +191,144 @@ class QuestionValueTests(unittest.TestCase):
             fixed.expected_information_gain,
             adaptive.expected_information_gain,
         )
+
+    def test_answerability_prior_prefers_a_question_likely_to_get_an_answer(self) -> None:
+        candidates = [
+            candidate(
+                f"P{index:02d}",
+                1.0 - index * 0.035,
+                values={
+                    "category": ("shoes",),
+                    "material": ("canvas" if index < 7 else "leather",),
+                    "color": ("blue" if index % 2 == 0 else "red",),
+                },
+                sparse_rank=index + 1,
+                dense_rank=14 - index,
+            )
+            for index in range(14)
+        ]
+        estimator = QuestionValueEstimator(
+            config=QuestionValueConfig(
+                attribute_answerability_weights=(("color", 0.01),)
+            )
+        )
+
+        result = estimator.estimate(FakeState(mode="browsing"), candidates, turn=2)
+
+        self.assertEqual(result.best_attribute, "material")
+        color = next(item for item in result.values if item.attribute == "color")
+        self.assertEqual(color.answerability_weight, 0.01)
+
+    def test_invalid_answerability_prior_fails_closed(self) -> None:
+        with self.assertRaises(ValueError):
+            QuestionValueConfig(
+                attribute_answerability_weights=(("not-an-attribute", 0.5),)
+            )
+
+    def test_answerability_prior_can_wait_until_after_the_first_turn(self) -> None:
+        config = QuestionValueConfig(
+            attribute_answerability_weights=(("color", 0.01),),
+            answerability_start_turn=3,
+        )
+        estimator = QuestionValueEstimator(config=config)
+        candidates = [
+            candidate(
+                f"P{index:02d}",
+                1.0 - index * 0.035,
+                values={
+                    "category": ("shoes",),
+                    "material": ("canvas" if index < 7 else "leather",),
+                    "color": ("blue" if index % 2 == 0 else "red",),
+                },
+                sparse_rank=index + 1,
+                dense_rank=14 - index,
+            )
+            for index in range(14)
+        ]
+
+        before = estimator.estimate(
+            FakeState(mode="browsing"), candidates, turn=2
+        )
+        after = estimator.estimate(
+            FakeState(mode="browsing"), candidates, turn=3
+        )
+
+        self.assertEqual(before.best_attribute, "color")
+        self.assertEqual(after.best_attribute, "material")
+        before_color = next(item for item in before.values if item.attribute == "color")
+        after_color = next(item for item in after.values if item.attribute == "color")
+        self.assertEqual(before_color.answerability_weight, 1.0)
+        self.assertEqual(after_color.answerability_weight, 0.01)
+
+    def test_answerability_prior_can_be_limited_to_visible_browsing_mode(self) -> None:
+        config = QuestionValueConfig(
+            attribute_answerability_weights=(("color", 0.01),),
+            answerability_modes=("browsing",),
+        )
+        estimator = QuestionValueEstimator(config=config)
+        candidates = [
+            candidate(
+                f"P{index:02d}",
+                1.0 - index * 0.035,
+                values={
+                    "category": ("shoes",),
+                    "material": ("canvas" if index < 7 else "leather",),
+                    "color": ("blue" if index % 2 == 0 else "red",),
+                },
+                sparse_rank=index + 1,
+                dense_rank=14 - index,
+            )
+            for index in range(14)
+        ]
+
+        buying = estimator.estimate(FakeState(mode="buying"), candidates, turn=2)
+        browsing = estimator.estimate(
+            FakeState(mode="browsing"), candidates, turn=2
+        )
+
+        buying_color = next(item for item in buying.values if item.attribute == "color")
+        browsing_color = next(
+            item for item in browsing.values if item.attribute == "color"
+        )
+        self.assertEqual(buying_color.answerability_weight, 1.0)
+        self.assertEqual(browsing_color.answerability_weight, 0.01)
+
+    def test_answerability_prior_can_be_limited_to_revised_intents(self) -> None:
+        config = QuestionValueConfig(
+            attribute_answerability_weights=(("color", 0.01),),
+            answerability_min_intent_version=2,
+        )
+        estimator = QuestionValueEstimator(config=config)
+        candidates = [
+            candidate(
+                f"P{index:02d}",
+                1.0 - index * 0.035,
+                values={
+                    "category": ("shoes",),
+                    "material": ("canvas" if index < 7 else "leather",),
+                    "color": ("blue" if index % 2 == 0 else "red",),
+                },
+                sparse_rank=index + 1,
+                dense_rank=14 - index,
+            )
+            for index in range(14)
+        ]
+
+        original = estimator.estimate(
+            FakeState(mode="buying", intent_version=1), candidates, turn=2
+        )
+        revised = estimator.estimate(
+            FakeState(mode="buying", intent_version=2), candidates, turn=2
+        )
+
+        original_color = next(
+            item for item in original.values if item.attribute == "color"
+        )
+        revised_color = next(
+            item for item in revised.values if item.attribute == "color"
+        )
+        self.assertEqual(original_color.answerability_weight, 1.0)
+        self.assertEqual(revised_color.answerability_weight, 0.01)
 
     def test_unknown_question_selection_strategy_fails_closed(self) -> None:
         with self.assertRaises(ValueError):

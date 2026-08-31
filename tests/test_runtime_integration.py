@@ -6,6 +6,7 @@ from pathlib import Path
 
 from tikitaka.decision import ResponsePolicy
 from tikitaka.decision import ResponsePolicyConfig
+from tikitaka.decision import phase4_arm
 from tikitaka.contracts import Usage
 from tikitaka.models.base import ModelTimeout
 from tikitaka.models.factory import GatewaySelection, PRIMARY_ROUTE
@@ -89,6 +90,13 @@ class RuntimeIntegrationTest(unittest.TestCase):
             DeterministicRuntimeConfig(candidate_limit=0)
         with self.assertRaises(ValueError):
             DeterministicRuntimeConfig(profile_weight=1.1)
+
+    def test_runtime_defaults_activate_the_frozen_person3_candidate(self) -> None:
+        selected = phase4_arm("mrr-evidence-popularity-011-deterministic")
+        runtime = DeterministicRuntimeConfig()
+
+        self.assertEqual(runtime.decision, selected.response)
+        self.assertEqual(runtime.ranking, selected.ranking)
 
     def test_visible_override_replaces_only_corrected_attribute_and_reopens_ids(self) -> None:
         self.agent.reset("override", {})
