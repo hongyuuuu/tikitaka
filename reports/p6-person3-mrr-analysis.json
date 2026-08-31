@@ -1,0 +1,215 @@
+{
+  "schema_version": "person3-mrr-analysis-v2",
+  "generated_at": "2026-09-01",
+  "scope": "Person 3 tuning-only decision policy and deterministic reranking analysis",
+  "label_safety": {
+    "runtime_access": "forbidden",
+    "analysis_use": "Public labels are used only by offline evaluation and failure analysis.",
+    "target_mapping_report": "reports/person3-public-target-audit.json",
+    "held_out": "run_once_after_configuration_freeze",
+    "warning": "Do not import either analysis report from Agent.reset(), Agent.respond(), or participant runtime code."
+  },
+  "catalog": {
+    "rows": 50000,
+    "unique_parent_asins": 50000,
+    "archive_sha256": "07fd142631fd6b03e2b4d09988c3eb7d53720e9d57010c79db48eeaada50a8f8",
+    "jsonl_sha256": "da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67",
+    "ordered_parent_asin_sha256": "c3ada06571324aa1407d6dfacace45d9dfc472e481e8dd37a4097c3aa3c212bd"
+  },
+  "evaluation": {
+    "split_id": "public-v1",
+    "split_seed": 2026,
+    "tuning_samples": 140,
+    "held_out_samples": 60,
+    "held_out_reopened": false,
+    "objective_order": ["hit_rate_at_10", "mrr", "mttc"],
+    "technical_score": "0.50 * HR@10 + 0.30 * MRR + 0.20 * efficiency"
+  },
+  "baseline": {
+    "arm": "conservative-questions-deterministic",
+    "metrics": {
+      "sample_count": 140,
+      "hit_rate_at_10": 0.9,
+      "mrr": 0.502738,
+      "mttc": 5.657143,
+      "efficiency": 0.534286,
+      "technical_score": 0.707679
+    },
+    "rank_distribution": {
+      "1": 51, "2": 13, "3": 15, "4": 9, "5": 9,
+      "6": 6, "7": 7, "8": 8, "9": 3, "10": 5, "miss": 14
+    }
+  },
+  "oracle_analysis": {
+    "candidate_pool_recall": 0.978571,
+    "candidate_pool_hits": 137,
+    "candidate_pool_misses": 3,
+    "oracle_pool_mrr": 0.978571,
+    "low_rank_target_present_turns": 47,
+    "target_tied_for_phrase_lead": 36,
+    "conclusion": "Retrieval exposes nearly every target to Person 3. Exact ordering is the primary bottleneck, while many remaining products are observationally tied by the public dialogue evidence."
+  },
+  "patterns": {
+    "derived_clues_on_tuning": {
+      "feature": 280, "material": 219, "color": 38, "style": 14,
+      "size": 5, "use_case": 4, "brand": 0, "budget": 0
+    },
+    "baseline_questions": {
+      "total": 448, "feature": 125, "brand": 87, "style": 77,
+      "material": 60, "use_case": 54, "color": 33, "budget": 10,
+      "size": 2
+    },
+    "weakest_tuning_scenario": {
+      "scenario": "intent_override",
+      "hit_rate_at_10": 0.714286,
+      "mrr": 0.333862
+    },
+    "diagnosis": [
+      "The candidate pool contains 137 of 140 tuning targets, so retrieval recall is not the primary limitation.",
+      "The baseline ranks only 51 targets first and misses 14 targets in the final top ten.",
+      "Token-frequency evidence and product-description richness were not represented independently in the final ranker.",
+      "The question policy frequently asks attributes that the available target evidence cannot answer.",
+      "Thirty-six of 47 inspected target-present low-rank turns contain a phrase-score tie at the lead, demonstrating substantial observational ambiguity."
+    ]
+  },
+  "implemented_arms": {
+    "mrr-evidence-popularity-011-deterministic": {
+      "fingerprint": "7fd7ee8006e5d24ea0f0a7cd075dbb3df583daa3ed6d7bae0920e772eed40fdc",
+      "changed_variable": "reranker_route_id",
+      "reranking": {
+        "evidence_phrase_weight": 0.4,
+        "evidence_specificity_weight": 0.2,
+        "popularity_weight": 0.11,
+        "profile_constraint_weight": 0.0
+      },
+      "metrics": {
+        "sample_count": 140,
+        "hit_rate_at_10": 0.978571,
+        "mrr": 0.822687,
+        "mttc": 4.407143,
+        "efficiency": 0.659286,
+        "technical_score": 0.867949
+      },
+      "deltas_from_baseline": {
+        "hit_rate_at_10": 0.078571,
+        "mrr": 0.319949,
+        "mttc": -1.25,
+        "technical_score": 0.16027
+      },
+      "rank_distribution": {
+        "1": 104, "2": 14, "3": 6, "4": 4, "6": 2,
+        "7": 1, "8": 4, "10": 2, "miss": 3
+      },
+      "per_scenario": {
+        "boundary": {"sample_count": 7, "hit_rate_at_10": 1.0, "mrr": 0.904762, "mttc": 5.857143, "technical_score": 0.874286},
+        "browsing": {"sample_count": 56, "hit_rate_at_10": 1.0, "mrr": 0.844069, "mttc": 4.696429, "technical_score": 0.879292},
+        "buying": {"sample_count": 56, "hit_rate_at_10": 0.964286, "mrr": 0.819494, "mttc": 3.839286, "technical_score": 0.871205},
+        "intent_override": {"sample_count": 21, "hit_rate_at_10": 0.952381, "mrr": 0.746825, "mttc": 4.666667, "technical_score": 0.826905}
+      },
+      "validation_report": "reports/p6-mrr-evidence-popularity-011-tuning.json",
+      "status": "recommended_tuning_candidate_not_release_frozen",
+      "limitation": "The existing held-out split remains sealed; run this single candidate once on new untouched profiles before release promotion."
+    },
+    "mrr-evidence-phrase-specificity-020-deterministic": {
+      "fingerprint": "dec62abb07a2dd54c3e07b3b8a72f886e3cd161d45e09afd5721fe16e6239e08",
+      "changed_variable": "reranker_route_id",
+      "reranking": {
+        "evidence_phrase_weight": 0.4,
+        "evidence_phrase_min_confidence": 0.65,
+        "evidence_specificity_weight": 0.2,
+        "profile_constraint_weight": 0.0
+      },
+      "metrics": {
+        "sample_count": 140,
+        "hit_rate_at_10": 0.942857,
+        "mrr": 0.654087,
+        "mttc": 4.828571,
+        "efficiency": 0.617143,
+        "technical_score": 0.791083
+      },
+      "deltas_from_baseline": {
+        "hit_rate_at_10": 0.042857,
+        "mrr": 0.151349,
+        "mttc": -0.828572,
+        "technical_score": 0.083404
+      },
+      "rank_distribution": {
+        "1": 75, "2": 16, "3": 4, "4": 14, "5": 9,
+        "6": 7, "7": 0, "8": 2, "9": 2, "10": 3, "miss": 8
+      },
+      "per_scenario": {
+        "boundary": {
+          "sample_count": 7, "hit_rate_at_10": 1.0, "mrr": 0.760714,
+          "mttc": 5.857143, "technical_score": 0.831071
+        },
+        "browsing": {
+          "sample_count": 56, "hit_rate_at_10": 1.0, "mrr": 0.783333,
+          "mttc": 4.946429, "technical_score": 0.856071
+        },
+        "buying": {
+          "sample_count": 56, "hit_rate_at_10": 0.928571, "mrr": 0.58874,
+          "mttc": 4.142857, "technical_score": 0.77805
+        },
+        "intent_override": {
+          "sample_count": 21, "hit_rate_at_10": 0.809524, "mrr": 0.448148,
+          "mttc": 6.0, "technical_score": 0.639206
+        }
+      },
+      "scenario_hr_gate": "Every scenario preserves or improves baseline HR@10.",
+      "status": "recommended_tuning_candidate_not_release_frozen",
+      "limitation": "The improvement must be confirmed on new untouched profiles before promotion to the frozen release configuration."
+    },
+    "mrr-route-rank-052-deterministic": {
+      "fingerprint": "7c9223bf96776b0ed3fe9e4d4f6a568fd92ea0deaf2153bddeb4450f8e2e802d",
+      "changed_variable": "reranker_route_id",
+      "metrics": {
+        "sample_count": 140, "hit_rate_at_10": 0.9, "mrr": 0.506429,
+        "mttc": 5.657143, "efficiency": 0.534286,
+        "technical_score": 0.708786
+      },
+      "mrr_delta": 0.003691,
+      "status": "superseded_tuning_candidate"
+    },
+    "answerability-guarded-browsing-deterministic": {
+      "fingerprint": "aae7b128608a073567e998a489f004ae3fd3e75d6b345d7029a36ec00e95e8e9",
+      "changed_variable": "question_policy",
+      "metrics": {
+        "sample_count": 140, "hit_rate_at_10": 0.9, "mrr": 0.502738,
+        "mttc": 5.621429, "efficiency": 0.537857,
+        "technical_score": 0.708393
+      },
+      "status": "safe_experimental_candidate",
+      "limitation": "The guard preserves ranking metrics and improves MTTC slightly, but does not improve MRR."
+    }
+  },
+  "rejected_experiments": {
+    "global_reweighting": "No metric or ordering change across the tested safe weights.",
+    "raw_route_score": "Low and medium weights matched baseline; the high weight reduced MRR to 0.500595.",
+    "unguarded_answerability_with_phrase_and_specificity": {
+      "hit_rate_at_10": 0.957143,
+      "mrr": 0.639442,
+      "mttc": 4.207143,
+      "rejection": "Boundary HR fell from 1.0 to 0.857143, so the arm fails the per-scenario HR gate despite its aggregate gain."
+    },
+    "delayed_answerability_with_phrase_and_specificity": {
+      "hit_rate_at_10": 0.942857,
+      "mrr": 0.647299,
+      "mttc": 4.435714,
+      "rejection": "It preserves scenario HR but has lower MRR than the reranker-only candidate; changing question policy is therefore unnecessary risk."
+    }
+  },
+  "release_decision": {
+    "frozen_release_changed": false,
+    "recommended_candidate": "mrr-evidence-popularity-011-deterministic",
+    "held_out_metrics": {
+      "sample_count": 60,
+      "hit_rate_at_10": 0.95,
+      "mrr": 0.81838,
+      "mttc": 4.533333,
+      "technical_score": 0.849847
+    },
+    "held_out_report": "reports/p6-mrr-evidence-popularity-011-held-out.json",
+    "reason": "The locked arm passes the one-time held-out aggregate gate, but the tiny three-session Boundary subset has HR@10 0.666667. The Person 4 release composition root must explicitly adopt the arm, and all submission claims must include the complete held-out breakdown.",
+    "recommended_next_gate": "Do not rerun the 60-session split. Confirm the same configuration on the organizer's 800 private sessions when available."
+  }
+}

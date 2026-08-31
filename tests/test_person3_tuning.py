@@ -14,6 +14,8 @@ from tikitaka.decision import (
     HIGHEST_VALUE_SELECTION,
     PHASE5_ARM_VERSION,
     PHASE5_CLARIFICATION_THRESHOLDS,
+    PHASE6_ARM_VERSION,
+    PHASE6_BROWSING_ANSWERABILITY_WEIGHTS,
     QuestionValueConfig,
     ResponsePolicy,
     ResponsePolicyConfig,
@@ -122,6 +124,69 @@ class Phase4ExperimentArmTests(unittest.TestCase):
         self.assertEqual(arm.profile_weight, 0.10)
         self.assertEqual(arm.ranking.profile_weight, 0.0)
         self.assertEqual(arm.response.question_ranker.profile_weight, 0.0)
+
+    def test_phase6_mrr_candidate_is_an_isolated_reranker_change(self) -> None:
+        arm = self.arms["mrr-route-rank-052-deterministic"]
+        baseline = self.arms["conservative-questions-deterministic"]
+
+        self.assertEqual(arm.version, PHASE6_ARM_VERSION)
+        self.assertEqual(arm.response, baseline.response)
+        self.assertEqual(arm.ranking.route_rank_weight, 0.52)
+        self.assertEqual(
+            arm.changed_report_variables_from(baseline),
+            ("reranker_route_id",),
+        )
+
+    def test_phase6_answerability_candidate_is_guarded_and_isolated(self) -> None:
+        arm = self.arms["answerability-guarded-browsing-deterministic"]
+        baseline = self.arms["conservative-questions-deterministic"]
+        question = arm.response.question_value
+
+        self.assertEqual(arm.version, PHASE6_ARM_VERSION)
+        self.assertEqual(
+            question.attribute_answerability_weights,
+            PHASE6_BROWSING_ANSWERABILITY_WEIGHTS,
+        )
+        self.assertEqual(question.answerability_start_turn, 2)
+        self.assertFalse(question.answerability_after_no_preference)
+        self.assertEqual(question.answerability_modes, ("browsing",))
+        self.assertEqual(question.answerability_max_intent_version, 1)
+        self.assertEqual(arm.ranking, baseline.ranking)
+        self.assertEqual(
+            arm.changed_report_variables_from(baseline),
+            ("question_policy",),
+        )
+
+    def test_phase6_phrase_specificity_candidate_is_isolated_reranking(self) -> None:
+        arm = self.arms[
+            "mrr-evidence-phrase-specificity-020-deterministic"
+        ]
+        baseline = self.arms["conservative-questions-deterministic"]
+
+        self.assertEqual(arm.version, PHASE6_ARM_VERSION)
+        self.assertEqual(arm.response, baseline.response)
+        self.assertEqual(arm.ranking.evidence_phrase_weight, 0.40)
+        self.assertEqual(arm.ranking.evidence_specificity_weight, 0.20)
+        self.assertEqual(arm.ranking.profile_weight, 0.0)
+        self.assertEqual(
+            arm.changed_report_variables_from(baseline),
+            ("reranker_route_id",),
+        )
+
+    def test_phase6_popularity_candidate_is_isolated_and_profile_free(self) -> None:
+        arm = self.arms["mrr-evidence-popularity-011-deterministic"]
+        evidence = self.arms[
+            "mrr-evidence-phrase-specificity-020-deterministic"
+        ]
+
+        self.assertEqual(arm.version, PHASE6_ARM_VERSION)
+        self.assertEqual(arm.response, evidence.response)
+        self.assertEqual(arm.ranking.popularity_weight, 0.11)
+        self.assertEqual(arm.ranking.profile_weight, 0.0)
+        self.assertEqual(
+            arm.changed_report_variables_from(evidence),
+            ("reranker_route_id",),
+        )
 
     def test_fixed_ask_baseline_changes_only_question_selection(self) -> None:
         fixed = self.arms["fixed-ask-baseline"]

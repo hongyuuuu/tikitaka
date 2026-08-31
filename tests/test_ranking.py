@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from tikitaka.ranking.constraints import assess_candidate
@@ -81,6 +81,8 @@ def candidate(
     profile: float = 0.0,
     sparse_rank: int | None = None,
     dense_rank: int | None = None,
+    snippets: tuple[str, ...] | None = None,
+    route_details: dict[str, object] | None = None,
 ) -> FakeCandidate:
     return FakeCandidate(
         parent_asin=parent_asin,
@@ -89,7 +91,8 @@ def candidate(
             evidence_reliability=reliability or {},
             attribute_values=values or {},
             profile_contribution=profile,
-            supporting_snippets=(f"evidence for {parent_asin}",),
+            supporting_snippets=snippets or (f"evidence for {parent_asin}",),
+            route_details=route_details or {},
         ),
         sparse_rank=sparse_rank,
         dense_rank=dense_rank,
@@ -255,6 +258,154 @@ class DeterministicRankingTests(unittest.TestCase):
         )
         self.assertEqual([item.parent_asin for item in ranked], ["A", "B"])
         self.assertLess(ranked[0].score - ranked[1].score, 0.01)
+
+    def test_route_rank_can_offset_structural_evidence_already_in_fusion(self) -> None:
+        first = candidate("A", fused=0.40, sparse_rank=1)
+        structurally_boosted = replace(
+            candidate("B", fused=0.80, sparse_rank=25),
+            structural_score=1.0,
+        )
+        config = DeterministicRankerConfig(
+            fused_weight=0.0,
+            structural_weight=0.0,
+            route_agreement_weight=0.0,
+            route_rank_weight=1.0,
+            constraint_match_weight=0.0,
+            soft_contradiction_penalty=0.0,
+            unknown_penalty=0.0,
+            shown_penalty=0.0,
+        )
+
+        ranked = DeterministicRanker(config).rank_candidates(
+            FakeState(), [structurally_boosted, first]
+        )
+
+        self.assertEqual([item.parent_asin for item in ranked], ["A", "B"])
+
+    def test_phrase_evidence_rewards_complete_distinctive_constraint(self) -> None:
+        state = FakeState(
+            active_constraints=(
+                FakeConstraint(
+                    "feature",
+                    "machine washable merino lining",
+                    "machine washable merino lining",
+                ),
+            )
+        )
+        exact = candidate(
+            "EXACT",
+            0.30,
+            snippets=("machine washable merino lining",),
+        )
+        partial = candidate(
+            "PARTIAL",
+            0.90,
+            snippets=("machine washable cotton shell",),
+        )
+        config = DeterministicRankerConfig(
+            fused_weight=0.0,
+            structural_weight=0.0,
+            route_agreement_weight=0.0,
+            evidence_phrase_weight=1.0,
+            constraint_match_weight=0.0,
+            soft_contradiction_penalty=0.0,
+            unknown_penalty=0.0,
+            shown_penalty=0.0,
+        )
+
+        ranked = DeterministicRanker(config).rank_candidates(
+            state, [partial, exact]
+        )
+
+        self.assertEqual([item.parent_asin for item in ranked], ["EXACT", "PARTIAL"])
+
+    def test_phrase_evidence_ignores_low_confidence_fallback_text(self) -> None:
+        state = FakeState(
+            active_constraints=(
+                FakeConstraint(
+                    "other",
+                    "ask me about one specific attribute",
+                    "ask me about one specific attribute",
+                    confidence=0.5,
+                ),
+            )
+        )
+        config = DeterministicRankerConfig(
+            fused_weight=0.0,
+            structural_weight=0.0,
+            route_agreement_weight=0.0,
+            evidence_phrase_weight=1.0,
+            constraint_match_weight=0.0,
+            soft_contradiction_penalty=0.0,
+            unknown_penalty=0.0,
+            shown_penalty=0.0,
+        )
+
+        ranked = DeterministicRanker(config).rank_candidates(
+            state,
+            [
+                candidate("A", 0.5, snippets=("ask me about one specific attribute",)),
+                candidate("B", 0.5, snippets=("unrelated product evidence",)),
+            ],
+        )
+
+        self.assertEqual([item.parent_asin for item in ranked], ["A", "B"])
+
+    def test_specificity_breaks_equal_relevance_toward_richer_evidence(self) -> None:
+        sparse = candidate("SPARSE", 0.5, snippets=("cotton shirt",))
+        rich = candidate(
+            "RICH",
+            0.5,
+            snippets=(
+                "cotton shirt with reinforced seams breathable panels and adjustable cuffs",
+            ),
+        )
+        config = DeterministicRankerConfig(
+            fused_weight=0.0,
+            structural_weight=0.0,
+            route_agreement_weight=0.0,
+            evidence_specificity_weight=1.0,
+            constraint_match_weight=0.0,
+            soft_contradiction_penalty=0.0,
+            unknown_penalty=0.0,
+            shown_penalty=0.0,
+        )
+
+        ranked = DeterministicRanker(config).rank_candidates(
+            FakeState(), [sparse, rich]
+        )
+
+        self.assertEqual([item.parent_asin for item in ranked], ["RICH", "SPARSE"])
+
+    def test_popularity_breaks_a_relevance_tie_using_public_catalog_counts(self) -> None:
+        niche = candidate(
+            "NICHE",
+            0.5,
+            route_details={"rating_number": 12},
+        )
+        purchased_often = candidate(
+            "POPULAR",
+            0.5,
+            route_details={"rating_number": 5910},
+        )
+        config = DeterministicRankerConfig(
+            fused_weight=0.0,
+            structural_weight=0.0,
+            route_agreement_weight=0.0,
+            popularity_weight=1.0,
+            constraint_match_weight=0.0,
+            soft_contradiction_penalty=0.0,
+            unknown_penalty=0.0,
+            shown_penalty=0.0,
+        )
+
+        ranked = DeterministicRanker(config).rank_candidates(
+            FakeState(), [niche, purchased_often]
+        )
+
+        self.assertEqual(
+            [item.parent_asin for item in ranked], ["POPULAR", "NICHE"]
+        )
 
     def test_same_intent_shown_products_are_backfill_after_unseen(self) -> None:
         state = FakeState(shown_product_ids=frozenset({"SHOWN"}))

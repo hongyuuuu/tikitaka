@@ -444,6 +444,7 @@ class HybridRetriever:
                     "embedding_route_id": (
                         None if dense_manifest is None else dense_manifest.route_id
                     ),
+                    "rating_number": product.rating_number,
                 }
             )
             ranked.append(

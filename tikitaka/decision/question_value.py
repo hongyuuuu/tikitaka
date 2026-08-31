@@ -38,6 +38,12 @@ class QuestionValueConfig:
     membership_weight: float = 0.75
     order_weight: float = 0.25
     candidate_probability_temperature: float = 0.18
+    attribute_answerability_weights: tuple[tuple[str, float], ...] = ()
+    answerability_start_turn: int = 1
+    answerability_after_no_preference: bool = True
+    answerability_modes: tuple[str, ...] = ()
+    answerability_min_intent_version: int = 1
+    answerability_max_intent_version: int | None = None
 
     def __post_init__(self) -> None:
         if min(self.competitive_limit, self.ranking_top_k, self.maximum_branches) <= 0:
@@ -54,6 +60,45 @@ class QuestionValueConfig:
             raise ValueError("membership and order weights must sum to 1")
         if self.candidate_probability_temperature <= 0.0:
             raise ValueError("candidate_probability_temperature must be positive")
+        if (
+            not isinstance(self.answerability_start_turn, int)
+            or not 1 <= self.answerability_start_turn <= 10
+        ):
+            raise ValueError("answerability_start_turn must be in [1, 10]")
+        if not isinstance(self.answerability_after_no_preference, bool):
+            raise TypeError("answerability_after_no_preference must be bool")
+        modes = tuple(str(mode) for mode in self.answerability_modes)
+        if len(set(modes)) != len(modes) or any(
+            mode not in {"buying", "browsing", "unknown"} for mode in modes
+        ):
+            raise ValueError("answerability_modes must contain unique visible modes")
+        object.__setattr__(self, "answerability_modes", modes)
+        minimum_intent = self.answerability_min_intent_version
+        if (
+            isinstance(minimum_intent, bool)
+            or not isinstance(minimum_intent, int)
+            or minimum_intent < 1
+        ):
+            raise ValueError("answerability_min_intent_version must be positive")
+        maximum_intent = self.answerability_max_intent_version
+        if maximum_intent is not None and (
+            isinstance(maximum_intent, bool)
+            or not isinstance(maximum_intent, int)
+            or maximum_intent < 1
+        ):
+            raise ValueError("answerability_max_intent_version must be positive")
+        answerability = tuple(
+            (str(attribute), float(weight))
+            for attribute, weight in self.attribute_answerability_weights
+        )
+        if len({attribute for attribute, _ in answerability}) != len(answerability):
+            raise ValueError("attribute answerability weights must be unique")
+        for attribute, weight in answerability:
+            if attribute not in ALLOWED_ATTRIBUTES:
+                raise ValueError(f"unknown answerability attribute: {attribute}")
+            if not math.isfinite(weight) or not 0.0 <= weight <= 1.0:
+                raise ValueError("attribute answerability weights must be in [0, 1]")
+        object.__setattr__(self, "attribute_answerability_weights", answerability)
 
 
 @dataclass(frozen=True)
@@ -63,6 +108,7 @@ class AttributeQuestionValue:
     coverage: float
     distinct_values: int
     branch_probabilities: Mapping[str, float]
+    answerability_weight: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -92,7 +138,7 @@ def _ordered_question_values(
         sorted(
             values,
             key=lambda item: (
-                -item.expected_information_gain,
+                -item.expected_information_gain * item.answerability_weight,
                 -item.coverage,
                 ALLOWED_ATTRIBUTES.index(item.attribute),
             ),
@@ -106,6 +152,10 @@ def _active_answered_attributes(state: object, confidence: float) -> set[str]:
         for constraint in active_constraints(state)
         if float(getattr(constraint, "confidence", 0.0)) >= confidence
     }
+
+
+def _answerability_weight(config: QuestionValueConfig, attribute: str) -> float:
+    return dict(config.attribute_answerability_weights).get(attribute, 1.0)
 
 
 def _string_set(values: object) -> set[str]:
@@ -226,6 +276,27 @@ class QuestionValueEstimator:
         }
         values: list[AttributeQuestionValue] = []
         turn_discount = 0.5 + 0.5 * ((10 - turn) / 9.0)
+        state_mode = enum_value(getattr(state, "mode", "unknown"))
+        intent_version = getattr(state, "intent_version", 1)
+        answerability_enabled = (
+            turn >= self.config.answerability_start_turn
+            and (self.config.answerability_after_no_preference or not no_preference)
+            and (
+                not self.config.answerability_modes
+                or state_mode in self.config.answerability_modes
+            )
+            and (
+                isinstance(intent_version, int)
+                and intent_version >= self.config.answerability_min_intent_version
+            )
+            and (
+                self.config.answerability_max_intent_version is None
+                or (
+                    isinstance(intent_version, int)
+                    and intent_version <= self.config.answerability_max_intent_version
+                )
+            )
+        )
 
         for attribute in ALLOWED_ATTRIBUTES:
             if attribute in no_preference or attribute in exhausted:
@@ -271,9 +342,19 @@ class QuestionValueEstimator:
                     self.config.order_weight,
                     candidate_probabilities,
                 )
+            answerability_weight = (
+                1.0
+                if attribute in revalidation or not answerability_enabled
+                else _answerability_weight(self.config, attribute)
+            )
             information_gain = min(
                 1.0,
-                max(0.0, expected_change * coverage * turn_discount),
+                max(
+                    0.0,
+                    expected_change
+                    * coverage
+                    * turn_discount,
+                ),
             )
             values.append(
                 AttributeQuestionValue(
@@ -282,6 +363,7 @@ class QuestionValueEstimator:
                     coverage=coverage,
                     distinct_values=len(value_mass),
                     branch_probabilities=probabilities,
+                    answerability_weight=answerability_weight,
                 )
             )
 

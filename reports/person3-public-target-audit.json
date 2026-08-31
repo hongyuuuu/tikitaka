@@ -1,0 +1,6329 @@
+{
+  "label_safety": "offline analysis only; never import into Agent runtime",
+  "summary": {
+    "sample_count": 200,
+    "unique_targets": 200,
+    "targets_found_in_catalog": 200,
+    "tuning_samples": 140,
+    "held_out_samples": 60,
+    "scenario_counts": {
+      "boundary": 10,
+      "browsing": 80,
+      "buying": 80,
+      "intent_override": 30
+    },
+    "difficulty_counts": {
+      "easy": 80,
+      "hard": 30,
+      "medium": 90
+    },
+    "derived_clue_attribute_counts": {
+      "feature": 404,
+      "material": 302,
+      "color": 60,
+      "style": 19,
+      "size": 11,
+      "use_case": 4
+    },
+    "profile_tag_counts": {
+      "fit": 163,
+      "material": 154,
+      "comfort": 144,
+      "style": 101,
+      "durability": 47,
+      "performance": 26,
+      "warmth": 18,
+      "weather": 12,
+      "general shopping": 1
+    },
+    "profile_tags_matching_target_text": {
+      "comfort": 94,
+      "fit": 93,
+      "material": 49,
+      "style": 45,
+      "performance": 5,
+      "durability": 4,
+      "warmth": 2,
+      "weather": 1
+    },
+    "target_field_coverage": {
+      "title": 200,
+      "features": 200,
+      "description": 89,
+      "price": 178,
+      "categories": 200,
+      "details": 200,
+      "store": 200
+    },
+    "top_coarse_categories": {
+      "Athletic Walking": 7,
+      "Tees & Blouses Tunics": 6,
+      "Shoes Slippers": 6,
+      "Bras Everyday Bras": 5,
+      "Shoes Fashion Sneakers": 5,
+      "Women Jeans": 4,
+      "Shoes Loafers & Slip-Ons": 4,
+      "Women Leggings": 4,
+      "Tees & Blouses T-Shirts": 4,
+      "Accessories Belts": 3,
+      "Watches Wrist Watches": 3,
+      "Underwear Undershirts": 3,
+      "Women Dresses": 3,
+      "Shoes Mules & Clogs": 3,
+      "Card Cases & Money Organizers Wallets": 3,
+      "Sleep & Lounge Sleep Bottoms": 3,
+      "Women Fashion Hoodies & Sweatshirts": 3,
+      "Shirts T-Shirts": 3,
+      "Tees & Blouses Blouses & Button-Down Shirts": 3,
+      "Panties Briefs": 3,
+      "Outdoor & Work Snow & Cold Weather": 2,
+      "Women Bodysuits": 2,
+      "Underwear Briefs": 2,
+      "Boots Mid-Calf": 2,
+      "Dresses Casual": 2
+    },
+    "tuning_rank_distribution": {
+      "1": 51,
+      "10": 5,
+      "2": 13,
+      "3": 15,
+      "4": 9,
+      "5": 9,
+      "6": 6,
+      "7": 7,
+      "8": 8,
+      "9": 3,
+      "miss": 14
+    },
+    "tuning_metrics_by_difficulty": {
+      "easy": {
+        "samples": 56,
+        "hit_rate_at_10": 0.875,
+        "mrr": 0.486933,
+        "mean_questions": 2.553571
+      },
+      "hard": {
+        "samples": 21,
+        "hit_rate_at_10": 0.714286,
+        "mrr": 0.333862,
+        "mean_questions": 3.285714
+      },
+      "medium": {
+        "samples": 63,
+        "hit_rate_at_10": 0.984127,
+        "mrr": 0.573079,
+        "mean_questions": 3.746032
+      }
+    },
+    "tuning_metrics_by_scenario": {
+      "boundary": {
+        "samples": 7,
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.567857,
+        "mean_questions": 4.571429
+      },
+      "browsing": {
+        "samples": 56,
+        "hit_rate_at_10": 0.982143,
+        "mrr": 0.573732,
+        "mean_questions": 3.642857
+      },
+      "buying": {
+        "samples": 56,
+        "hit_rate_at_10": 0.875,
+        "mrr": 0.486933,
+        "mean_questions": 2.553571
+      },
+      "intent_override": {
+        "samples": 21,
+        "hit_rate_at_10": 0.714286,
+        "mrr": 0.333862,
+        "mean_questions": 3.285714
+      }
+    },
+    "tuning_metrics_when_clue_attribute_present": {
+      "color": {
+        "samples": 33,
+        "hit_rate_at_10": 0.848485,
+        "mrr": 0.495611,
+        "mean_questions": 3.121212
+      },
+      "feature": {
+        "samples": 133,
+        "hit_rate_at_10": 0.917293,
+        "mrr": 0.520301,
+        "mean_questions": 3.18797
+      },
+      "material": {
+        "samples": 109,
+        "hit_rate_at_10": 0.926606,
+        "mrr": 0.462833,
+        "mean_questions": 3.165138
+      },
+      "size": {
+        "samples": 5,
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.866667,
+        "mean_questions": 2.4
+      },
+      "style": {
+        "samples": 13,
+        "hit_rate_at_10": 0.846154,
+        "mrr": 0.807692,
+        "mean_questions": 3.076923
+      },
+      "use_case": {
+        "samples": 4,
+        "hit_rate_at_10": 1.0,
+        "mrr": 0.833333,
+        "mean_questions": 3.5
+      }
+    },
+    "tuning_metrics_by_profile_tag_overlap_count": {
+      "0": {
+        "samples": 22,
+        "hit_rate_at_10": 0.863636,
+        "mrr": 0.556494,
+        "mean_questions": 3.545455
+      },
+      "1": {
+        "samples": 58,
+        "hit_rate_at_10": 0.896552,
+        "mrr": 0.427032,
+        "mean_questions": 3.034483
+      },
+      "2": {
+        "samples": 40,
+        "hit_rate_at_10": 0.925,
+        "mrr": 0.578393,
+        "mean_questions": 3.3
+      },
+      "3": {
+        "samples": 19,
+        "hit_rate_at_10": 0.894737,
+        "mrr": 0.486153,
+        "mean_questions": 3.157895
+      },
+      "4": {
+        "samples": 1,
+        "hit_rate_at_10": 1.0,
+        "mrr": 1.0,
+        "mean_questions": 2.0
+      }
+    },
+    "tuning_misses": [
+      {
+        "sample_id": "public_0003",
+        "scenario": "intent_override",
+        "difficulty": "hard",
+        "target_parent_asin": "B09YMTWDXJ",
+        "target_title": "Casio Men's Wrist Watch AQ-800E-7A",
+        "derived_clue_attributes": [
+          "feature",
+          "feature",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0004",
+        "scenario": "intent_override",
+        "difficulty": "hard",
+        "target_parent_asin": "B07C2XPZ6D",
+        "target_title": "Emmalise Women's Basic Casual Long Camisole Adjustable Strap Cami Layering Top",
+        "derived_clue_attributes": [
+          "material",
+          "material",
+          "material",
+          "style"
+        ]
+      },
+      {
+        "sample_id": "public_0020",
+        "scenario": "buying",
+        "difficulty": "easy",
+        "target_parent_asin": "B08P4SSFX4",
+        "target_title": "Funny Saying Novelty Gift ideas - My Favorite People Call Me Grandma Long Sleeve T-Shirt",
+        "derived_clue_attributes": [
+          "material",
+          "color",
+          "material",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0028",
+        "scenario": "buying",
+        "difficulty": "easy",
+        "target_parent_asin": "B0B9ZYDDZ1",
+        "target_title": "Buffway Slim Minimalist Front Pocket RFID Blocking Leather Wallets for Men Women",
+        "derived_clue_attributes": [
+          "material",
+          "color",
+          "material",
+          "material"
+        ]
+      },
+      {
+        "sample_id": "public_0031",
+        "scenario": "buying",
+        "difficulty": "easy",
+        "target_parent_asin": "B0BQDTGHMZ",
+        "target_title": "Signature by Levi Strauss & Co. Gold Label Women's Modern Skinny Jeans (Standard and Plus)",
+        "derived_clue_attributes": [
+          "material",
+          "material",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0038",
+        "scenario": "intent_override",
+        "difficulty": "hard",
+        "target_parent_asin": "B07B5RGY2N",
+        "target_title": "Blowfish Malibu Women's Fruit Sneaker",
+        "derived_clue_attributes": [
+          "feature",
+          "feature",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0056",
+        "scenario": "browsing",
+        "difficulty": "medium",
+        "target_parent_asin": "B0B2RF64YD",
+        "target_title": "Amazon Essentials Men's Short-Sleeve Crewneck T-Shirt, Pack of 2",
+        "derived_clue_attributes": [
+          "material",
+          "material",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0068",
+        "scenario": "intent_override",
+        "difficulty": "hard",
+        "target_parent_asin": "B08SH8GF6K",
+        "target_title": "Skechers Women's Go Walk 6-Big Splash Sneaker",
+        "derived_clue_attributes": [
+          "feature",
+          "feature",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0082",
+        "scenario": "buying",
+        "difficulty": "easy",
+        "target_parent_asin": "B09BPZCWDP",
+        "target_title": "Hicarer 21 Pieces Surfer Wave Bracelet Ocean Wave Adjustable Waterproof Handmade Friendship Bracelet Summer Sunflower Bracelets Anklets Jewelry for Women Teen Girls",
+        "derived_clue_attributes": [
+          "style",
+          "color",
+          "style",
+          "color"
+        ]
+      },
+      {
+        "sample_id": "public_0083",
+        "scenario": "buying",
+        "difficulty": "easy",
+        "target_parent_asin": "B0BPMCJ1RD",
+        "target_title": "CHICZONE Plaid Shacket Jacket Womens Long Flannel Jacket Casual Lapel Button Down Tartan Trench Coats",
+        "derived_clue_attributes": [
+          "material",
+          "material",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0161",
+        "scenario": "buying",
+        "difficulty": "easy",
+        "target_parent_asin": "B0B6N6TJ6V",
+        "target_title": "Thankful Grateful Blessed Shirt for Women Plaid Pumpkin Long Sleeve Tshirts Leopard Stripe Striped Thanksgiving Fall Tee Tops",
+        "derived_clue_attributes": [
+          "material",
+          "material",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0168",
+        "scenario": "buying",
+        "difficulty": "easy",
+        "target_parent_asin": "B08YYHDJD1",
+        "target_title": "Desimtion Mothers Day Gifts,Mother Daughter Bracelets Set for 2,3,4,5,6.Matching Heart Back to School Bracelets for Mommy and Me Easter Gifts for Girl",
+        "derived_clue_attributes": [
+          "feature",
+          "color",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0177",
+        "scenario": "intent_override",
+        "difficulty": "hard",
+        "target_parent_asin": "B07HV9WW6Q",
+        "target_title": "ANIXAY Women's Short/Long Sleeve Henley Button up T Shirt Casual Basic Tops Blouse",
+        "derived_clue_attributes": [
+          "material",
+          "material",
+          "feature",
+          "feature"
+        ]
+      },
+      {
+        "sample_id": "public_0186",
+        "scenario": "intent_override",
+        "difficulty": "hard",
+        "target_parent_asin": "B07XPLHXC1",
+        "target_title": "ASICS Women's Gel-Contend 6 Running Shoes",
+        "derived_clue_attributes": [
+          "feature",
+          "feature",
+          "color",
+          "color"
+        ]
+      }
+    ]
+  },
+  "targets": [
+    {
+      "sample_id": "public_0001",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09PYB7B6Z",
+      "target_title": "QIAN0813 Celttic Knot Triple Moon Pentagram Pentacle Star Wicca Pendant Necklace Round Pagan Jewelry",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boys",
+        "Jewelry",
+        "Necklaces"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0002",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B071X54486",
+      "target_title": "Hide & Drink, Rustic Handmade Full Grain Leather Men's Belt, Two Row Stitch Stylish Design - Everyday Belts for Men",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Accessories",
+        "Belts"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0003",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B09YMTWDXJ",
+      "target_title": "Casio Men's Wrist Watch AQ-800E-7A",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Watches",
+        "Wrist Watches"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0004",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07C2XPZ6D",
+      "target_title": "Emmalise Women's Basic Casual Long Camisole Adjustable Strap Cami Layering Top",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Novelty & More",
+        "Clothing",
+        "Novelty",
+        "Women",
+        "Tops & Tees",
+        "Tanks & Camis"
+      ],
+      "profile_tags": [
+        "weather",
+        "warmth",
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "material",
+        "style"
+      ]
+    },
+    {
+      "sample_id": "public_0005",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B074G1JP8Z",
+      "target_title": "GLOBALWIN Women's Waterproof Winter Boots Snow Boots For Women",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boot Shop",
+        "Women",
+        "Outdoor & Work",
+        "Snow & Cold Weather"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "style",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "use_case"
+      ]
+    },
+    {
+      "sample_id": "public_0006",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B071F2Z7JG",
+      "target_title": "Pro Club Men's Heavyweight Mesh Basketball Shorts",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Basketball",
+        "Men"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0007",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08PF98BV4",
+      "target_title": "RITERA Plus Size Tops for Women Off the Shoulder Cold Shoulder Tops Short Sleeve Shirts Summer Blouses Sexy Tunics Tee XL-5XL",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Tunics"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0008",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BPCC1KBT",
+      "target_title": "Hanes Womens Wireless Bra, Full-Coverage Pullover Stretch-Knit Bra, Smoothing T-Shirt Bra",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Bras",
+        "Everyday Bras"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0009",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07GXHPWTJ",
+      "target_title": "Angel Barcelo Roomy Fashion Hobo Womens Handbags Ladies Purse Satchel Shoulder Bags Tote Washed Leather Bag",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Handbags & Wallets",
+        "Totes"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0010",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0929KL5W7",
+      "target_title": "MANGOPOP Women's Mock Turtle Neck Long Sleeve Tops Bodysuit Jumpsuit",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Bodysuits"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "performance",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0011",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BXP6MG3X",
+      "target_title": "Hanes Men's Tagless Cotton V-Neck Undershirt \u2013 Multiple Packs and Colors",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Underwear",
+        "Undershirts"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0012",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08FFGQF72",
+      "target_title": "GUBERRY Womens Wrap V Neck Long Sleeve Velvet Bodycon Ruched Cocktail Party Dress",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Dresses"
+      ],
+      "profile_tags": [
+        "fit",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0013",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B0C65TFM9F",
+      "target_title": "Vionic Women's Gemma",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Slippers"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "feature",
+        "style"
+      ]
+    },
+    {
+      "sample_id": "public_0014",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B088QF5G58",
+      "target_title": "Hanes Men's Underwear Briefs Pack, Mid-Rise, Moisture-Wicking, 6-Pack",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Underwear",
+        "Briefs"
+      ],
+      "profile_tags": [
+        "warmth",
+        "comfort",
+        "style",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0015",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08513YB2T",
+      "target_title": "Crocs Unisex-Adult Classic Clog",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Mules & Clogs"
+      ],
+      "profile_tags": [
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0016",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07PH3X7QK",
+      "target_title": "Amazon Essentials Women's Lace-Up Combat Boot",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Boots",
+        "Mid-Calf"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0017",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B089RXP8K2",
+      "target_title": "Travelambo Womens Wallet RFID Blocking Bifold Multi Card Case Wallet with Zipper Pocket",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Accessories",
+        "Wallets, Card Cases & Money Organizers",
+        "Wallets"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0018",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07H3T5YGH",
+      "target_title": "O2TEE Men's Workout Gym Tank Tops Men - Custom Tank Top - Customized & Personalized Tanktops Text",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Novelty & More",
+        "Clothing",
+        "Novelty",
+        "Men",
+        "Shirts",
+        "Tanks Tops"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0019",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B076VQQ962",
+      "target_title": "Asgard Women's Ankle Rain Boots Waterproof Chelsea Boots",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boot Shop",
+        "Women",
+        "Outdoor & Work",
+        "Rain"
+      ],
+      "profile_tags": [
+        "weather",
+        "comfort",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0020",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B08P4SSFX4",
+      "target_title": "Funny Saying Novelty Gift ideas - My Favorite People Call Me Grandma Long Sleeve T-Shirt",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Novelty & More",
+        "Clothing",
+        "Novelty",
+        "Women"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0021",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07K4FX4WZ",
+      "target_title": "Amazon Essentials Men's Slim-Fit Stretch Golf Pant",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Golf",
+        "Men",
+        "Pants"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0022",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B08F5G843H",
+      "target_title": "YESNO Summer Dresses for Women Casual Loose Bohemian Floral Dress with Pockets Spaghetti Strap Maxi Dress E75",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Dresses",
+        "Casual"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "style",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0023",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B08ZKFD4GM",
+      "target_title": "Hanes Women's Wireless Bra with Cooling, Seamless Smooth Comfort Wirefree T-Shirt Bra",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Bras",
+        "Everyday Bras"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "style",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0024",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B076X3JXMW",
+      "target_title": "Riviera Sun Womens Off Shoulder Embroidered Jumpsuit Romper",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Jumpsuits, Rompers & Overalls",
+        "Jumpsuits"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "performance",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "style"
+      ]
+    },
+    {
+      "sample_id": "public_0025",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BRS1DHVQ",
+      "target_title": "PRETTYGARDEN Women's Loose Solid Off Shoulder Elastic Waist Stretchy Long Romper Jumpsuit",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Jumpsuits, Rompers & Overalls",
+        "Rompers"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0026",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B093R14VP1",
+      "target_title": "ASICS Men's Gel-Venture 6 MX Running Shoes",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Athletic",
+        "Running",
+        "Trail Running"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0027",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0858VDFDW",
+      "target_title": "Riders by Lee Indigo Women's Ultra Soft Denim Capri",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Jeans"
+      ],
+      "profile_tags": [
+        "style",
+        "comfort",
+        "fit",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style",
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0028",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0B9ZYDDZ1",
+      "target_title": "Buffway Slim Minimalist Front Pocket RFID Blocking Leather Wallets for Men Women",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Accessories",
+        "Wallets, Card Cases & Money Organizers",
+        "Wallets"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0029",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01IAKCZEK",
+      "target_title": "Sanuk Yoga Sling 2 Light Natural 5 B (M)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Sandals",
+        "Flats"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material",
+        "style",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "material",
+        "style",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0030",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09V5RTXG9",
+      "target_title": "#followme Microfleece Men\u2019s Buffalo Plaid Pajama Pants with Pockets",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Sleep & Lounge",
+        "Sleep Bottoms"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0031",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BQDTGHMZ",
+      "target_title": "Signature by Levi Strauss & Co. Gold Label Women's Modern Skinny Jeans (Standard and Plus)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Jeans"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0032",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0834HZQZF",
+      "target_title": "IZZY + TOBY 100% Cotton Nightgowns for Women Soft Ladies Gowns Sleepwear Long Sleeveless Nightgown",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Sleep & Lounge",
+        "Nightgowns & Sleepshirts"
+      ],
+      "profile_tags": [
+        "material",
+        "performance",
+        "style",
+        "warmth"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0033",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08134XNNB",
+      "target_title": "Women's Walking Shoes Sock Sneakers - Mesh Slip On Air Cushion Lady Girls Modern Jazz Dance Easy Shoes Platform Loafers",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Athletic",
+        "Walking"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "style",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0034",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07Q9PNNB5",
+      "target_title": "DUOYANGJIASHA Loafers for Women Casual Slip on Dress Loafers Womens Comfortable Leather Driving Shoes Outdoor Walking Flats Shoes",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Loafers & Slip-Ons"
+      ],
+      "profile_tags": [
+        "style",
+        "material",
+        "fit",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "material",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0035",
+      "split": "tuning",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BN6CCHB7",
+      "target_title": "Skechers Men's Go Max-Athletic Air Mesh Slip on Walking Shoe Sneaker",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Athletic",
+        "Walking"
+      ],
+      "profile_tags": [
+        "material",
+        "performance",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "performance",
+        "durability"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0036",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08BWR1T58",
+      "target_title": "47 Pairs Fashion Earrings for Women Girls, Boho Statement Tassel Rattan Leather Earrings Butterfly Acrylic Hoop Stud Drop Dangle Earrings Set, Hypoallergenic for Sensitive Ears",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Jewelry",
+        "Earrings",
+        "Drop & Dangle"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "style",
+        "color"
+      ]
+    },
+    {
+      "sample_id": "public_0037",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08KKBBMMD",
+      "target_title": "The Children's Place Boys' Pull on Cargo Pants",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boys",
+        "Clothing",
+        "Pants"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0038",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07B5RGY2N",
+      "target_title": "Blowfish Malibu Women's Fruit Sneaker",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Fashion Sneakers"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0039",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07TZCJW9X",
+      "target_title": "Women's Pro Series Cycling Short Sleeve Jersey, Cargo Bib Shorts, or Kit Bundle",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Cycling",
+        "Women",
+        "Jerseys"
+      ],
+      "profile_tags": [
+        "comfort",
+        "performance",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0040",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08ZJWTCDR",
+      "target_title": "Champion Men's Joggers, Everyday Joggers, Lightweight, Comfortable Joggers for Men, 31\"",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Active",
+        "Active Pants",
+        "Sweatpants"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0041",
+      "split": "held_out",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B09MSY8926",
+      "target_title": "LETDIOSTO Women's Plus Size Tops Casual Blouse Short Sleeve Lace Tunic Tops Fit Flare, M-4XL",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Tunics"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "material",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0042",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01LWOGORL",
+      "target_title": "Timex Men's Classic Digital Watch",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Watches",
+        "Wrist Watches"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "performance",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "style",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0043",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C1KNGLPX",
+      "target_title": "Levi's Women's Classic Bootcut Jeans",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Jeans"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0044",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09BQ4G5BD",
+      "target_title": "K898 Men's Square Leg Swimming Jammer Shorts UPF50+,Men Swimsuit Swim Jammers Fabric Shape Retention",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Competitive Swimwear",
+        "Men",
+        "Jammers"
+      ],
+      "profile_tags": [
+        "style",
+        "comfort",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0045",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07Z8NTWVV",
+      "target_title": "HOCOSIT Women's Floral Print Short Ruffle Sleeve Pleated Front V Neck Button Tunic Tops",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Tunics"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0046",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B0B42PVX1F",
+      "target_title": "Wool Plus Size Thigh High Socks For Thick Thighs- Extra Long Womens Warm Cable Knit Over Knee Stockings Leg Warmers",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Socks & Hosiery",
+        "Leg Warmers"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "warmth"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort",
+        "material",
+        "warmth"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0047",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BYZX7B1L",
+      "target_title": "Lunarable Multicolor Unisex Bandana",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Novelty & More",
+        "Clothing",
+        "Novelty",
+        "Men",
+        "Accessories",
+        "Bandanas"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0048",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B00VQBMJUQ",
+      "target_title": "Vizari Infinity FG Soccer Cleat (Toddler/Little Kid/Big Kid)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boys",
+        "Shoes",
+        "Athletic",
+        "Soccer"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "style",
+        "use_case"
+      ]
+    },
+    {
+      "sample_id": "public_0049",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08G4WVYLJ",
+      "target_title": "Dacomfy Mens Slip On Shoes, Men's Loafers & Slip-ons Leather Walking Shoes for Men, Hand Stitching Comfortable Breathable Brown Black Khaki",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Loafers & Slip-Ons"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "style",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0050",
+      "split": "tuning",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B07BYR6T7W",
+      "target_title": "EverBoots Mens Work Boots for Men, Leather EverFit Lightweight Comfort Boot, Anti Slip & Shock Absorption, Soft Oil Grain, Goodyear Welt, Industrial Construction, Roofing, Electrician Moc Toe Wedge",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Uniforms, Work & Safety",
+        "Shoes",
+        "Work & Utility",
+        "Industrial & Construction Boots"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "durability"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0051",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07N1624C5",
+      "target_title": "Skechers Women's Go Walk 5-True Sneaker",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Athletic",
+        "Walking"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0052",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B09G2ZNZY4",
+      "target_title": "Grlasen Women's Zipper Summer Pleated Button Short Sleeve T-Shirt Summer V-Neck Solid Color Casual top",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Tunics"
+      ],
+      "profile_tags": [
+        "comfort",
+        "style",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0053",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07TZK3GZK",
+      "target_title": "Passport Holder Cover Travel RFID Blocking Passport Cover Rose Gold Cute Flowers Passport Wallet with Elastic Band for Women",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Luggage & Travel Gear",
+        "Travel Accessories",
+        "Passport Covers"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0054",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B08PP1ZJQ5",
+      "target_title": "Verdusa Women's Basic Casual Long Sleeve Round Neck Crop Top Pullover Sweatshirt",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Fashion Hoodies & Sweatshirts"
+      ],
+      "profile_tags": [
+        "weather",
+        "comfort",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0055",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C1TDJ9HZ",
+      "target_title": "Crocs Unisex-Adult Baya Clogs, Neo Mint, 7 Women/5 Men",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Mules & Clogs"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0056",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0B2RF64YD",
+      "target_title": "Amazon Essentials Men's Short-Sleeve Crewneck T-Shirt, Pack of 2",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Shirts",
+        "T-Shirts"
+      ],
+      "profile_tags": [
+        "fit",
+        "durability",
+        "style",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0057",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B085RX192V",
+      "target_title": "Crocs Women\u2019s Freesail Clog",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Mules & Clogs"
+      ],
+      "profile_tags": [
+        "general shopping"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0058",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B08L83YQTZ",
+      "target_title": "JTANIB Women Packable Rain Jacket Waterproof Lightweight Raincoat Hooded for Hiking Outdoor Travel",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Coats, Jackets & Vests",
+        "Trench, Rain & Anoraks",
+        "Raincoats"
+      ],
+      "profile_tags": [
+        "material",
+        "durability",
+        "fit",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0059",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B01H6DGA16",
+      "target_title": "Supplim Women's Body Shaper Waist Cincher Underbust Corset Bodysuit Shapewear",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Shapewear",
+        "Bodysuits"
+      ],
+      "profile_tags": [
+        "fit",
+        "style",
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0060",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08R61K9B9",
+      "target_title": "Fruit of the Loom mens Woven Sleep Pajama Pant",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Sleep & Lounge",
+        "Sleep Bottoms"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "style",
+        "warmth"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0061",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B08HCP9YTV",
+      "target_title": "1pc Surgical Steel Piercing Ring for Nose Septum Cartilage Helix Tragus Conch Rook Daith Lobe 20g-18g-16g-14g-12g-10g 5mm-6mm-7mm-8mm-9mm-10mm-11mm-12mm-14mm-16mm Silver/Gold/Rose Gold/Black/Rainbow",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Jewelry",
+        "Body Jewelry",
+        "Piercing Jewelry",
+        "Rings"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "size",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0062",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B015K51VPM",
+      "target_title": "chouyatou Women's Casual Stretch Waist Washed Denim A-line Maxi Skirt",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Skirts",
+        "Casual"
+      ],
+      "profile_tags": [
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0063",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B09MKL5TBK",
+      "target_title": "BALEAF Womens' 7\" Long Running Athletic Shorts with Liner Workout Zipper Pocket",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Running",
+        "Women",
+        "Shorts"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "style",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "size"
+      ]
+    },
+    {
+      "sample_id": "public_0064",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B019DU687Q",
+      "target_title": "Memorose Womens Sexy Long Sleeve Cut-Out Bandage Bodycon Clubwear Midi Dress",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Dresses",
+        "Club & Night Out"
+      ],
+      "profile_tags": [
+        "comfort",
+        "performance",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0065",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BSQ9TCYC",
+      "target_title": "Arctix Women's Essential Insulated Bib Overalls",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Skiing",
+        "Women",
+        "Bibs & Pants",
+        "Bibs"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0066",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BFLFSB2Y",
+      "target_title": "GRAPENT Women's Plus Size Sequin 3/4 Sleeves Evening Gown Party Long Maxi Dress",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Dresses",
+        "Formal"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0067",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09G9BXJZM",
+      "target_title": "TLZC Men's Lightweight Bomber Jacket Windbreaker Slim Fit Active Coat Outerwear",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Jackets & Coats",
+        "Lightweight Jackets",
+        "Windbreakers"
+      ],
+      "profile_tags": [
+        "comfort",
+        "style",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0068",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B08SH8GF6K",
+      "target_title": "Skechers Women's Go Walk 6-Big Splash Sneaker",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Athletic",
+        "Walking"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0069",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07ZFBQ76H",
+      "target_title": "Acrylic Earrings For Women Girls Statement Geometric Earrings Resin Acetate Drop Dangle Earrings Mottled Hoop Earrings Fashion Jewelry",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Jewelry",
+        "Earrings",
+        "Drop & Dangle"
+      ],
+      "profile_tags": [
+        "warmth",
+        "material",
+        "comfort",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "size",
+        "feature",
+        "style"
+      ]
+    },
+    {
+      "sample_id": "public_0070",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B010LVBVKA",
+      "target_title": "Travel Neck Wallet with RFID Blocking \u2013 Passport Holder Neck Pouch to Keep Your Cash And Documents Safe \u2013 Get Peace Of Mind When Traveling",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Luggage & Travel Gear",
+        "Travel Accessories",
+        "Travel Wallets"
+      ],
+      "profile_tags": [
+        "comfort",
+        "style",
+        "fit",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0071",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B06XRFSDL4",
+      "target_title": "Mordenmiss Women's Loose Sweatshirt Spring/Fall Simple Shirt Tops",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Fashion Hoodies & Sweatshirts"
+      ],
+      "profile_tags": [
+        "material",
+        "performance",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0072",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B09JG4V9ZR",
+      "target_title": "Facitisu Womens Winter Warm Jacket Long Down Faux Fur Hooded Quilted Sherpa Lined Coat",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Coats, Jackets & Vests",
+        "Trench, Rain & Anoraks",
+        "Anoraks"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "style"
+      ]
+    },
+    {
+      "sample_id": "public_0073",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07QPM54V7",
+      "target_title": "WNEEDU Women's Summer Casual T Shirt Dresses Short Sleeve Swing Dress with Pockets",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Dresses",
+        "Casual"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0074",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07N15QTKC",
+      "target_title": "Skechers Women's Go Walk 5-Lucky Sneaker",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Athletic",
+        "Walking"
+      ],
+      "profile_tags": [
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0075",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08L13LJ5M",
+      "target_title": "BULLIANT Men's Belt, Slide Ratchet Belt For Men Dress Pant Shirt Oxfords,trim To Fit",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Accessories",
+        "Belts"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0076",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07XT6PLTB",
+      "target_title": "Proud Army Girlfriend US Flag Dog Tags Pride Military Lovers Zip Hoodie",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Novelty & More",
+        "Clothing",
+        "Novelty",
+        "Women",
+        "Hoodies"
+      ],
+      "profile_tags": [
+        "style",
+        "comfort",
+        "performance",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0077",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B077JDSZ27",
+      "target_title": "Ashford & Brooks Mens Flannel Long Sleeve Sleep Nightshirt",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Sleep & Lounge",
+        "Sleep Tops"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0078",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B0C5RLJDSF",
+      "target_title": "Hanes Women's Value, Crew Soft Moisture-Wicking Socks, Available in 10 and 14-Packs",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Socks & Hosiery",
+        "Socks",
+        "No Show & Liner Socks"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0079",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BFRMX3JG",
+      "target_title": "Jeasona Women\u2019s Fuzzy Slipper Socks With Grippers Cozy Warm Cute Animal Gifts",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Socks & Hosiery",
+        "Slipper Socks"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "comfort",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0080",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B0BPRQY4CF",
+      "target_title": "IZOD Men's Advantage Performance Short Sleeve Polo Shirt",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Shirts",
+        "Polos"
+      ],
+      "profile_tags": [
+        "durability",
+        "material",
+        "comfort",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0081",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BSS36XCS",
+      "target_title": "Fruit of the Loom Men's Eversoft Cotton Stay Tucked V-Neck T-Shirt",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Underwear",
+        "Undershirts"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "style",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0082",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09BPZCWDP",
+      "target_title": "Hicarer 21 Pieces Surfer Wave Bracelet Ocean Wave Adjustable Waterproof Handmade Friendship Bracelet Summer Sunflower Bracelets Anklets Jewelry for Women Teen Girls",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Jewelry",
+        "Bracelets",
+        "Strand"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "style",
+        "color",
+        "style",
+        "color"
+      ]
+    },
+    {
+      "sample_id": "public_0083",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BPMCJ1RD",
+      "target_title": "CHICZONE Plaid Shacket Jacket Womens Long Flannel Jacket Casual Lapel Button Down Tartan Trench Coats",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Blouses & Button-Down Shirts"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0084",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B08WKZNFG2",
+      "target_title": "BeltBro Titan No Buckle Elastic Belt For Men \u2014 Fits 1.5 Inch Belt Loops, Comfortable and Easy To Use",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Accessories",
+        "Belts"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0085",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C3YJMRRD",
+      "target_title": "welltree Slides for Women Men Pillow Slippers Non-Slip Bathroom Shower Sandals Soft Thick Sole Indoor and Outdoor Slides",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Sandals",
+        "Slides"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "style"
+      ]
+    },
+    {
+      "sample_id": "public_0086",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07WN8N9Q7",
+      "target_title": "LongBay Women's Chenille Knit Bootie Slippers Cute Plush Fleece Memory Foam House Shoes",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Slippers"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material",
+        "fit",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0087",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BT158RRR",
+      "target_title": "Goodthreads Men's Standard-Fit Short-Sleeve Printed Poplin Shirt",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Shirts",
+        "Casual Button-Down Shirts"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0088",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07Z6J5N6Y",
+      "target_title": "Amazon Essentials Women's Cotton Bikini Brief Underwear (Available in Plus Size), Multipacks",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Panties",
+        "Bikinis"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0089",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B0BXMCZLZV",
+      "target_title": "Vanity Fair Women's Perfectly Yours High Waisted Brief Panties",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Panties",
+        "Briefs"
+      ],
+      "profile_tags": [
+        "comfort",
+        "style",
+        "fit",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0090",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07MGR6D5M",
+      "target_title": "Mardi Gras Costume Accessory Mardi Gras Mesh Shimmering Scarf Purple Green Gold Scarf Masquerade Costume Mardi Gras Party Favor (Style 2)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Costumes & Accessories",
+        "Women",
+        "Accessories"
+      ],
+      "profile_tags": [
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "style",
+        "color",
+        "color",
+        "color"
+      ]
+    },
+    {
+      "sample_id": "public_0091",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C5XB43GG",
+      "target_title": "925 Sterling Silver Small Hoop Earrings Cubic Zirconia Huggie Hoop Earrings, 3 Pairs 14K White Gold Plated Cartilage Piercing Earrings Ear Cuff Tiny Hoop Earrings for Women Men",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Jewelry",
+        "Earrings"
+      ],
+      "profile_tags": [
+        "performance",
+        "comfort",
+        "fit",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0092",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07FKNZC43",
+      "target_title": "COSOSA Womens Satin Striped Pajamas Long Sleeve V-neck Tops and Pants 2-piece Pj Set",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Sleep & Lounge",
+        "Sets"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0093",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07PYB8F1G",
+      "target_title": "Hanes Women's Signature Breathe Cotton Brief Underwear 6-Pack",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Panties",
+        "Briefs"
+      ],
+      "profile_tags": [
+        "performance",
+        "fit",
+        "comfort",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0094",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01L99SW78",
+      "target_title": "Ariat Fatbaby Western Boot \u2013 Women\u2019s Leather Western Boots",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Boots",
+        "Mid-Calf"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "performance"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0095",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09N78FT2W",
+      "target_title": "Free Leaper High Waisted Yoga Pants with Pockets for Women-Comfortable Running Seamless Leggings",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Yoga",
+        "Women",
+        "Leggings"
+      ],
+      "profile_tags": [
+        "warmth",
+        "weather",
+        "comfort",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0096",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B074K2QX3M",
+      "target_title": "Zeagoo Women's Polka Dots Shirt Striped 3/4 Sleeve Casual Scoop Neck Tops Tee S-XXXL",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "T-Shirts"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material",
+        "fit",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0097",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0785RCKBT",
+      "target_title": "Leggings Depot Women's Flared Casual, Work, Lounge Palazzo Pants-Wide Leg",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Leggings"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0098",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08CZ34D75",
+      "target_title": "adidas Men's Lite Racer Adapt 4.0 Running Shoe",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Athletic",
+        "Running",
+        "Road Running"
+      ],
+      "profile_tags": [
+        "performance",
+        "comfort",
+        "style",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "performance",
+        "comfort",
+        "style",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0099",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0971YMPCR",
+      "target_title": "Core 10 Women's Super Soft Fleece Straight Leg Jogger Sweatpant",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Active",
+        "Active Pants",
+        "Sweatpants"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0100",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B002OHE4D6",
+      "target_title": "Dockers Proposal - Genuine Full-Grain Leather Slip-On Loafer Dress Shoes for Men Featuring All Motion Comfort Technology, EVA Sock Lining, and Durable Rubber Outsole",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Loafers & Slip-Ons"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0101",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07QMS8TX8",
+      "target_title": "Medical Cargo Pants for Men Workwear Originals, Zipper Fly Scrubs for Men 4000",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Uniforms, Work & Safety",
+        "Clothing",
+        "Medical",
+        "Scrub Bottoms"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "durability"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0102",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07PWZXZVX",
+      "target_title": "FallSweet Padded Push Up Lace Bras for 34A to 44C Underwire",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Bras",
+        "Everyday Bras"
+      ],
+      "profile_tags": [
+        "comfort",
+        "style",
+        "fit",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0103",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B0BT8T2FQ3",
+      "target_title": "Fruit of the Loom Men's Eversoft Cotton Stay Tucked Crew T-Shirt",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Underwear",
+        "Undershirts"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0104",
+      "split": "held_out",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B00QSAICLU",
+      "target_title": "Black 1 Inch Wide Leather Like Headband Solid Hair band for Women and Girls",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Accessories",
+        "Hats & Caps",
+        "Headbands"
+      ],
+      "profile_tags": [
+        "comfort",
+        "durability",
+        "fit",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0105",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07Q46M2J2",
+      "target_title": "IUGA High Waisted Yoga Pants for Women with Pockets Capri Leggings for Women Workout Leggings for Women Yoga Capris",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Yoga",
+        "Women",
+        "Leggings"
+      ],
+      "profile_tags": [
+        "comfort",
+        "weather",
+        "material",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "style"
+      ]
+    },
+    {
+      "sample_id": "public_0106",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0776SVXW9",
+      "target_title": "Mens Socks Dress Cotton Socks Fashion Patterned Argyle Socks &Formal Business Socks Classic Cotton Dress Casual Socks for Men",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Socks & Hosiery",
+        "Socks",
+        "Calf Socks"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0107",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01KPFK9ZA",
+      "target_title": "FASHION BOOMY Women's Zip Up Safari Military Anorak Jacket with Hood Drawstring - Regular and Plus Sizes",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Coats, Jackets & Vests",
+        "Trench, Rain & Anoraks",
+        "Anoraks"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0108",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01I21CI7G",
+      "target_title": "Hanes Women's Stretch Jersey Bike Shorts, Women\u2019s Cotton Bike Shorts, Women\u2019s Athletic Shorts, 7\" Inseam",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Sport Specific Clothing",
+        "Cycling",
+        "Women",
+        "Tights, Pants & Shorts",
+        "Shorts"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0109",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B016OT9D3K",
+      "target_title": "Hanes Men\u2019s Short Sleeve Graphic T-shirt Collection",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Shirts",
+        "T-Shirts"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0110",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C277G9FW",
+      "target_title": "Loritta 5 Pairs Womens Wool Socks Thick Knit Vintage Winter Warm Cozy Crew Socks Gifts",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Active",
+        "Athletic Socks"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0111",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07H7BWMQF",
+      "target_title": "Lacozy Women's Off Shoulder Long Sleeve Oversized Pullover Sweater Knit Jumper Loose Tunic Tops",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Sweaters",
+        "Pullovers"
+      ],
+      "profile_tags": [
+        "style",
+        "durability",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0112",
+      "split": "tuning",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B086ZNJY8K",
+      "target_title": "Nautica Men's Casual Slip-On Fashion Sneakers-Walking Shoes-Lightweight Joggers",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Athletic",
+        "Walking"
+      ],
+      "profile_tags": [
+        "warmth",
+        "weather",
+        "comfort",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "performance"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "use_case",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0113",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08CTFPBN5",
+      "target_title": "RockDove Women's Nomad Slipper with Memory Foam",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Slippers"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "color"
+      ]
+    },
+    {
+      "sample_id": "public_0114",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07H34Z5V6",
+      "target_title": "Athlefit Women's Wedge Sneakers Hidden Heel Platform Wedge Booties Hidden Wedgie Sneakers",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Fashion Sneakers"
+      ],
+      "profile_tags": [
+        "fit",
+        "style",
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "style",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0115",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08VWZBYPY",
+      "target_title": "PrinStory Womens Sleepwear Short Sleeve Nightgown Soft Sleepshirt Pleated Nightshirt Scoopneck Casual Loungewear",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Sleep & Lounge",
+        "Nightgowns & Sleepshirts"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0116",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07S2Y3THP",
+      "target_title": "Lugz Men's Clipper Sneaker",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Fashion Sneakers"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0117",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07HJ18QRQ",
+      "target_title": "Vionic Sadie Women's Adjustable Strap Orthotic Slippers",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Slippers"
+      ],
+      "profile_tags": [
+        "style",
+        "comfort",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "style",
+        "color",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0118",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09M72C8PG",
+      "target_title": "Angerella Women Vintage Polka Dot High Waisted Bathing Suits Bikini Set",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Swimsuits & Cover Ups",
+        "Bikinis",
+        "Sets"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "material",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "material",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0119",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BBLR3QB2",
+      "target_title": "MIFORINES Ladies Summer Jelly Pillow-shaped Top Handle Handbag Candy Color Transparent Crystal Purse",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Handbags & Wallets",
+        "Top-Handle Bags"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "size"
+      ]
+    },
+    {
+      "sample_id": "public_0120",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08GPGX2QG",
+      "target_title": "SENDEFN Wallets for Women Genuine Leather Credit Card Holder with RFID Blocking Large Capacity Wristlet",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Accessories",
+        "Wallets, Card Cases & Money Organizers",
+        "Wallets"
+      ],
+      "profile_tags": [
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0121",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08HS712ZB",
+      "target_title": "Duufin 5 Pcs Lace Bralettes for Women Bralette Padded Lace Bandeau Bra",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Bras",
+        "Everyday Bras"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "color"
+      ]
+    },
+    {
+      "sample_id": "public_0122",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B074KJ49F2",
+      "target_title": "Leggings Depot Premium Quality Women's Cotton Blend Stretch Pull-on Jeggings with Pockets",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Leggings"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "style",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0123",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07CZ84YFJ",
+      "target_title": "Lanzom Womens Classic Wide Brim Floppy Panama Hat Belt Buckle Wool Fedora Hat",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Accessories",
+        "Hats & Caps",
+        "Fedoras"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "material",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0124",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07TN1845M",
+      "target_title": "Arctic Air Adjustable Sports Cap, Beige, Hat",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Accessories",
+        "Hats & Caps",
+        "Baseball Caps"
+      ],
+      "profile_tags": [
+        "fit",
+        "weather",
+        "durability",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0125",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07VCYFB5D",
+      "target_title": "Baseball Cap Custom Personalized Text Dad Hats for Men & Women Strap Closure",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Novelty & More",
+        "Clothing",
+        "Novelty",
+        "Women",
+        "Accessories",
+        "Hats & Caps",
+        "Baseball Caps"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "color",
+        "size"
+      ]
+    },
+    {
+      "sample_id": "public_0126",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B09M84R91V",
+      "target_title": "Asvivid Womens Casual Boho Floral Print 3/4 Flare Sleeve Blouses Summer Off The Shoulder Tops Tie Knot Shirts",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Blouses & Button-Down Shirts"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0127",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0B8DX189T",
+      "target_title": "Under Armour Storm Fleece Gloves",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Accessories",
+        "Gloves & Mittens",
+        "Cold Weather Gloves"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "comfort",
+        "warmth"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0128",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BNP1RZ2W",
+      "target_title": "PAVOI 14K Gold Plated Lightweight Chunky Open Hoops | Gold Hoop Earrings for Women",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Jewelry",
+        "Earrings",
+        "Hoop"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "style",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0129",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0936ZJJ68",
+      "target_title": "MANGOPOP Women's Square Neck Short Sleeve Long Sleeve Tops Bodysuit Jumpsuit",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Bodysuits"
+      ],
+      "profile_tags": [
+        "fit",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0130",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07X9V6HZX",
+      "target_title": "POKARLA Women's High Waisted Cotton Underwear Soft Breathable Panties Stretch Briefs Regular & Plus Size 5-Pack",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Panties",
+        "Briefs"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0131",
+      "split": "tuning",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B07PQQQ8ZL",
+      "target_title": "Women Thigh High Socks Extra Long Cotton Knit Warm Thick Tall Long Boot Stockings Leg Warmers",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Socks & Hosiery",
+        "Leg Warmers"
+      ],
+      "profile_tags": [
+        "weather",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "weather",
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0132",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B08X2X83DW",
+      "target_title": "isotoner Women's Terry\u00a0Slip on Clog Slipper with Memory Foam for Indoor/Outdoor Comfort",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Slippers"
+      ],
+      "profile_tags": [
+        "comfort",
+        "warmth",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "warmth",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0133",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01KILT64Q",
+      "target_title": "Flying Fisherman womens 7719cs sunglasses, Camo Frames/Smoke Lenses, Medium US",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Accessories",
+        "Sunglasses & Eyewear Accessories",
+        "Sunglasses"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0134",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B081SF3QRL",
+      "target_title": "YOFANST 2pcs-12pcs Double Flare Stainless Steel Tunnels Gauges Screwed Gem Rhinestones Tunnels Plugs Stretcher Jewelry",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Jewelry",
+        "Body Jewelry",
+        "Piercing Jewelry",
+        "Tunnels"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "color",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0135",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0C6BL4RNN",
+      "target_title": "Dearfoams Women's Rebecca Lightweight Cozy Memory Foam Closed Back Slipper with Wide Widths",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Slippers"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0136",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B091F54MWM",
+      "target_title": "CAMPSNAIL 4 Pack Biker Shorts for Women High Waist - 5\" Soft Summer Womens Shorts Spandex Workout Shorts for Running Athletic",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Active",
+        "Active Shorts"
+      ],
+      "profile_tags": [
+        "comfort",
+        "style",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0137",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B01N67CJGX",
+      "target_title": "DOUBLJU Lightweight Thin Zip-Up Hoodie Jacket for Women Girls Kids with Plus Size",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Fashion Hoodies & Sweatshirts"
+      ],
+      "profile_tags": [
+        "comfort",
+        "weather",
+        "material",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0138",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0B4BRW7JT",
+      "target_title": "KORSIS Summer Dresses For Women Casual T Shirt Dresses Swing Flowy Beach Vacation Sundress with Pockets",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Tunics"
+      ],
+      "profile_tags": [
+        "performance",
+        "comfort",
+        "material",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "color"
+      ]
+    },
+    {
+      "sample_id": "public_0139",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B09SGYPW3M",
+      "target_title": "OFEEFAN Womens Tops Ruffle Short Sleeve V Neck T-Shirts Casual Loose Fit",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "T-Shirts"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "comfort",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "style",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0140",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B09BT6LSJV",
+      "target_title": "Grlasen Women's Casual Long Blazers Ruched 3/4 Sleeve Lapel Oversized Suit Jacket Elegant Work Office Blazer Jackets",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Suiting & Blazers",
+        "Blazers"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0141",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BLH7JHG8",
+      "target_title": "Fzroezz 6Pcs Nose Studs L Shaped 20 Gauge Nose Piercings Nose Rings Studs Nose Piercing Jewelry Nose Piercing Stud Surgical Steel Nose Ring Nose Rings Studs Jewelry for Women Men 20G 2mm 2.5mm 3mm CZ Gold Silver Rose Gold",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Jewelry",
+        "Body Jewelry",
+        "Piercing Jewelry",
+        "Screws"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "size",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0142",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07YRGC1Q1",
+      "target_title": "Feraco Mens Bikers Bracelet Stainless Steel Motorcycle Bike Chain Bracelets 8.4 Inch",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Jewelry",
+        "Bracelets",
+        "Link"
+      ],
+      "profile_tags": [
+        "warmth",
+        "performance",
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "color",
+        "size"
+      ]
+    },
+    {
+      "sample_id": "public_0143",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01H54X6CM",
+      "target_title": "MUXXN Women's Retro 1950s Style Sleeveless Slim Business Pencil Dress",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Dresses",
+        "Work"
+      ],
+      "profile_tags": [
+        "material",
+        "style",
+        "fit",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style",
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0144",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B08LMMDYV7",
+      "target_title": "URBAN REPUBLIC Women's Winter Jacket - Heavyweight Water Resistant Expedition Faux-Fur Lined Parka Jacket",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Coats, Jackets & Vests",
+        "Down Jackets & Parkas"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0145",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B00IJZZWGA",
+      "target_title": "BRIGHT STAR Low Cut Ankle Socks For Women - 30 Pairs of Athletic Socks For Running, Workout, Sports",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Active",
+        "Athletic Socks"
+      ],
+      "profile_tags": [
+        "style",
+        "comfort",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style",
+        "comfort",
+        "durability"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0146",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BCQWYQLQ",
+      "target_title": "Sarin Mathews Womens One Shoulder Ruched Bodycon Dress Sexy Sleeveless Slit Midi Party Cocktail Wedding Guest Dresses",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Dresses"
+      ],
+      "profile_tags": [
+        "style",
+        "comfort",
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0147",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B077276QGC",
+      "target_title": "wirarpa Women's High Waisted Cotton Underwear Ladies Soft Full Briefs Panties Multipack",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0148",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BQC2NRG2",
+      "target_title": "Fruit of the Loom Women's Eversoft Cotton Bikini Underwear, Tag Free & Breathable",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Panties",
+        "Bikinis"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0149",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07CBYYHTL",
+      "target_title": "SDIYABOLO Small Black Sling Crossbody Backpack Shoulder Bag for Men Women Vintage PU Leather Sling Backpack Cycling",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Luggage & Travel Gear",
+        "Backpacks",
+        "Casual Daypacks"
+      ],
+      "profile_tags": [
+        "fit",
+        "performance",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0150",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07P6MPQY5",
+      "target_title": "Sivvan Scrubs for Men - Zippered Short Sleeve Jacket",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Uniforms, Work & Safety",
+        "Clothing",
+        "Medical",
+        "Scrub Jackets"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0151",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08CFNQNJK",
+      "target_title": "Under Armour Men's Micro G Valsetz Mid Military and Tactical Boot",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boot Shop",
+        "Men",
+        "Outdoor & Work",
+        "Work & Safety"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "durability",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0152",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B000EQU0NW",
+      "target_title": "Citizen Eco-Drive Corso Quartz Mens Watch, Stainless Steel with Leather strap, Classic, Brown (Model: BM8242-08E)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Watches",
+        "Wrist Watches"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0153",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07BMJ77FR",
+      "target_title": "Susanny High Heel Boots for Women,Womens Platform Boot Heels Sexy Round Toe Lace UP High Heels Mid Calf Boots",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Boots",
+        "Ankle & Bootie"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "style",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0154",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B00CYNKSTE",
+      "target_title": "Bestform Women's Wire Free Bra",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Bras",
+        "Everyday Bras"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0155",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0C4VLWWYY",
+      "target_title": "GearTOP Net Hat UV Protection Sun Hat Head Net Hat Fishing Hat for Men & Women Wide Brim Hat w/Removable Net",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Accessories",
+        "Hats & Caps",
+        "Sun Hats"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0156",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0C3KZXV4B",
+      "target_title": "adidas Alliance II Sackpack, Shadow Navy/Snowglobe/Dash Grey, One Size",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Luggage & Travel Gear",
+        "Gym Bags",
+        "Drawstring Bags"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "color",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0157",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B00BCHDM14",
+      "target_title": "Kamik Women's Momentum Snow Boot",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boot Shop",
+        "Women",
+        "Outdoor & Work",
+        "Snow & Cold Weather"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "material",
+        "warmth"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0158",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B012ZM6RGQ",
+      "target_title": "CreepyParty Novelty Halloween Costume Party Animal Head Mask - King Lion",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Costumes & Accessories",
+        "Men",
+        "Masks"
+      ],
+      "profile_tags": [
+        "warmth",
+        "comfort",
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "style",
+        "feature",
+        "feature",
+        "color"
+      ]
+    },
+    {
+      "sample_id": "public_0159",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B00UHLFR32",
+      "target_title": "Fruit of the Loom Men's Extended Sizes Jersey Knit Sleep Pant (1 & 2 Packs)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Sleep & Lounge",
+        "Sleep Bottoms"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0160",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01AAANF2Y",
+      "target_title": "Amazon Basics 4 Piece Packing Travel Organizer Cubes Set - Slim, Black",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Luggage & Travel Gear",
+        "Travel Accessories",
+        "Packing Organizers"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0161",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0B6N6TJ6V",
+      "target_title": "Thankful Grateful Blessed Shirt for Women Plaid Pumpkin Long Sleeve Tshirts Leopard Stripe Striped Thanksgiving Fall Tee Tops",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "T-Shirts"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0162",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0B71JNMQY",
+      "target_title": "Satin Silk Slip Maxi Dress for Wedding Guest Women- Cowl Neck Pleated Bust Split Wedding Guest Cocktail Midi Dresses",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Dresses"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0163",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0834T68X3",
+      "target_title": "DOUSSPRT Womens Walking Shoes Slip on Sock Sneakers Lady Girls Nurse Mesh Air Cushion Platform Loafers Fashion Casual",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Athletic",
+        "Walking"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "performance"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0164",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C61FG7GL",
+      "target_title": "BARTON Elite Silicone Watch Bands - Quick Release - Choose Strap Color & Buckle Color (Stainless Steel, Black PVD or Gunmetal Grey) - (ODD SIZE LUG WIDTHS ONLY 19mm, 21mm, 23mm - MOST WATCHES HAVE EVEN SIZED LUG WIDTHS, PLEASE MEASURE CAREFULLY)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Watches",
+        "Watch Bands"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "style",
+        "weather"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0165",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09XHSLX4X",
+      "target_title": "WOCCI Leather Watch Band, Vintage Replacement Strap, Stainless Steel Buckle, Choice of Width 14mm 16mm 18mm 19mm 20mm 21mm 22mm 23mm 24mm",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Watches",
+        "Watch Bands"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "size"
+      ]
+    },
+    {
+      "sample_id": "public_0166",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B00IHW88W0",
+      "target_title": "Muck Boots Hale Multi-Season Women's Rubber Boot",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Boots",
+        "Rain"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "use_case",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0167",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07357B79L",
+      "target_title": "Champion Women's Absolute Sports Bra with SmoothTec Band, Graphic",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Bras",
+        "Sports Bras"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "style",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0168",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B08YYHDJD1",
+      "target_title": "Desimtion Mothers Day Gifts,Mother Daughter Bracelets Set for 2,3,4,5,6.Matching Heart Back to School Bracelets for Mommy and Me Easter Gifts for Girl",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Girls",
+        "Jewelry",
+        "Necklaces & Pendants",
+        "Pendants"
+      ],
+      "profile_tags": [
+        "comfort",
+        "warmth",
+        "durability",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0169",
+      "split": "held_out",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B0829R9M5G",
+      "target_title": "Amazon Essentials Women's Pull-On Knit Jegging (Available in Plus Size)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Jeans"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0170",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08LRQX5RH",
+      "target_title": "UGG Women's Harrison Lace Fashion Boot",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boot Shop",
+        "Women",
+        "Fashion",
+        "Combat"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0171",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BFVFFHKS",
+      "target_title": "ZAFUL Bikini Set for Women Solid V Neck Knot Front Push Up High Leg Thong Two Piece Swimsuit",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Swimsuits & Cover Ups",
+        "Bikinis",
+        "Sets"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "comfort",
+        "warmth"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0172",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0829PZGBB",
+      "target_title": "Skechers Women's Sneaker",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Fashion Sneakers"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0173",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07THT4G8N",
+      "target_title": "Aqua Socks Beach Water Shoes Barefoot Yoga Socks Quick-Dry Surf Pool Swim Shoes for Women Men",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Athletic",
+        "Water Shoes"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "durability",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "material",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0174",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0794VPVBH",
+      "target_title": "NY Threads Luxurious Mens Shawl Collar Fleece Bathrobe Spa Robe",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Sleep & Lounge",
+        "Robes"
+      ],
+      "profile_tags": [
+        "fit",
+        "comfort",
+        "material",
+        "durability"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0175",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B07D5M61T2",
+      "target_title": "Ariat Men\u2019s M2 Relaxed Boot Cut Jean",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Jeans"
+      ],
+      "profile_tags": [
+        "fit",
+        "style",
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0176",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C3MKNZJN",
+      "target_title": "adidas Originals Originals Sport Waist Pack",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Luggage & Travel Gear",
+        "Waist Packs"
+      ],
+      "profile_tags": [
+        "fit",
+        "style",
+        "material",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0177",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07HV9WW6Q",
+      "target_title": "ANIXAY Women's Short/Long Sleeve Henley Button up T Shirt Casual Basic Tops Blouse",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses"
+      ],
+      "profile_tags": [
+        "style",
+        "fit",
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit",
+        "comfort",
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0178",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01FWQ8NH8",
+      "target_title": "Red Hot Chili Peppers Distressed Men's T-Shirt Black",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Novelty & More",
+        "Clothing",
+        "Novelty",
+        "Men",
+        "Shirts",
+        "T-Shirts"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0179",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B08JK818ZD",
+      "target_title": "Azules Women's Long Sleeve Flowy Tunic",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Tunics"
+      ],
+      "profile_tags": [
+        "warmth",
+        "comfort",
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0180",
+      "split": "tuning",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B01HSMYV8E",
+      "target_title": "Saucony Women's Cohesion 10 Running Shoe",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Fashion Sneakers"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0181",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B08M3WKDFJ",
+      "target_title": "Fixmatti Women's 2 Piece Outfits Long Sleeve Pullover Sweatshirt Jogger Pants Sweatsuit",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Active",
+        "Sets",
+        "Tracksuits"
+      ],
+      "profile_tags": [
+        "warmth",
+        "comfort",
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0182",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C5XBLB2P",
+      "target_title": "ELFISH Mini RFID Aluminum Wallet Credit Cards Holder Business Card Case Metal ID Case for Men Women (Black Marble)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Accessories",
+        "Wallets, Card Cases & Money Organizers",
+        "Card & ID Cases",
+        "Card Cases"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0183",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07Z2KSZR3",
+      "target_title": "SheIn Women's Double Breasted Long Vest Jacket Casual Sleeveless Pocket Outerwear Longline",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Coats, Jackets & Vests",
+        "Vests"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0184",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B0BWLFCTTF",
+      "target_title": "Ray-Ban Woman Sunglasses Black Frame, Green Classic G-15 Lenses, 57MM",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Accessories",
+        "Sunglasses & Eyewear Accessories",
+        "Sunglasses"
+      ],
+      "profile_tags": [
+        "fit",
+        "material",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0185",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0BCW4QKV5",
+      "target_title": "MIOTAN Boy Shorts Underwear for Women High Waisted Panties Cotton Boxer Briefs 4 Pack",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Lingerie, Sleep & Lounge",
+        "Lingerie",
+        "Panties",
+        "Boy Shorts"
+      ],
+      "profile_tags": [
+        "comfort",
+        "style",
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0186",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07XPLHXC1",
+      "target_title": "ASICS Women's Gel-Contend 6 Running Shoes",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Athletic",
+        "Running",
+        "Road Running"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "color",
+        "color"
+      ]
+    },
+    {
+      "sample_id": "public_0187",
+      "split": "tuning",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B000GQ1F3O",
+      "target_title": "Eastland Men's Newport Slip-On Shoe",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Loafers & Slip-Ons"
+      ],
+      "profile_tags": [
+        "weather",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "material",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0188",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0B5ZS2J2W",
+      "target_title": "CLUCI Crossbody Purses for Women, Medium Size Zipper Pocket Adjustable Strap, Soft Leather Women's Shoulder Handbags",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Handbags & Wallets",
+        "Crossbody Bags"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0189",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B0C614ZPK3",
+      "target_title": "Levi's Men's 505 Regular Fit Shorts (Also Available in Big & Tall)",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Shorts",
+        "Denim"
+      ],
+      "profile_tags": [
+        "comfort",
+        "material"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "material",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0190",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B01MQUDPPO",
+      "target_title": "Iflex Scrubs for Women, Yoga-Inspired Knit Waistband Scrub Pants CK002",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Uniforms, Work & Safety",
+        "Clothing",
+        "Medical",
+        "Scrub Bottoms"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0191",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B083TB1NDK",
+      "target_title": "CS CELERSPORT 3 Pairs Compression Socks for Men and Women 20-30 mmHg Running Support Socks",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Clothing",
+        "Active"
+      ],
+      "profile_tags": [
+        "performance",
+        "comfort",
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "performance",
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0192",
+      "split": "tuning",
+      "scenario": "boundary",
+      "difficulty": "medium",
+      "target_parent_asin": "B0C62MF2HV",
+      "target_title": "adidas unisex adult Adilette Clog Slide Sandal, Pink Tint/White/Pink Tint, 12 Women Men US",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men",
+        "Shoes",
+        "Athletic",
+        "Sport Sandals & Slides"
+      ],
+      "profile_tags": [
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0193",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07YM55NLW",
+      "target_title": "Shimmer Anna Shine USA American Flag Patriotic Scarf",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Accessories",
+        "Scarves & Wraps",
+        "Fashion Scarves"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0194",
+      "split": "tuning",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B09WR1NZ48",
+      "target_title": "Graphic Tees for Women Short Sleeve Tshirts,Womens Summer Tops Crewneck Shirt Blouse",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "T-Shirts"
+      ],
+      "profile_tags": [
+        "warmth",
+        "weather",
+        "comfort",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort",
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0195",
+      "split": "tuning",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B072M4K5LF",
+      "target_title": "Floerns Women's Ruffle Off Shoulder Rose Embroidery Loose Blouse Top",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Clothing",
+        "Tops, Tees & Blouses",
+        "Blouses & Button-Down Shirts"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "material",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0196",
+      "split": "held_out",
+      "scenario": "browsing",
+      "difficulty": "medium",
+      "target_parent_asin": "B073T364MM",
+      "target_title": "DREAM PAIRS Women's Sole-Simple Ballerina Walking Flats Shoes",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Shoes",
+        "Flats"
+      ],
+      "profile_tags": [
+        "material",
+        "fit",
+        "comfort",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "comfort"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0197",
+      "split": "held_out",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B07FDNP55K",
+      "target_title": "Watch Band Strap Link Pins Remover Repair Tool,24 in 1 Kit with 6 Extra Tips Replacement,20PCS Cotter Pin,Spring Bar Tool Set,1PCS Head Hammer",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Shoe, Jewelry & Watch Accessories",
+        "Watch Accessories",
+        "Repair Tools & Kits"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "size",
+        "size",
+        "size"
+      ]
+    },
+    {
+      "sample_id": "public_0198",
+      "split": "tuning",
+      "scenario": "intent_override",
+      "difficulty": "hard",
+      "target_parent_asin": "B08K1ZJZ4N",
+      "target_title": "lola mae Quilted Crossbody Bag, Medium Lightweight Shoulder Purse Top Zipper Tassel Accent",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Women",
+        "Handbags & Wallets",
+        "Crossbody Bags"
+      ],
+      "profile_tags": [
+        "material",
+        "durability",
+        "fit",
+        "comfort"
+      ],
+      "profile_tags_present_in_target_text": [
+        "fit"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "color",
+        "feature",
+        "feature"
+      ]
+    },
+    {
+      "sample_id": "public_0199",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B089M57PSQ",
+      "target_title": "Boboking 100% Cotton Little Boys Briefs Soft Dinosaur Truck Toddler Underwear",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Boys",
+        "Clothing",
+        "Underwear",
+        "Briefs"
+      ],
+      "profile_tags": [
+        "material",
+        "fit"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material"
+      ],
+      "derived_clue_attributes": [
+        "material",
+        "feature",
+        "feature",
+        "material"
+      ]
+    },
+    {
+      "sample_id": "public_0200",
+      "split": "held_out",
+      "scenario": "buying",
+      "difficulty": "easy",
+      "target_parent_asin": "B07VFZ2FC2",
+      "target_title": "FUNKYMONKEY Mens Bathroom Shower Slippers Indoor Home Beach Non Slip Sandal",
+      "target_categories": [
+        "Clothing, Shoes & Jewelry",
+        "Men"
+      ],
+      "profile_tags": [
+        "material",
+        "comfort",
+        "fit",
+        "style"
+      ],
+      "profile_tags_present_in_target_text": [
+        "material",
+        "comfort",
+        "style"
+      ],
+      "derived_clue_attributes": [
+        "feature",
+        "feature",
+        "color",
+        "feature"
+      ]
+    }
+  ]
+}
