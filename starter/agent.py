@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tikitaka.orchestration.runtime import build_agent
+from tikitaka.orchestration.runtime import build_submission_agent
 
 
 class Agent:
@@ -13,10 +13,15 @@ class Agent:
             # Uses the API route when a credential is present and the
             # deterministic route otherwise, so the official entry point
             # stays valid with no network.
-            shopping_agent, self.route_id = build_agent(catalog_path)
+            shopping_agent, self.route_id = build_submission_agent(catalog_path)
         else:
             self.route_id = "injected"
         self._shopping_agent = shopping_agent
+        self.retrieval_route_id = getattr(
+            shopping_agent,
+            "retrieval_route_id",
+            "injected",
+        )
 
     def reset(self, session_id: str, user_profile: dict) -> None:
         self._shopping_agent.reset(session_id, user_profile)

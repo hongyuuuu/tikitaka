@@ -55,6 +55,23 @@ class M6ReleaseTests(unittest.TestCase):
             self.assertFalse(any(name.startswith("reports/") for name in names))
             self.assertFalse(manifest["catalog"]["included"])
             self.assertFalse(manifest["runtime"]["network_required"])
+            self.assertTrue(manifest["runtime"]["network_optional"])
+            self.assertEqual(
+                manifest["runtime"]["primary_retrieval_route"],
+                "hybrid/sparse-1/dense-0.5",
+            )
+            self.assertEqual(
+                manifest["dense_index"]["status"],
+                "validated_external_artifact",
+            )
+            self.assertEqual(
+                manifest["frozen_retrieval_config"]["hybrid"]["sparse_weight"],
+                1.0,
+            )
+            self.assertEqual(
+                manifest["frozen_retrieval_config"]["hybrid"]["dense_weight"],
+                0.5,
+            )
             self.assertEqual(
                 manifest["frozen_retrieval_config"]["sparse"]["field_weights"]
                 if "field_weights" in manifest["frozen_retrieval_config"]["sparse"]
@@ -204,6 +221,22 @@ class M6ReleaseTests(unittest.TestCase):
             result = production_dense_measurements(unvalidated)
             self.assertEqual(result["status"], "pending_production_1024_index")
             self.assertIsNone(result["measurements"]["index_bytes"])
+
+    def test_repository_owner_override_selects_validated_hybrid(self) -> None:
+        result = production_dense_measurements()
+
+        self.assertEqual(result["status"], "built_and_selected")
+        self.assertTrue(result["selected_for_release"])
+        self.assertEqual(result["release_retrieval_policy"], "hybrid")
+        self.assertEqual(
+            result["selected_configuration"]["dense_weight"],
+            0.5,
+        )
+        self.assertEqual(result["measurements"]["build_time_ms"], 922000)
+        self.assertEqual(
+            result["measurements"]["embedding_cost_usd"],
+            1.65627956,
+        )
 
 
 if __name__ == "__main__":

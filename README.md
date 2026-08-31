@@ -49,8 +49,10 @@ The command writes per-session results and aggregate metrics to `results.json`.
 With `OPENAI_API_KEY` configured, the default generative route is
 `gpt-5.6-terra` with `medium` reasoning. With no credential or after an API
 failure, the agent remains contract-valid through the deterministic local
-fallback. The committed production-quality evidence remains sparse/structured
-until Person 2 supplies the catalog-pinned 1024-dimensional dense artifact.
+fallback. Set `TIKITAKA_DENSE_ARTIFACT` to the accepted external
+1024-dimensional artifact to activate the selected hybrid retrieval route with
+sparse weight `1.0` and dense weight `0.5`. Missing credentials, an unavailable
+artifact, or a network/TLS failure falls back to sparse/structured retrieval.
 
 The full local test suite and clean, network-denied package audit are:
 

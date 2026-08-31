@@ -23,21 +23,31 @@ an API call fails, execution remains valid through the deterministic
 `heuristic/local` fallback; no local generative LLM is used.
 
 The production dense route is `text-embedding-3-large` at 1024 dimensions. The
-index has been built and validated (50,000 x 1,024, $1.66, index ID
-`dense-285ef587d363de24212f`), but it is **not** the release route: the pinned
-hybrid arm lost to sparse on 140 tuning sessions, so retrieval runs on the
-deterministic sparse/structured route by decision rather than by omission. See
-`reports/p6-production-index-handoff.json`. The generated index is not included
-in this source-only bundle. The index manifest binds the catalog checksum,
-ordered product IDs, text schema, provider, model, route, dimension,
-normalization, and artifact checksums, and mismatches fail closed.
+index has been built and validated (50,000 x 1,024, $1.6563, index ID
+`dense-285ef587d363de24212f`). Although both measured hybrid configurations
+trailed the sparse control on tuning, the owner requires hybrid retrieval for
+the hackathon submission. This override is recorded in
+`reports/p6-hybrid-selection.json` and does not claim a score improvement.
+Set `TIKITAKA_DENSE_ARTIFACT` to the external production artifact directory to
+activate the selected hybrid route. Reciprocal-rank fusion uses sparse weight
+`1.0` and dense weight `0.5`. The generated index is not included in this
+source-only bundle. Without a compatible index or credential, retrieval remains
+valid through the deterministic sparse/structured fallback. The index manifest
+binds the catalog checksum, ordered product IDs, text schema, provider, model,
+route, dimension, normalization, and artifact checksums, and mismatches fail
+closed.
+
+The runtime preserves an explicitly configured `SSL_CERT_FILE`. Otherwise it
+selects an installed trusted CA bundle when available; TLS verification is
+never disabled.
 
 ## Known limitations
 
-- Sparse retrieval is the measured selection, not a degraded stand-in for the
-  dense index; the hybrid arm was tested and lost. It was rejected at one
-  pinned configuration only.
+- The selected hybrid route trails sparse on the measured tuning set and is an
+  explicit hackathon requirement, not a measured quality win.
 - Live API latency, token use, and cost depend on the conversation and provider.
+- Exact dense search over 50,000 1024-dimensional vectors is substantially
+  slower than sparse fallback in the reference Python backend.
 - The frozen catalog is intentionally external to the participant bundle.
 
 See `manifest.json` for the exact code revision, file hashes, frozen retrieval

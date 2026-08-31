@@ -2,9 +2,9 @@
 
 Date: 2026-08-31
 
-Status: all no-cost Person 4 P6 work is complete. The only remaining numerical
-release dependency is Person 2's production 1024-dimensional dense artifact and
-the explicitly approved tuning-only hybrid query run.
+Status: the production 1024-dimensional dense artifact is accepted, the
+tuning-only hybrid comparison is complete, and the owner-selected production
+route is frozen at sparse weight `1.0` and dense weight `0.5`.
 
 ## Completed release work
 
@@ -31,6 +31,16 @@ the explicitly approved tuning-only hybrid query run.
 - The prepared sparse control command was executed on the tuning partition
   only: Hit Rate@10 `0.900000`, MRR `0.502738`, MTTC `5.657143`, Efficiency
   `0.534286`, and TechnicalScore `0.707679`. Held-out remained `not_run`.
+- The owner-selected production hybrid run used 769 query-embedding calls, 53,223
+  input tokens, and estimated cost `$0.006919`: Hit Rate@10 `0.892857`, MRR
+  `0.486071`, MTTC `5.600000`, Efficiency `0.540000`, and TechnicalScore
+  `0.700250`. Held-out remained `not_run`.
+- The earlier apparent equal-weight hybrid result was invalidated: DNS/TLS
+  failures caused every turn to execute `sparse_fallback`, and retrieval usage
+  was zero. It is not used as hybrid evidence.
+- The predeclared gate favored sparse when hybrid lost. The owner subsequently
+  required hybrid for the hackathon, so the valid `1.0/0.5` arm is frozen and
+  its negative tuning deltas are disclosed rather than hidden.
 
 ## Historical accounting gap
 
@@ -70,6 +80,6 @@ API credential. `--allow-api` is required to permit billable trace capture.
 
 ## Remaining dependency
 
-Follow `docs/p6/PERSON_4_PRODUCTION_INDEX_HANDOFF.md` when Person 2 delivers the
-artifact. Do not run paid embedding or model jobs without explicit approval,
-and do not reopen held-out for route selection.
+The external artifact path and `OPENAI_API_KEY` must be present to activate
+hybrid retrieval. Missing or invalid runtime dependencies fail closed to the
+deterministic sparse route. Do not reopen held-out for route selection.

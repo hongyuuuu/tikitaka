@@ -28,6 +28,7 @@ from tikitaka.models.selector import ModelSelector, RoutingInterpreter
 from tikitaka.models.usage import merge
 from tikitaka.orchestration.sessions import SessionRegistry
 from tikitaka.orchestration.shopping_agent import ShoppingAgent
+from tikitaka.orchestration.production_retrieval import select_production_retrieval
 from tikitaka.ranking import (
     DeterministicRanker,
     DeterministicRankerConfig,
@@ -291,6 +292,32 @@ def build_agent(
     return agent, selection.route.route_id
 
 
+def build_submission_agent(
+    catalog_path: str | Path,
+    config: RuntimeConfig | None = None,
+    *,
+    environ: Mapping[str, str] | None = None,
+) -> tuple[ShoppingAgent[SessionState], str]:
+    """Build the official API-primary agent with optional production hybrid retrieval."""
+
+    runtime = config or RuntimeConfig()
+    retrieval = select_production_retrieval(
+        catalog_path,
+        profile_weight=runtime.profile_weight,
+        environ=environ,
+    )
+    selected_runtime = replace(runtime, query_builder=retrieval.query_builder)
+    agent, route_id = build_agent(
+        catalog_path,
+        selected_runtime,
+        environ=environ,
+        retriever=retrieval.retriever,
+    )
+    agent.retrieval_route_id = retrieval.route_id
+    agent.retrieval_failure_code = retrieval.failure_code
+    return agent, route_id
+
+
 def _build_agent(
     catalog_path: str | Path,
     runtime: DeterministicRuntimeConfig,
@@ -332,4 +359,5 @@ __all__ = [
     "VisibleMessageInterpreter",
     "build_agent",
     "build_deterministic_agent",
+    "build_submission_agent",
 ]

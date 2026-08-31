@@ -103,7 +103,35 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--profile-weight", type=float)
     parser.add_argument("--artifact", type=Path)
     parser.add_argument("--embedder-factory")
+    parser.add_argument(
+        "--hybrid-sparse-weight",
+        type=float,
+        help="Per-run sparse RRF weight; valid only for dense/hybrid retrieval.",
+    )
+    parser.add_argument(
+        "--hybrid-dense-weight",
+        type=float,
+        help="Per-run dense RRF weight; valid only for dense/hybrid retrieval.",
+    )
     return parser
+
+
+def _hybrid_config(args: argparse.Namespace) -> HybridConfig | None:
+    if args.retrieval_policy == "sparse":
+        return None
+    defaults = HybridConfig()
+    return HybridConfig(
+        sparse_weight=(
+            defaults.sparse_weight
+            if args.hybrid_sparse_weight is None
+            else args.hybrid_sparse_weight
+        ),
+        dense_weight=(
+            defaults.dense_weight
+            if args.hybrid_dense_weight is None
+            else args.hybrid_dense_weight
+        ),
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -115,6 +143,14 @@ def main(argv: list[str] | None = None) -> int:
         args.artifact is None or args.embedder_factory is None
     ):
         parser.error("dense/hybrid retrieval requires --artifact and --embedder-factory")
+    if args.retrieval_policy == "sparse" and (
+        args.hybrid_sparse_weight is not None or args.hybrid_dense_weight is not None
+    ):
+        parser.error("hybrid weights require dense or hybrid retrieval")
+    try:
+        hybrid_config = _hybrid_config(args)
+    except ValueError as error:
+        parser.error(str(error))
 
     arm = P5ExperimentArm(
         name=args.name,
@@ -150,7 +186,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         embedding_route_id = dense_index.manifest.route_id
         index_id = dense_index.manifest.index_id
-        hybrid = HybridConfig()
+        assert hybrid_config is not None
+        hybrid = hybrid_config
         fusion_parameters = (
             ("rrf_k", float(hybrid.rrf_k)),
             ("sparse_weight", hybrid.sparse_weight),
@@ -221,7 +258,13 @@ def main(argv: list[str] | None = None) -> int:
             dense = load_dense_index(
                 args.artifact, catalog, embedding_route_id=embedding_route_id
             )
-            retriever = HybridRetriever(catalog, dense_index=dense, query_embedder=embedder)
+            assert hybrid_config is not None
+            retriever = HybridRetriever(
+                catalog,
+                dense_index=dense,
+                query_embedder=embedder,
+                config=hybrid_config,
+            )
         if arm.generative_policy == "deterministic":
             runtime = DeterministicRuntimeConfig(
                 profile_weight=arm.selected_profile_weight,

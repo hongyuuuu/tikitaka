@@ -10,14 +10,12 @@ stale category-dependent constraints while retaining still-applicable universal
 constraints such as budget.
 
 The current official entry point retrieves a bounded shortlist from the frozen
-catalog with SQLite FTS5/BM25 plus structured metadata evidence. Candidate IDs
-are catalog-validated, duplicate-free, and limited before output. The dense
-implementation uses a catalog-pinned local float32 index, exact cosine search,
-and reciprocal-rank fusion. The production 1024-dimensional artifact has been
-built and validated, but it is deliberately not the release route: the pinned
-hybrid arm lost to the sparse control on tuning. Evidence and decision are in
-`reports/p6-production-index-handoff.json`. The artifact is not part of this
-source-only bundle.
+catalog with SQLite FTS5/BM25, a catalog-pinned local float32 dense index, exact
+cosine search, structured metadata evidence, and reciprocal-rank fusion. The
+selected hybrid weights are sparse `1.0` and dense `0.5`. Candidate IDs are
+catalog-validated, duplicate-free, and limited before output. The production
+1024-dimensional artifact is supplied externally through
+`TIKITAKA_DENSE_ARTIFACT`; it is not part of this source-only bundle.
 
 The selected generative route is `gpt-5.6-terra` with `medium` reasoning through
 the main API. It interprets intent and reranks only a bounded shortlist. Its
@@ -123,9 +121,21 @@ opened.
 | Questions asked | 448 | 465 | +17 |
 
 Hybrid query embeddings cost $0.007088 over 783 calls and 54,525 tokens, with
-no failed calls and no fallback activations. Sparse retrieval is therefore the
-release route. The artifact remains valid and available for future fusion or
-text-schema tuning; it did not earn selection at this configuration.
+no failed calls and no fallback activations. This original pinned hybrid arm
+did not earn selection on quality.
+
+**Owner-selected hybrid configuration.** A later tuning-only run with sparse
+weight `1.0` and dense weight `0.5` used
+769 query-embedding calls, 53,223 input tokens, and an estimated `$0.006919`.
+Its metrics were Hit Rate@10 `0.892857`, MRR `0.486071`, MTTC `5.600000`,
+Efficiency `0.540000`, and TechnicalScore `0.700250`. Held-out remained
+`not_run`. It also trails the sparse control; hybrid is selected because the
+owner requires it for the hackathon, not because it improved measured quality.
+
+An earlier equal-weight attempt reported Hit Rate@10 `0.892857` and MRR
+`0.501845`, but it recorded zero retrieval calls because DNS/TLS failures sent
+every turn through `sparse_fallback`. It is retained only as failure-path
+diagnostics and is not hybrid quality evidence.
 
 **Fixture hybrid timings** are mechanics evidence only and are not reported as
 production performance.
@@ -136,10 +146,11 @@ production performance.
   public labels, generated dense index, and credentials.
 - Without credentials, semantic interpretation and LLM reranking degrade to a
   deterministic heuristic route.
-- The production dense index exists and validates, but sparse is the selected
-  release route on measured tuning evidence. The hybrid arm was rejected at one
-  pinned configuration; a different fusion weighting or product-text schema was
-  not tested, and held-out was not reopened to look for one.
+- Without a compatible production index, retrieval remains sparse/structured.
+- The selected hybrid tuning result trails the sparse control on Hit Rate@10,
+  MRR, and TechnicalScore. The owner nevertheless requires hybrid retrieval for
+  the hackathon submission; this override is disclosed rather than relabeled as
+  a score improvement.
 - The `medium` API default has no live score or cost claim; all API measurements
   in this report are explicitly historical `xhigh` evidence.
 - Public-set metrics are development evidence and do not predict private-set

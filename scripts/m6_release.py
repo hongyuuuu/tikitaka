@@ -18,7 +18,6 @@ from tikitaka.retrieval.manifests import (
     DENSE_NORMALIZED,
     DENSE_VECTOR_DTYPE,
 )
-from tikitaka.retrieval.hybrid import HybridConfig
 from tikitaka.retrieval.openai_embeddings import (
     DEFAULT_EMBEDDING_MODEL,
     PRODUCTION_EMBEDDING_DIMENSIONS,
@@ -29,10 +28,15 @@ from tikitaka.retrieval.text import (
     DENSE_QUERY_SCHEMA_VERSION,
     PRODUCT_TEXT_SCHEMA_VERSION,
 )
+from tikitaka.orchestration.production_retrieval import (
+    DENSE_ARTIFACT_ENV,
+    PRODUCTION_HYBRID_CONFIG,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DENSE_HANDOFF_REPORT = ROOT / "reports" / "p6-production-index-handoff.json"
+HYBRID_SELECTION_REPORT = ROOT / "reports" / "p6-hybrid-selection.json"
 SCHEMA_VERSION = "m6-submission-manifest-v1"
 MAX_PACKAGE_BYTES = 10 * 1024 * 1024
 MAX_FILE_BYTES = 2 * 1024 * 1024
@@ -211,14 +215,18 @@ def build_manifest(
         "catalog": _catalog_identity(catalog),
         "runtime": {
             "network_required": False,
+            "network_optional": True,
             "optional_credential": "OPENAI_API_KEY",
+            "optional_dense_artifact_environment": DENSE_ARTIFACT_ENV,
             "primary_generative_route": "openai/gpt-5.6-terra/medium",
+            "primary_retrieval_route": "hybrid/sparse-1/dense-0.5",
             "degraded_route": "heuristic/local",
+            "degraded_retrieval_route": "sparse",
             "local_generative_llm": False,
         },
         "dense_index": {
             "included": False,
-            "status": "pending_production_artifact",
+            "status": "validated_external_artifact",
             "provider": "openai",
             "model": DEFAULT_EMBEDDING_MODEL,
             "dimensions": PRODUCTION_EMBEDDING_DIMENSIONS,
@@ -237,7 +245,7 @@ def build_manifest(
             "sparse_tokenizer": "unicode61 remove_diacritics 2",
             "sparse": asdict(SparseIndexConfig()),
             "structured_ranking": asdict(RetrievalConfig()),
-            "hybrid": asdict(HybridConfig()),
+            "hybrid": asdict(PRODUCTION_HYBRID_CONFIG),
         },
         "package_policy": {
             "max_file_bytes": MAX_FILE_BYTES,
@@ -376,6 +384,7 @@ def _describe_path(path: Path) -> str:
 
 def production_dense_measurements(
     report_path: Path = DENSE_HANDOFF_REPORT,
+    selection_report_path: Path | None = None,
 ) -> dict[str, object]:
     """Report the dense-index position from evidence rather than assertion.
 
@@ -418,7 +427,39 @@ def production_dense_measurements(
         return pending
 
     selected = bool(selection.get("production_hybrid_selected"))
+    release_policy = selection.get("release_retrieval_policy")
+    selected_config: dict[str, object] = {}
+    selected_result: dict[str, object] = {}
+    selection_reason = selection.get("reason")
+    if (
+        selection_report_path is None
+        and report_path.resolve() == DENSE_HANDOFF_REPORT.resolve()
+    ):
+        selection_report_path = HYBRID_SELECTION_REPORT
+    if selection_report_path is not None:
+        try:
+            owner_selection = json.loads(selection_report_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            owner_selection = {}
+        candidate_config = owner_selection.get("selected_configuration") or {}
+        if (
+            owner_selection.get("production_hybrid_selected") is True
+            and candidate_config.get("index_id") == artifact.get("index_id")
+        ):
+            selected = True
+            release_policy = owner_selection.get("release_retrieval_policy", "hybrid")
+            selection_reason = owner_selection.get("selection_reason")
+            selected_config = candidate_config
+            selected_result = owner_selection.get("tuning_result") or {}
     seconds = build.get("wall_duration_seconds")
+    selected_metrics = selected_result.get("metrics") or {}
+    selected_score = selected_metrics.get("technical_score")
+    sparse_score = ((comparison.get("overall") or {}).get("technical_score") or {}).get("sparse")
+    selected_delta = (
+        None
+        if selected_score is None or sparse_score is None
+        else round(float(selected_score) - float(sparse_score), 6)
+    )
     return {
         "status": "built_and_selected" if selected else "built_not_selected",
         "evidence": {
@@ -430,14 +471,19 @@ def production_dense_measurements(
         "route_id": artifact.get("route_id"),
         "catalog_sha256": artifact.get("catalog_sha256"),
         "selected_for_release": selected,
-        "release_retrieval_policy": selection.get("release_retrieval_policy"),
+        "release_retrieval_policy": release_policy,
+        "selection_reason": selection_reason,
+        "selected_configuration": selected_config or None,
+        "selected_tuning_result": selected_result or None,
         "measurements": {
             "index_bytes": artifact.get("total_bytes"),
             "build_time_ms": None if seconds is None else int(seconds * 1000),
             "query_time_ms": query_usage.get("latency_ms"),
             "embedding_cost_usd": build.get("unique_artifact_embedding_cost_usd"),
-            "production_hybrid_quality_delta": score.get(
-                "delta_hybrid_minus_sparse"
+            "production_hybrid_quality_delta": (
+                selected_delta
+                if selected_delta is not None
+                else score.get("delta_hybrid_minus_sparse")
             ),
         },
     }
@@ -445,6 +491,7 @@ def production_dense_measurements(
 
 __all__ = [
     "DENSE_HANDOFF_REPORT",
+    "HYBRID_SELECTION_REPORT",
     "production_dense_measurements",
     "ReleaseAuditError",
     "audit_submission_archive",

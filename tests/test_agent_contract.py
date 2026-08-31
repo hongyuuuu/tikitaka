@@ -38,7 +38,10 @@ class AgentContractTest(unittest.TestCase):
         self.assertEqual(response["message"], "delegated")
 
     def test_default_adapter_emits_official_shape_on_tiny_catalog(self) -> None:
-        with patch.dict("os.environ", {"OPENAI_API_KEY": ""}):
+        with patch.dict(
+            "os.environ",
+            {"OPENAI_API_KEY": "", "TIKITAKA_DENSE_ARTIFACT": ""},
+        ):
             agent = Agent("tests/fixtures/tiny_catalog.jsonl")
         self.addCleanup(agent.close)
         agent.reset("session", {
@@ -53,6 +56,7 @@ class AgentContractTest(unittest.TestCase):
         self.assertIsNone(response["ask_attribute"])
         self.assertEqual(response["recommendations"][0]["parent_asin"], "TINY-A")
         self.assertEqual(set(response["usage"]), {"prompt_tokens", "completion_tokens"})
+        self.assertEqual(agent.retrieval_route_id, "sparse")
 
 
 if __name__ == "__main__":

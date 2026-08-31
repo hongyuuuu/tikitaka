@@ -12,7 +12,7 @@ not rebuild or silently repair an artifact that fails identity validation.
 The handoff is incomplete unless all of these are supplied:
 
 - artifact directory outside the repository;
-- `manifest.json`, `ids.json`, and `vectors.f32` produced by the canonical
+- `manifest.json`, `ids.jsonl`, and `vectors.f32` produced by the canonical
   builder;
 - catalog SHA-256
   `da979b05a68af864cb0dcf9ee6a81c010c7e66a57978ad286c7a2e005fc69a67`;
@@ -75,15 +75,17 @@ approval:
 
 ```bash
 python3 scripts/run_experiment.py \
-  --name p6-production-hybrid \
-  --output /tmp/p6-production-hybrid.json \
+  --name p6-production-hybrid-s1-d05 \
+  --output /tmp/p6-production-hybrid-s1-d05.json \
   --retrieval-policy hybrid \
   --generative-policy deterministic \
   --decision-arm conservative-questions-deterministic \
   --profile-weight 0 \
   --stage tuning \
   --artifact /absolute/path/outside/repository/tikitaka-dense-1024 \
-  --embedder-factory tikitaka.retrieval.openai_embeddings:openai_embedder_from_env
+  --embedder-factory tikitaka.retrieval.openai_embeddings:openai_embedder_from_env \
+  --hybrid-sparse-weight 1.0 \
+  --hybrid-dense-weight 0.5
 ```
 
 Do not add `--stage held_out`, `--stage both`, or `--confirm-held-out`.
@@ -101,6 +103,9 @@ Publish, without selecting on held-out:
 - limitations, including that tuning-set gains do not establish private-set
   gains.
 
-If the hybrid arm loses, fails identity checks, or degrades routes, keep sparse
-as the release retrieval route and report the result. Do not alter the frozen
-catalog, evaluator, split, or held-out evidence.
+The original gate required sparse if hybrid lost. After the valid comparison,
+the owner explicitly required hybrid for the hackathon. The frozen release
+route is therefore sparse `1.0` / dense `0.5`, with its negative tuning deltas
+reported. Missing credentials, an invalid artifact, TLS failure, or disabled
+network still fail closed to sparse. Do not alter the frozen catalog,
+evaluator, split, or held-out evidence.
