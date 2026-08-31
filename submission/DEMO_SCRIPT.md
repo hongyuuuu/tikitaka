@@ -16,7 +16,9 @@ number spoken here is in `reports/m6-release-audit.json` or
 - [ ] **Working tree committed** — `git status --porcelain` must print
       nothing. The release build refuses to run on a dirty tree, and a
       clean one puts `code_dirty: false` in the audit you film
-- [ ] `build/` exists (`mkdir build`) — it's gitignored, throwaway
+- [ ] `../tikitaka-release/` exists (`mkdir ../tikitaka-release`). The
+      release tool **refuses to write the archive inside the repository**,
+      so a path like `build/submission.zip` fails immediately
 - [ ] Every command run once already, so nothing is cold
 - [ ] Notifications off; Slack and Discord closed
 - [ ] Recording at 1080p, mic on a separate track
@@ -36,7 +38,7 @@ python -m evaluator.local_evaluator
 ```
 
 ```bash
-python scripts/verify_m6_submission.py --archive build/submission.zip --output build/audit.json
+python scripts/verify_m6_submission.py --archive ../tikitaka-release/submission.zip --output reports/m6-release-audit.json
 ```
 
 ---
