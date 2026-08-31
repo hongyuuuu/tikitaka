@@ -23,10 +23,10 @@
       "heuristic/local"
     ],
     "source_repository_on_import_path": false,
-    "wall_time_ms": 54040.471
+    "wall_time_ms": 53492.452
   },
   "code_dirty": false,
-  "code_revision": "5a2f822a348916c41b41bbe054cbb89a8d56475f",
+  "code_revision": "152993c16ec6de4e7c9112440caf4b6f702893a3",
   "metrics": {
     "efficiency": 0.522,
     "hit_rate_at_10": 0.885,
@@ -70,7 +70,7 @@
     "bytes": 163594,
     "file_count": 69,
     "manifest_schema": "m6-submission-manifest-v1",
-    "sha256": "c38f5cb4673d577cc137a1c39505e34a1ff5a2b21e378636d143f0daf420a8ff",
+    "sha256": "6cb92e6103ec74fe7af7ad61c8423713a835bc3db17a46831c88d692db732eb0",
     "uncompressed_bytes": 549182
   },
   "production_dense_measurements": {
