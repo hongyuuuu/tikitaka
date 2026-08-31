@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.m6_release import production_dense_measurements
 from tikitaka.retrieval.catalog import load_catalog
 from tikitaka.retrieval.dense import load_dense_index
 from tikitaka.retrieval.hybrid import HybridRetriever, HybridRetrievalResult
@@ -21,7 +22,7 @@ from tikitaka.retrieval.request import RetrievalConstraint, RetrievalRequest
 from tikitaka.retrieval.text import DENSE_QUERY_SCHEMA_VERSION, PRODUCT_TEXT_SCHEMA_VERSION
 
 
-SCHEMA_VERSION = "m6-retrieval-traces-v1"
+SCHEMA_VERSION = "m6-retrieval-traces-v2"
 
 
 def _load_embedder(specification: str) -> object:
@@ -263,8 +264,8 @@ def capture(
         "cases": cases,
         "sparse_vs_hybrid": comparison,
         "production_dense_evidence": {
-            "status": "pending_production_1024_index",
             "dimensions": 1024,
+            **production_dense_measurements(),
         },
     }
 

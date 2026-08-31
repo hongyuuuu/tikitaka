@@ -12,9 +12,9 @@ from scripts.m6_release import (
     audit_submission_archive,
     audit_tracked_repository,
     build_submission,
+    production_dense_measurements,
 )
 from scripts.capture_m6_retrieval_traces import trace_requests
-from scripts.verify_m6_submission import production_dense_measurements
 
 
 ROOT = Path(__file__).resolve().parents[1]
